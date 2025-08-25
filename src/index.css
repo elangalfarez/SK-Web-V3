@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .gradient-card {
+    background: #121421;
+  }
+  
+  /* Custom scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #121421;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FFD700;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  }
+  
+  .btn-luxury {
+    background: #5A2E8A;
+    color: white;
+  }
+  
+  .btn-luxury:hover {
+    background: #4A256F;
+    box-shadow: 0 10px 25px rgba(90, 46, 138, 0.2);
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer base {
+  .league-spartan {
+    font-family: 'League Spartan', sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 800;
+    font-style: normal;
+  }
+  
+  .outfit-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-style: normal;
+  }
+}
