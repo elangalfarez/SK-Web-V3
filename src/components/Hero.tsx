@@ -529,11 +529,11 @@ const Hero = () => {
       {/* Custom CSS */}
       <style>{`
         .text-gold {
-          color: #fbbf24;
+          color: #5A2E8A;
         }
         
         .bg-gold {
-          background-color: #fbbf24;
+          background-color: #5A2E8A;
         }
         
         .border-gold\/60 {

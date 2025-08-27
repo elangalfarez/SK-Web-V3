@@ -1,4 +1,4 @@
-// component.tsx
+// src/components/ui/mega-menu.tsx
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -45,7 +45,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
             onMouseLeave={() => handleHover(null)}
           >
             <button
-              className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-4 text-sm text-white transition-colors duration-300 hover:text-royal-purple group"
+              className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-4 text-sm text-primary-text transition-colors duration-300 hover:text-dark-purple group font-medium"
               onMouseEnter={() => setIsHover(navItem.id)}
               onMouseLeave={() => setIsHover(null)}
             >
@@ -60,9 +60,9 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
               {(isHover === navItem.id || openMenu === navItem.label) && (
                 <motion.div
                   layoutId="hover-bg"
-                  className="absolute inset-0 size-full bg-royal-purple/20"
+                  className="absolute inset-0 size-full bg-purple-50 rounded-lg"
                   style={{
-                    borderRadius: 99,
+                    borderRadius: 8,
                   }}
                 />
               )}
@@ -70,50 +70,45 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
 
             <AnimatePresence>
               {openMenu === navItem.label && navItem.subMenus && (
-                <div className={`absolute ${navItem.label === 'Contact' ? 'right-0' : 'left-0'} top-full w-auto pt-2 z-10`}>
+                <div className={`absolute ${navItem.label === 'Contact' ? 
+                  'left-0' : navItem.label === 'Directory' ? 
+                  'left-0' : 'left-1/2 -translate-x-1/2'} 
+                  top-full mt-2 z-50 w-96`}>
                   <motion.div
-                    className="w-max border border-royal-purple/30 bg-primary/95 backdrop-blur-md p-6 shadow-xl"
-                    style={{
-                      borderRadius: 16,
-                    }}
-                    layoutId="menu"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="bg-white rounded-xl shadow-2xl border border-purple-100 overflow-hidden"
                   >
-                    <div className="flex w-fit shrink-0 space-x-9 overflow-hidden">
-                      {navItem.subMenus.map((sub) => (
-                        <motion.div layout className="w-full min-w-[200px]" key={sub.title}>
-                          <h3 className="mb-4 text-sm font-semibold text-royal-purple">
-                            {sub.title}
+                    <div className="p-6">
+                      {navItem.subMenus.map((menu, menuIndex) => (
+                        <div key={menuIndex} className="mb-6 last:mb-0">
+                          <h3 className="text-sm font-semibold text-primary-text mb-3 uppercase tracking-wide">
+                            {menu.title}
                           </h3>
-                          <ul className="space-y-3">
-                            {sub.items.map((item) => {
-                              const Icon = item.icon;
-                              return (
-                                <li key={item.label}>
-                                  <a
-                                    href="#"
-                                    className="flex items-start space-x-3 group p-2 rounded-lg hover:bg-royal-purple/10 transition-colors duration-200"
-                                  >
-                                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-royal-purple/20 text-royal-purple transition-colors duration-300 group-hover:bg-royal-purple group-hover:text-white">
-                                      <Icon className="h-4 w-4 flex-none" />
-                                    </div>
-                                    <div className="w-max leading-5">
-                                      <p className="shrink-0 text-sm font-medium text-white">
-                                        {item.label}
-                                      </p>
-                                      <p className="shrink-0 text-xs text-light-gray transition-colors duration-300 group-hover:text-white">
-                                        {item.description}
-                                      </p>
-                                    </div>
-                                  </a>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </motion.div>
+                          <div className="space-y-1">
+                            {menu.items.map((item, itemIndex) => (
+                              <a
+                                key={itemIndex}
+                                href="#"
+                                className="group flex items-start gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-purple-50"
+                              >
+                                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-royal-purple group-hover:text-white transition-colors">
+                                  <item.icon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-grow min-w-0">
+                                  <h4 className="text-sm font-medium" style={{color: '#000000 !important'}}>
+                                    {item.label}
+                                  </h4>
+                                  <p className="text-xs mt-1 line-clamp-2" style={{color: '#666666 !important'}}>
+                                    {item.description}
+                                  </p>
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </motion.div>

@@ -1,3 +1,4 @@
+/* src/index.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&display=swap');
@@ -8,35 +9,49 @@
 
 @layer utilities {
   .gradient-card {
-    background: #121421;
+    background: #FFFFFF; /* Changed from dark to white */
   }
   
-  /* Custom scrollbar styles */
+  /* UPDATED: Custom scrollbar styles for white/purple theme */
   ::-webkit-scrollbar {
     width: 8px;
   }
   
   ::-webkit-scrollbar-track {
-    background: #121421;
+    background: #F3F4F6; /* Light gray instead of dark */
   }
   
   ::-webkit-scrollbar-thumb {
-    background: #D4AF37;
+    background: #5A2E8A; /* Purple instead of gold */
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: #FFD700;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+    background: #4A256F; /* Dark purple on hover */
+    box-shadow: 0 0 8px rgba(90, 46, 138, 0.4); /* Purple glow */
   }
   
+  /* UPDATED: Button styles for new theme */
   .btn-luxury {
-    background: #5A2E8A;
+    background: #5A2E8A; /* Keep purple */
     color: white;
   }
   
   .btn-luxury:hover {
-    background: #4A256F;
+    background: #4A256F; /* Keep dark purple */
+    box-shadow: 0 10px 25px rgba(90, 46, 138, 0.2);
+  }
+  
+  /* NEW: White theme button variant */
+  .btn-white {
+    background: #FFFFFF;
+    color: #5A2E8A;
+    border: 2px solid #5A2E8A;
+  }
+  
+  .btn-white:hover {
+    background: #5A2E8A;
+    color: #000000;
     box-shadow: 0 10px 25px rgba(90, 46, 138, 0.2);
   }
   
