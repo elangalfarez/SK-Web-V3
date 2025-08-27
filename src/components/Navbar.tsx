@@ -31,7 +31,7 @@ const Navbar = () => {
   }, []);
 
   const megaMenuItems: MegaMenuItem[] = [
-    { id: 1, label: 'Home', link: '#' },
+    { id: 1, label: 'Home', link: '/' },
     {
       id: 2,
       label: 'Directory',
@@ -43,11 +43,13 @@ const Navbar = () => {
               label: 'Mall Directory',
               description: 'Complete list of all stores and services',
               icon: Store,
+              link: '/directory',
             },
             {
               label: 'Merchant List',
               description: 'Find your favorite brands and shops',
               icon: Building,
+              link: '/directory',
             },
             {
               label: 'Floor Plan',
@@ -110,13 +112,13 @@ const Navbar = () => {
   ];
 
   const mobileMenuItems = [
-    { name: 'Home', href: '#' },
+    { name: 'Home', href: '/' },
     {
       name: 'Directory',
-      href: '#',
+      href: '/directory',
       submenu: [
-        { name: 'Mall Directory', href: '#' },
-        { name: 'Merchant List', href: '#' },
+        { name: 'Mall Directory', href: '/directory' },
+        { name: 'Merchant List', href: '/directory' },
         { name: 'Floor Plan', href: '#' }
       ]
     },
@@ -137,6 +139,11 @@ const Navbar = () => {
     setActiveDropdown(activeDropdown === itemName ? null : itemName);
   };
 
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
+    setActiveDropdown(null);
+  };
+
   return (
     <>
       <nav
@@ -150,11 +157,13 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <img
-                src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/LOGO-SK-Tulisan-Putih-scaled.png"
-                alt="Supermal Karawaci"
-                className="h-16 w-auto filter brightness-0"
-              />
+              <a href="/" className="flex items-center">
+                <img
+                  src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/LOGO-SK-Tulisan-Putih-scaled.png"
+                  alt="Supermal Karawaci"
+                  className="h-16 w-auto filter brightness-0"
+                />
+              </a>
             </div>
 
             {/* Desktop Mega Menu */}
@@ -167,6 +176,7 @@ const Navbar = () => {
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="nav-link"
+                aria-label="Toggle mobile menu"
               >
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -212,6 +222,7 @@ const Navbar = () => {
                           <a
                             key={subItem.name}
                             href={subItem.href}
+                            onClick={handleMobileMenuClose}
                             className="block px-4 py-2 text-sm body-text-muted hover:bg-accent-subtle hover:text-accent transition-colors duration-200 rounded-lg"
                           >
                             {subItem.name}
@@ -222,6 +233,7 @@ const Navbar = () => {
                   ) : (
                     <a
                       href={item.href}
+                      onClick={handleMobileMenuClose}
                       className="block px-4 py-2 nav-link rounded-lg"
                     >
                       {item.name}

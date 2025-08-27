@@ -13,11 +13,26 @@ import Facilities from './components/Facilities';
 import VisitorInfo from './components/VisitorInfo';
 import Footer from './components/Footer';
 
-// Main Website Component
-const PublicWebsite: React.FC = () => {
+// Mall Directory Component
+import MallDirectory from './components/MallDirectory';
+
+// Layout Component for consistent navbar/footer
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <div className="pt-20">
+        {children}
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+// Main Website Homepage Component
+const PublicWebsite: React.FC = () => {
+  return (
+    <>
       <Hero />
       <FeaturedTenants />
       <Events />
@@ -25,8 +40,7 @@ const PublicWebsite: React.FC = () => {
       <Facilities />
       <VisitorInfo />
       <About />
-      <Footer />
-    </div>
+    </>
   );
 };
 
@@ -35,8 +49,28 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Website Routes */}
-        <Route path="/*" element={<PublicWebsite />} />
+        {/* Homepage */}
+        <Route 
+          path="/" 
+          element={
+            <Layout>
+              <PublicWebsite />
+            </Layout>
+          } 
+        />
+        
+        {/* Mall Directory Page */}
+        <Route 
+          path="/directory" 
+          element={
+            <Layout>
+              <MallDirectory />
+            </Layout>
+          } 
+        />
+        
+        {/* Fallback to homepage */}
+        <Route path="*" element={<Layout><PublicWebsite /></Layout>} />
       </Routes>
     </Router>
   );
