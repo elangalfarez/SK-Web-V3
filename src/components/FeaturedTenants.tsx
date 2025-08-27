@@ -1,3 +1,4 @@
+// src/components/FeaturedTenants.tsx
 import React from 'react';
 import { Star } from 'lucide-react';
 
@@ -48,13 +49,13 @@ const FeaturedTenants = () => {
   ];
 
   return (
-    <section className="py-12 md:py-20 bg-onyx-gray">
+    <section className="py-12 md:py-20 bg-surface-tertiary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            <span className="text-black">New</span> <span className="text-gold">Openings</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            <span className="heading-primary">New</span> <span className="heading-accent">Openings</span>
           </h2>
-          <p className="text-lg md:text-xl text-white-600 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl body-text max-w-2xl mx-auto">
             Discover new tenants at Supermal Karawaci
           </p>
         </div>
@@ -64,7 +65,7 @@ const FeaturedTenants = () => {
             {tenants.map((tenant, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 w-64 md:w-72 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group"
+                className="flex-shrink-0 w-64 md:w-72 card card-hover group"
               >
                 <div className="relative">
                   <img 
@@ -73,15 +74,15 @@ const FeaturedTenants = () => {
                     className="w-full h-40 md:h-48 object-cover rounded-t-2xl"
                   />
                   {tenant.featured && (
-                    <div className="absolute top-4 right-4 bg-royal-purple text-white px-2 py-1 rounded-full text-sm font-semibold flex items-center">
+                    <div className="absolute top-4 right-4 bg-accent text-text-inverse px-3 py-1 rounded-full text-sm font-semibold flex items-center shadow-lg">
                       <Star className="w-4 h-4 mr-1" />
                       Now Open!
                     </div>
                   )}
                 </div>
                 <div className="p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-bold text-primary mb-2">{tenant.name}</h3>
-                  <p className="text-gray-600 mb-4">{tenant.category}</p>
+                  <h3 className="text-lg md:text-xl font-bold heading-primary mb-2">{tenant.name}</h3>
+                  <p className="body-text-muted mb-4">{tenant.category}</p>
                 </div>
               </div>
             ))}

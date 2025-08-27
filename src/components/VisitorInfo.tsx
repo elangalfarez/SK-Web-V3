@@ -8,8 +8,7 @@ const VisitorInfo = () => {
       icon: Clock,
       title: "Opening Hours",
       content: "Daily: 10:00 AM - 10:00 PM",
-      description: "Extended hours during holidays",
-      action: "View Holiday Hours"
+      description: "Including public holidays",
     },
     {
       icon: MapPin,
@@ -22,29 +21,25 @@ const VisitorInfo = () => {
       icon: Car,
       title: "Parking Information",
       content: "3000+ spaces available",
-      description: "Valet parking and EV charging stations",
-      action: "Find Parking"
+      description: "Valet parking and EV charging stations are also available",
     },
     {
       icon: Wifi,
       title: "Free WiFi",
-      content: "SupermalFreeWiFi",
+      content: "SK Linknet Free WIFI",
       description: "High-speed internet throughout the mall",
-      action: "Connect Now"
     },
     {
       icon: Accessibility,
       title: "Accessibility",
-      content: "Wheelchair accessible",
-      description: "Elevators, ramps, and accessible restrooms",
-      action: "Learn More"
+      content: "Wheelchair & Stroller available",
+      description: "We have wheelchairs and strollers available at each lobby",
     },
     {
       icon: InfoIcon,
       title: "Customer Service VIP",
       content: "Ground Floor, Main Lobby",
-      description: "Lost & found, information, and assistance",
-      action: "Contact Us"
+      description: "VIP Member, lost & found, information, and assistance",
     }
   ];
 

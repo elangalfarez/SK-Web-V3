@@ -1,82 +1,116 @@
 // src/components/ui/mega-menu.tsx
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+'use client';
 
-export type MegaMenuItem = {
+import React, { useState, useRef, useEffect, forwardRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
+
+export interface MegaMenuItem {
   id: number;
   label: string;
+  link?: string;
   subMenus?: {
     title: string;
     items: {
       label: string;
       description: string;
-      icon: React.ElementType;
+      icon: React.ComponentType<{ className?: string }>;
     }[];
   }[];
-  link?: string;
-};
+}
 
-export interface MegaMenuProps extends React.HTMLAttributes<HTMLUListElement> {
+interface MegaMenuProps {
   items: MegaMenuItem[];
   className?: string;
 }
 
-const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
-  ({ items, className, ...props }, ref) => {
-    const [openMenu, setOpenMenu] = React.useState<string | null>(null);
-    const [isHover, setIsHover] = React.useState<number | null>(null);
+const MegaMenu = forwardRef<HTMLUListElement, MegaMenuProps>(
+  ({ items, className = '' }, ref) => {
+    const [activeMenu, setActiveMenu] = useState<string | null>(null);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const closeTimeoutRef = useRef<NodeJS.Timeout>();
 
-    const handleHover = (menuLabel: string | null) => {
-      setOpenMenu(menuLabel);
+    const handleMenuEnter = (label: string) => {
+      // Clear any pending close timeout
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = undefined;
+      }
+
+      // Immediately set this as the active menu (clears all other hover states)
+      setActiveMenu(label);
+      
+      // If this menu has submenus, open the dropdown
+      const hasSubmenus = items.find(item => item.label === label)?.subMenus;
+      if (hasSubmenus) {
+        setOpenDropdown(label);
+      } else {
+        setOpenDropdown(null);
+      }
     };
 
+    const handleMenuLeave = () => {
+      // Clear active menu immediately for visual feedback
+      setActiveMenu(null);
+      
+      // Set timeout to close dropdown (allows moving to submenu)
+      closeTimeoutRef.current = setTimeout(() => {
+        setOpenDropdown(null);
+      }, 150);
+    };
+
+    const handleDropdownEnter = () => {
+      // Cancel close when entering dropdown
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = undefined;
+      }
+    };
+
+    const handleDropdownLeave = () => {
+      // Immediately close everything when leaving dropdown
+      setActiveMenu(null);
+      setOpenDropdown(null);
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = undefined;
+      }
+    };
+
+    useEffect(() => {
+      return () => {
+        if (closeTimeoutRef.current) {
+          clearTimeout(closeTimeoutRef.current);
+        }
+      };
+    }, []);
+
     return (
-      <ul
-        ref={ref}
-        className={`relative flex items-center space-x-0 ${className || ""}`}
-        {...props}
-      >
+      <ul ref={ref} className={`flex items-center space-x-8 ${className}`}>
         {items.map((navItem) => (
-          <li
-            key={navItem.label}
-            className="relative"
-            onMouseEnter={() => handleHover(navItem.label)}
-            onMouseLeave={() => handleHover(null)}
-          >
+          <li key={navItem.id} className="relative">
             <button
-              className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-4 text-sm text-primary-text transition-colors duration-300 hover:text-dark-purple group font-medium overflow-hidden"
-              onMouseEnter={() => setIsHover(navItem.id)}
-              onMouseLeave={() => setIsHover(null)}
+              className={`nav-link flex items-center space-x-1 py-3 px-4 font-medium rounded-xl transition-all duration-200 hover:bg-accent-subtle hover:shadow-md transform hover:-translate-y-0.5 ${
+                activeMenu === navItem.label 
+                  ? 'bg-accent-subtle shadow-md -translate-y-0.5' 
+                  : ''
+              }`}
+              onClick={() => navItem.link && (window.location.href = navItem.link)}
+              onMouseEnter={() => handleMenuEnter(navItem.label)}
+              onMouseLeave={handleMenuLeave}
             >
-              {/* Hover background - positioned BEHIND content with proper z-index */}
-              {(isHover === navItem.id || openMenu === navItem.label) && (
-                <motion.div
-                  layoutId="hover-bg"
-                  className="absolute inset-0 size-full bg-purple-50 rounded-lg -z-10"
-                  style={{
-                    borderRadius: 8,
-                  }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                />
-              )}
-              
-              {/* Text content - positioned ABOVE background with proper z-index */}
-              <span className="relative z-10">{navItem.label}</span>
+              <span>{navItem.label}</span>
               {navItem.subMenus && (
                 <ChevronDown
-                  className={`relative z-10 h-4 w-4 transition-transform duration-300 group-hover:rotate-180 ${
-                    openMenu === navItem.label ? "rotate-180" : ""
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    openDropdown === navItem.label ? "rotate-180" : ""
                   }`}
                 />
               )}
             </button>
 
             <AnimatePresence>
-              {openMenu === navItem.label && navItem.subMenus && (
+              {openDropdown === navItem.label && navItem.subMenus && (
                 <div className={`absolute ${navItem.label === 'Contact' ? 
                   'left-0' : navItem.label === 'Directory' ? 
                   'left-0' : 'left-1/2 -translate-x-1/2'} 
@@ -86,12 +120,14 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="bg-white rounded-xl shadow-2xl border border-purple-100 overflow-hidden"
+                    className="card shadow-2xl overflow-hidden"
+                    onMouseEnter={handleDropdownEnter}
+                    onMouseLeave={handleDropdownLeave}
                   >
                     <div className="p-6">
                       {navItem.subMenus.map((menu, menuIndex) => (
                         <div key={menuIndex} className="mb-6 last:mb-0">
-                          <h3 className="text-sm font-semibold text-primary-text mb-3 uppercase tracking-wide">
+                          <h3 className="text-sm font-semibold heading-primary mb-3 uppercase tracking-wide">
                             {menu.title}
                           </h3>
                           <div className="space-y-1">
@@ -99,16 +135,16 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                               <a
                                 key={itemIndex}
                                 href="#"
-                                className="group flex items-start gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-purple-50"
+                                className="group flex items-start gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-accent-subtle"
                               >
-                                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-royal-purple group-hover:text-white transition-colors">
+                                <div className="flex-shrink-0 w-8 h-8 bg-accent-subtle rounded-lg flex items-center justify-center group-hover:bg-accent group-hover:text-text-inverse transition-colors">
                                   <item.icon className="w-4 h-4" />
                                 </div>
                                 <div className="flex-grow min-w-0">
-                                  <h4 className="text-sm font-medium text-primary-text group-hover:text-primary-text">
+                                  <h4 className="text-sm font-medium heading-primary group-hover:heading-primary">
                                     {item.label}
                                   </h4>
-                                  <p className="text-xs text-gray-600 mt-1 line-clamp-2 group-hover:text-gray-600">
+                                  <p className="text-xs body-text-muted mt-1 line-clamp-2 group-hover:body-text-muted">
                                     {item.description}
                                   </p>
                                 </div>

@@ -1,3 +1,4 @@
+// src/components/FoodDining.tsx
 import React from 'react';
 import { Utensils, Star } from 'lucide-react';
 
@@ -48,13 +49,13 @@ const FoodDining = () => {
   ];
 
   return (
-    <section className="py-12 md:py-20 bg-onyx-gray">
+    <section className="py-12 md:py-20 bg-surface-tertiary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            Culinary <span className="text-gold">Experiences</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold heading-primary mb-4">
+            Culinary <span className="heading-accent">Experiences</span>
           </h2>
-          <p className="text-lg md:text-xl text-white-600 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl body-text max-w-2xl mx-auto">
             From street snacks to fine dining - savor the best flavors all in one place
           </p>
         </div>
@@ -63,7 +64,7 @@ const FoodDining = () => {
           {restaurants.map((restaurant, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group"
+              className="card card-hover group"
             >
               <div className="relative">
                 <img 
@@ -71,24 +72,24 @@ const FoodDining = () => {
                   alt={restaurant.name}
                   className="w-full h-40 md:h-48 object-cover"
                 />
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
-                  <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                  <span className="text-sm font-semibold">{restaurant.rating}</span>
+                <div className="absolute top-4 right-4 bg-surface-secondary/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center border border-border-primary">
+                  <Star className="w-4 h-4 text-warning mr-1" />
+                  <span className="text-sm font-semibold text-text-primary">{restaurant.rating}</span>
                 </div>
               </div>
               
               <div className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg md:text-xl font-bold text-primary">{restaurant.name}</h3>
-                  <span className="text-green-600 font-semibold">{restaurant.priceRange}</span>
+                  <h3 className="text-lg md:text-xl font-bold heading-primary">{restaurant.name}</h3>
+                  <span className="text-success font-semibold">{restaurant.priceRange}</span>
                 </div>
                 
-                <div className="flex items-center text-gray-600 mb-4">
-                  <Utensils className="w-4 h-4 mr-2 text-gold" />
+                <div className="flex items-center body-text-muted mb-4">
+                  <Utensils className="w-4 h-4 mr-2 text-accent" />
                   <span className="text-sm">{restaurant.category}</span>
                 </div>
                 
-                <button className="w-full py-3 bg-primary border border-primary text-white rounded-lg font-semibold hover:bg-royal-purple hover:shadow-lg transition-all duration-300">
+                <button className="w-full btn-primary py-3 rounded-lg font-semibold transition-all duration-300">
                   View Menu
                 </button>
               </div>
@@ -97,7 +98,7 @@ const FoodDining = () => {
         </div>
         
         <div className="text-center mt-12">
-          <button className="px-6 md:px-8 py-3 md:py-4 bg-primary text-white font-semibold rounded-full hover:bg-royal-purple hover:shadow-xl transform hover:scale-105 transition-all duration-300 shadow-lg text-sm md:text-base">
+          <button className="px-6 md:px-8 py-3 md:py-4 btn-primary font-semibold rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg text-sm md:text-base">
             Explore All Restaurants
           </button>
         </div>

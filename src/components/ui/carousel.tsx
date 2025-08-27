@@ -220,7 +220,7 @@ export const EventsCarousel = ({
                   <p className="text-gray-600 mb-4 text-sm leading-relaxed flex-grow">{item.description}</p>
                   
                   <div className="mt-auto">
-                    <button className="w-full flex items-center justify-center py-3 bg-primary border border-gold text-white rounded-lg font-semibold hover:bg-dark-gray hover:shadow-lg transition-all duration-300 group">
+                    <button className="w-full flex items-center justify-center py-3 bg-royal-purple border border-gold text-white rounded-lg font-semibold hover:bg-dark-gray hover:shadow-lg transition-all duration-300 group">
                       Learn More
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </button>

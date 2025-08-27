@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { 
@@ -141,8 +142,8 @@ const Navbar = () => {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-primary/95 backdrop-blur-md shadow-lg'
-            : 'bg-primary shadow-sm'
+            ? 'bg-white/90 backdrop-blur-md shadow-lg border-b border-border-primary'
+            : 'bg-white/95 shadow-sm border-b border-border-secondary'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -152,7 +153,7 @@ const Navbar = () => {
               <img
                 src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/LOGO-SK-Tulisan-Putih-scaled.png"
                 alt="Supermal Karawaci"
-                className="h-16 w-auto"
+                className="h-16 w-auto filter brightness-0"
               />
             </div>
 
@@ -165,7 +166,7 @@ const Navbar = () => {
             <div className="lg:hidden flex justify-end">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-white hover:text-royal-purple transition-colors duration-200"
+                className="nav-link"
               >
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -182,14 +183,14 @@ const Navbar = () => {
               isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
             }`}
           >
-            <div className="py-4 space-y-2 border-t border-royal-purple/30">
+            <div className="py-4 space-y-2 border-t border-border-primary">
               {mobileMenuItems.map((item) => (
                 <div key={item.name}>
                   {item.submenu ? (
                     <div>
                       <button
                         onClick={() => handleDropdownToggle(item.name)}
-                        className="flex items-center justify-between w-full text-left px-4 py-2 text-white hover:bg-royal-purple/10 hover:text-royal-purple transition-colors duration-200 rounded-lg"
+                        className="flex items-center justify-between w-full text-left px-4 py-2 nav-link rounded-lg"
                       >
                         {item.name}
                         <ChevronDown
@@ -211,7 +212,7 @@ const Navbar = () => {
                           <a
                             key={subItem.name}
                             href={subItem.href}
-                            className="block px-4 py-2 text-sm text-light-gray hover:bg-royal-purple/10 hover:text-royal-purple transition-colors duration-200 rounded-lg"
+                            className="block px-4 py-2 text-sm body-text-muted hover:bg-accent-subtle hover:text-accent transition-colors duration-200 rounded-lg"
                           >
                             {subItem.name}
                           </a>
@@ -221,7 +222,7 @@ const Navbar = () => {
                   ) : (
                     <a
                       href={item.href}
-                      className="block px-4 py-2 text-white hover:bg-royal-purple/10 hover:text-royal-purple transition-colors duration-200 rounded-lg"
+                      className="block px-4 py-2 nav-link rounded-lg"
                     >
                       {item.name}
                     </a>
@@ -233,10 +234,10 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Gold decorative lines under navbar */}
+      {/* Accent decorative lines under navbar */}
       <div className="fixed top-20 left-0 right-0 z-40">
-        <div className="h-1 bg-gradient-to-r from-gold via-gold to-gold"></div>
-        <div className="h-0.5 bg-gold/60"></div>
+        <div className="h-1 bg-gradient-to-r from-accent via-accent to-accent"></div>
+        <div className="h-0.5 bg-accent/60"></div>
       </div>
     </>
   );

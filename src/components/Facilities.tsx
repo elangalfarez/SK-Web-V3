@@ -1,3 +1,4 @@
+// src/components/Facilities.tsx
 import React from 'react';
 import { 
   Store, 
@@ -24,9 +25,9 @@ const Facilities = () => {
           <img 
             src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
             alt="Shopping Area"
-            className="w-full h-full object-cover opacity-40" 
+            className="w-full h-full object-cover opacity-70" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
         </div>
       ),
       className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
@@ -42,9 +43,9 @@ const Facilities = () => {
           <img 
             src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/images.jpeg?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
             alt="Parking"
-            className="w-full h-full object-cover opacity-40" 
+            className="w-full h-full object-cover opacity-70" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
         </div>
       ),
       className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
@@ -58,11 +59,11 @@ const Facilities = () => {
       background: (
         <div className="absolute inset-0">
           <img 
-            src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/karawaci-supermall-food-court-corner-area-simple-tangerang-indonesia-july-karawaci-supermall-food-court-corner-area-327678437.webp?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+            src="https://images.unsplash.com/photo-1567521464027-f127ff144326?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
             alt="Food Court"
-            className="w-full h-full object-cover opacity-40" 
+            className="w-full h-full object-cover opacity-70" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
         </div>
       ),
       className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-2",
@@ -76,32 +77,32 @@ const Facilities = () => {
       background: (
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+            src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
             alt="Kids Area"
-            className="w-full h-full object-cover opacity-40" 
+            className="w-full h-full object-cover opacity-70" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
         </div>
       ),
-      className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3",
+      className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-3",
     },
     {
       Icon: Film,
       name: "Cinema",
       description: "Modern movie theaters",
       href: "#",
-      cta: "Check Showtimes",
+      cta: "View Showtimes",
       background: (
         <div className="absolute inset-0">
           <img 
-            src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/supermal-karawaci-xxi-tangerang_430x280.webp?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+            src="https://images.unsplash.com/photo-1489599904593-130265f2085b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
             alt="Cinema"
-            className="w-full h-full object-cover opacity-40" 
+            className="w-full h-full object-cover opacity-70" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
         </div>
       ),
-      className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-3",
+      className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3",
     },
     {
       Icon: Wifi,
@@ -110,7 +111,7 @@ const Facilities = () => {
       href: "#",
       cta: "Connect Now",
       background: (
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/60 to-gold/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800" />
       ),
       className: "lg:col-start-1 lg:col-end-2 lg:row-start-3 lg:row-end-4",
     },
@@ -121,7 +122,7 @@ const Facilities = () => {
       href: "#",
       cta: "Find Location",
       background: (
-        <div className="absolute inset-0 bg-gradient-to-br from-gold/30 to-primary/60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-600 to-gray-800" />
       ),
       className: "lg:col-start-2 lg:col-end-3 lg:row-start-3 lg:row-end-4",
     },
@@ -132,20 +133,20 @@ const Facilities = () => {
       href: "#",
       cta: "Get Help",
       background: (
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/60 to-gold/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-gray-700 to-slate-800" />
       ),
       className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4",
     },
   ];
 
   return (
-    <section className="py-12 md:py-20 bg-primary">
+    <section className="py-12 md:py-20 bg-surface">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            Our <span className="text-gold">Facilities</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            <span className="heading-primary">Our</span> <span className="heading-accent">Facilities</span>
           </h2>
-          <p className="text-lg md:text-xl text-white-600 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl body-text max-w-2xl mx-auto">
             Everything you need for a comfortable shopping experience
           </p>
         </div>
