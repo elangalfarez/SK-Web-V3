@@ -132,7 +132,7 @@ export const CardCarousel: React.FC<CarouselProps> = ({
                   
                   <div className="mt-4">
                   
-                  <button className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-dark-purple hover:shadow-lg hover:shadow-royal-purple/20 transition-all duration-300">
+                  <button className="w-full py-3 bg-royal-purple text-primary rounded-lg font-semibold hover:bg-dark-purple hover:shadow-lg hover:shadow-royal-purple/20 transition-all duration-300">
                     Learn More
                   </button>
                 </div>
