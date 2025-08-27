@@ -7,54 +7,157 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ====== THEME SYSTEM ====== */
+/* Light Theme (White/Purple) - Default */
+:root {
+  /* Surfaces */
+  --color-surface: #FFFFFF;
+  --color-surface-secondary: #FFFFFF;
+  --color-surface-tertiary: #F8FAFC;
+  
+  /* Text */
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #4B5563;
+  --color-text-muted: #6B7280;
+  --color-text-inverse: #FFFFFF;
+  
+  /* Accent */
+  --color-accent: #5A2E8A;
+  --color-accent-hover: #4A256F;
+  --color-accent-light: #8B5FBF;
+  --color-accent-subtle: #F3F0FF;
+  
+  /* Interactive */
+  --color-interactive: #5A2E8A;
+  --color-interactive-hover: #4A256F;
+  --color-interactive-muted: #8B5FBF;
+  
+  /* Borders */
+  --color-border-primary: #E5E7EB;
+  --color-border-secondary: #F3F4F6;
+  --color-border-muted: #F9FAFB;
+  
+  /* Status */
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --color-info: #2563EB;
+}
+
+/* Dark Theme (Black/Gold) - For future use */
+[data-theme="dark"] {
+  /* Surfaces */
+  --color-surface: #1F2937;
+  --color-surface-secondary: #374151;
+  --color-surface-tertiary: #4B5563;
+  
+  /* Text */
+  --color-text-primary: #F9FAFB;
+  --color-text-secondary: #D1D5DB;
+  --color-text-muted: #9CA3AF;
+  --color-text-inverse: #1F2937;
+  
+  /* Accent */
+  --color-accent: #F59E0B;
+  --color-accent-hover: #D97706;
+  --color-accent-light: #FCD34D;
+  --color-accent-subtle: #451A03;
+  
+  /* Interactive */
+  --color-interactive: #F59E0B;
+  --color-interactive-hover: #D97706;
+  --color-interactive-muted: #92400E;
+  
+  /* Borders */
+  --color-border-primary: #4B5563;
+  --color-border-secondary: #374151;
+  --color-border-muted: #1F2937;
+  
+  /* Status */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+}
+
+/* ====== UTILITY CLASSES ====== */
 @layer utilities {
-  .gradient-card {
-    background: #FFFFFF; /* Changed from dark to white */
+  /* Theme-aware gradients */
+  .gradient-surface {
+    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-tertiary) 100%);
   }
   
-  /* UPDATED: Custom scrollbar styles for white/purple theme */
+  .gradient-accent {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+  }
+  
+  .gradient-card {
+    background: var(--color-surface-secondary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Custom scrollbar - theme aware */
   ::-webkit-scrollbar {
     width: 8px;
   }
   
   ::-webkit-scrollbar-track {
-    background: #F3F4F6; /* Light gray instead of dark */
+    background: var(--color-surface-tertiary);
   }
   
   ::-webkit-scrollbar-thumb {
-    background: #5A2E8A; /* Purple instead of gold */
+    background: var(--color-accent);
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: #4A256F; /* Dark purple on hover */
-    box-shadow: 0 0 8px rgba(90, 46, 138, 0.4); /* Purple glow */
+    background: var(--color-accent-hover);
+    box-shadow: 0 0 8px rgba(90, 46, 138, 0.4);
   }
   
-  /* UPDATED: Button styles for new theme */
-  .btn-luxury {
-    background: #5A2E8A; /* Keep purple */
-    color: white;
+  /* Button variants - theme aware */
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-text-inverse);
+    border: 2px solid var(--color-accent);
+    transition: all 0.3s ease;
   }
   
-  .btn-luxury:hover {
-    background: #4A256F; /* Keep dark purple */
+  .btn-primary:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
     box-shadow: 0 10px 25px rgba(90, 46, 138, 0.2);
   }
   
-  /* NEW: White theme button variant */
-  .btn-white {
-    background: #FFFFFF;
-    color: #5A2E8A;
-    border: 2px solid #5A2E8A;
+  .btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
   }
   
-  .btn-white:hover {
-    background: #5A2E8A;
-    color: #000000;
+  .btn-secondary:hover {
+    background: var(--color-accent);
+    color: var(--color-text-inverse);
     box-shadow: 0 10px 25px rgba(90, 46, 138, 0.2);
   }
   
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-accent);
+    border: 2px solid transparent;
+  }
+  
+  .btn-ghost:hover {
+    background: var(--color-accent-subtle);
+    border-color: var(--color-border-primary);
+  }
+  
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Scroll utilities */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -63,8 +166,59 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  
+  /* Animation utilities */
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+  }
+  
+  .animate-on-scroll.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+/* ====== COMPONENT STYLES ====== */
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-surface-secondary border border-border-primary rounded-xl shadow-lg;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-xl hover:-translate-y-2 transition-all duration-300;
+  }
+  
+  /* Navigation styles */
+  .nav-link {
+    @apply text-text-primary hover:text-accent transition-colors duration-200;
+  }
+  
+  .nav-link-active {
+    @apply text-accent font-semibold;
+  }
+  
+  /* Typography */
+  .heading-primary {
+    @apply text-text-primary font-bold tracking-tight;
+  }
+  
+  .heading-accent {
+    @apply text-accent font-bold;
+  }
+  
+  .body-text {
+    @apply text-text-secondary leading-relaxed;
+  }
+  
+  .body-text-muted {
+    @apply text-text-muted;
+  }
+}
+
+/* ====== BASE STYLES ====== */
 @layer base {
   .league-spartan {
     font-family: 'League Spartan', sans-serif;
@@ -77,5 +231,16 @@
     font-family: 'Outfit', sans-serif;
     font-weight: 800;
     font-style: normal;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Base body styles */
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
   }
 }

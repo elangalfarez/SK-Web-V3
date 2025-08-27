@@ -45,25 +45,32 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
             onMouseLeave={() => handleHover(null)}
           >
             <button
-              className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-4 text-sm text-primary-text transition-colors duration-300 hover:text-dark-purple group font-medium"
+              className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-4 text-sm text-primary-text transition-colors duration-300 hover:text-dark-purple group font-medium overflow-hidden"
               onMouseEnter={() => setIsHover(navItem.id)}
               onMouseLeave={() => setIsHover(null)}
             >
-              <span>{navItem.label}</span>
-              {navItem.subMenus && (
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-300 group-hover:rotate-180 ${
-                    openMenu === navItem.label ? "rotate-180" : ""
-                  }`}
-                />
-              )}
+              {/* Hover background - positioned BEHIND content with proper z-index */}
               {(isHover === navItem.id || openMenu === navItem.label) && (
                 <motion.div
                   layoutId="hover-bg"
-                  className="absolute inset-0 size-full bg-purple-50 rounded-lg"
+                  className="absolute inset-0 size-full bg-purple-50 rounded-lg -z-10"
                   style={{
                     borderRadius: 8,
                   }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                />
+              )}
+              
+              {/* Text content - positioned ABOVE background with proper z-index */}
+              <span className="relative z-10">{navItem.label}</span>
+              {navItem.subMenus && (
+                <ChevronDown
+                  className={`relative z-10 h-4 w-4 transition-transform duration-300 group-hover:rotate-180 ${
+                    openMenu === navItem.label ? "rotate-180" : ""
+                  }`}
                 />
               )}
             </button>
@@ -98,10 +105,10 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                                   <item.icon className="w-4 h-4" />
                                 </div>
                                 <div className="flex-grow min-w-0">
-                                  <h4 className="text-sm font-medium" style={{color: '#000000 !important'}}>
+                                  <h4 className="text-sm font-medium text-primary-text group-hover:text-primary-text">
                                     {item.label}
                                   </h4>
-                                  <p className="text-xs mt-1 line-clamp-2" style={{color: '#666666 !important'}}>
+                                  <p className="text-xs text-gray-600 mt-1 line-clamp-2 group-hover:text-gray-600">
                                     {item.description}
                                   </p>
                                 </div>

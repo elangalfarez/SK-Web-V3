@@ -5,30 +5,49 @@ export default {
   theme: {
     extend: {
       colors: {
-        // NEW: White-Purple Theme
-        primary: '#FFFFFF',           // Changed from dark to white
-        'primary-text': '#1F2937',    // NEW: Dark text for white backgrounds
-        'royal-purple': '#5A2E8A',    // Keep existing purple
-        'dark-purple': '#4A256F',     // Keep existing purple
-        'light-purple': '#8B5FBF',    // NEW: Lighter purple for variety
-        'purple-50': '#F3F0FF',       // NEW: Very light purple backgrounds
-        'purple-100': '#E5DEFF',      // NEW: Light purple backgrounds
+        // Semantic Theme System - Can easily switch between themes
+        // Current: Light (White/Purple) Theme
         
-        // Remove/Replace Gold
-        secondary: '#5A2E8A',         // Changed from gold to purple
-        gold: '#5A2E8A',             // Replace gold with purple
+        // Main Surfaces
+        'surface': 'var(--color-surface)',                    // Main backgrounds
+        'surface-secondary': 'var(--color-surface-secondary)', // Cards, panels
+        'surface-tertiary': 'var(--color-surface-tertiary)',   // Subtle backgrounds
         
-        // Keep other colors
-        accent: '#F8FAFC',           // Changed to very light gray
-        'dark-gray': '#1F2937',
-        'light-gray': '#CCCCCC',
-        'chinese-black': '#1F2937',   // Keep for text
-        'charcoal': '#374151',        // Lighter for better contrast
-        'gunmetal': '#6B7280',        // Lighter for better contrast
-        'white-600': '#F9FAFB',
-        'white-700': '#F3F4F6',
-        'onyx-gray': '#F8FAFC',       // Changed to light
-        'black-600': '#374151',       // Lighter for text
+        // Text Colors
+        'text-primary': 'var(--color-text-primary)',         // Main text
+        'text-secondary': 'var(--color-text-secondary)',     // Secondary text
+        'text-muted': 'var(--color-text-muted)',             // Muted text
+        'text-inverse': 'var(--color-text-inverse)',         // Text on dark backgrounds
+        
+        // Accent Colors
+        'accent': 'var(--color-accent)',                     // Primary accent
+        'accent-hover': 'var(--color-accent-hover)',         // Accent hover state
+        'accent-light': 'var(--color-accent-light)',         // Light accent variant
+        'accent-subtle': 'var(--color-accent-subtle)',       // Very subtle accent
+        
+        // Interactive States
+        'interactive': 'var(--color-interactive)',           // Buttons, links
+        'interactive-hover': 'var(--color-interactive-hover)', // Hover states
+        'interactive-muted': 'var(--color-interactive-muted)', // Muted interactive
+        
+        // Borders & Dividers
+        'border-primary': 'var(--color-border-primary)',     // Main borders
+        'border-secondary': 'var(--color-border-secondary)', // Secondary borders
+        'border-muted': 'var(--color-border-muted)',         // Subtle borders
+        
+        // Status & Feedback
+        'success': 'var(--color-success)',
+        'warning': 'var(--color-warning)',
+        'error': 'var(--color-error)',
+        'info': 'var(--color-info)',
+        
+        // Legacy color support (gradually replace these)
+        'primary': 'var(--color-surface)',
+        'secondary': 'var(--color-accent)',
+        'royal-purple': 'var(--color-accent)',
+        'dark-purple': 'var(--color-accent-hover)',
+        'light-purple': 'var(--color-accent-light)',
+        'gold': 'var(--color-accent)',
       },
       fontFamily: {
         sans: ['Figtree', 'sans-serif'],
@@ -38,6 +57,25 @@ export default {
       },
       screens: {
         '3xl': '1600px',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'scale-in': 'scaleIn 0.2s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        scaleIn: {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
       },
     },
   },

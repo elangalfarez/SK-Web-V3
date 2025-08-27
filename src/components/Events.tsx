@@ -90,7 +90,7 @@ const Events = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            Current <span className="text-gold">Events</span>
+            <span className="text-black">Current</span> <span className="text-gold">Events</span>
           </h2>
           <p className="text-lg md:text-xl text-white-600 max-w-2xl mx-auto">
             Don't miss out on our exciting events and exclusive promotions

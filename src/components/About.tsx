@@ -19,7 +19,7 @@ const About = () => {
           {/* Content */}
           <div className="space-y-4 md:space-y-6 mt-8 lg:mt-0">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
-              About <span className="text-gold">Supermal Karawaci</span>
+              <span className="text-black">About</span> <span className="text-gold">Supermal Karawaci</span>
             </h2>
             <p className="text-base md:text-lg text-white-600 leading-relaxed">
               Located in the heart of Tangerang, Supermal Karawaci is a lifestyle and shopping destination featuring hundreds of premium tenants, family-friendly experiences, and iconic events. We bring together the best of Indonesian hospitality with world-class shopping and dining experiences.
