@@ -228,28 +228,89 @@ const PromotionsPage: React.FC = () => {
               className="max-w-xl mx-auto"
             />
 
-            {/* Filter Pills */}
-            <div className="flex flex-wrap items-center gap-4">
-              {/* Mobile filter toggle */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowMobileFilters(!showMobileFilters)}
-                className="md:hidden"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-                <ChevronDown className={cn(
-                  "w-4 h-4 ml-2 transition-transform",
-                  showMobileFilters && "rotate-180"
-                )} />
-              </Button>
+            {/* Filter Pills - Mobile-First Design */}
+            <div className="flex flex-col gap-4">
+              {/* Mobile: Horizontal Scrollable Categories */}
+              <div className="md:hidden">
+                <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+                  {/* Priority categories first for mobile */}
+                  {categories
+                    .filter(category => category && category.id && category.name)
+                    .sort((a, b) => {
+                      // Prioritize F&B, Fashion, Electronics for mobile
+                      const priority = ['Food & Beverages', 'Fashion & Accessories', 'Gadgets & Electronics'];
+                      const aIndex = priority.indexOf(a.name);
+                      const bIndex = priority.indexOf(b.name);
+                      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                      if (aIndex !== -1) return -1;
+                      if (bIndex !== -1) return 1;
+                      return 0;
+                    })
+                    .slice(0, 8) // Show only top 8 on mobile
+                    .map((category) => (
+                      <CategoryPill
+                        key={category.id}
+                        id={category.id}
+                        name={category.name}
+                        displayName={category.display_name || category.name}
+                        count={promotions.filter(p => p?.tenant_category_id === category.id).length}
+                        icon={category.icon || 'store'}
+                        color={category.color || '#5A2E8A'}
+                        isActive={filters.categoryId === category.id}
+                        isSpecial={category.name === 'Food & Beverages'}
+                        onClick={handleCategoryChange}
+                      />
+                    ))}
+                  
+                  {/* "More" button for additional categories */}
+                  {categories.length > 8 && (
+                    <button
+                      onClick={() => setShowMobileFilters(!showMobileFilters)}
+                      className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full bg-surface-secondary border border-border-primary text-text-secondary hover:text-accent transition-colors duration-200"
+                    >
+                      <span className="text-sm font-medium whitespace-nowrap">More</span>
+                      <ChevronDown className={cn(
+                        "w-4 h-4 transition-transform duration-200",
+                        showMobileFilters && "rotate-180"
+                      )} />
+                    </button>
+                  )}
+                </div>
 
-              {/* Desktop filters - Category Pills */}
-              <div className={cn(
-                "hidden md:flex flex-wrap gap-2",
-                showMobileFilters && "flex"
-              )}>
+                {/* Expandable Additional Categories */}
+                {showMobileFilters && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden mt-4"
+                  >
+                    <div className="grid grid-cols-2 gap-2 p-4 bg-surface-tertiary rounded-xl">
+                      {categories
+                        .filter(category => category && category.id && category.name)
+                        .slice(8) // Remaining categories
+                        .map((category) => (
+                          <CategoryPill
+                            key={category.id}
+                            id={category.id}
+                            name={category.name}
+                            displayName={category.display_name || category.name}
+                            count={promotions.filter(p => p?.tenant_category_id === category.id).length}
+                            icon={category.icon || 'store'}
+                            color={category.color || '#5A2E8A'}
+                            isActive={filters.categoryId === category.id}
+                            isSpecial={category.name === 'Food & Beverages'}
+                            onClick={handleCategoryChange}
+                          />
+                        ))}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Desktop: Full Category Display */}
+              <div className="hidden md:flex flex-wrap gap-2">
                 {categories.filter(category => category && category.id && category.name).map((category) => (
                   <CategoryPill
                     key={category.id}
@@ -268,32 +329,38 @@ const PromotionsPage: React.FC = () => {
 
               {/* Clear filters */}
               {(filters.search || filters.categoryId) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="text-text-muted hover:text-accent ml-auto"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Clear
-                </Button>
+                <div className="flex justify-center md:justify-start">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="text-text-muted hover:text-accent"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Clear all filters
+                  </Button>
+                </div>
               )}
             </div>
 
-            {/* Active filters summary */}
+            {/* Active filters summary - Mobile optimized */}
             {(filters.search || filters.categoryId) && (
-              <div className="flex items-center gap-2 text-sm text-text-muted">
-                <span>Showing {filteredPromotions.length} promotions</span>
-                {filters.search && (
-                  <Badge variant="outline" className="text-xs">
-                    "{filters.search}"
-                  </Badge>
-                )}
-                {filters.categoryId && (
-                  <Badge variant="outline" className="text-xs">
-                    {categories.find(c => c.id === filters.categoryId)?.display_name}
-                  </Badge>
-                )}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-text-muted">
+                <span className="font-medium">
+                  Showing {filteredPromotions.length} promotion{filteredPromotions.length !== 1 ? 's' : ''}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {filters.search && (
+                    <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/20">
+                      "{filters.search}"
+                    </Badge>
+                  )}
+                  {filters.categoryId && (
+                    <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/20">
+                      {categories.find(c => c.id === filters.categoryId)?.display_name}
+                    </Badge>
+                  )}
+                </div>
               </div>
             )}
           </motion.div>
