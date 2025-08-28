@@ -16,6 +16,9 @@ import Footer from './components/Footer';
 // Mall Directory Component
 import MallDirectory from './components/MallDirectory';
 
+// Promotions component
+import PromotionsPage from './components/PromotionsPage';
+
 // Layout Component for consistent navbar/footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -65,6 +68,16 @@ function App() {
           element={
             <Layout>
               <MallDirectory />
+            </Layout>
+          } 
+        />
+
+         {/* Promotions Page */}
+        <Route 
+          path="/promotions" 
+          element={
+            <Layout>
+              <PromotionsPage />
             </Layout>
           } 
         />

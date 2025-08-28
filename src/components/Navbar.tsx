@@ -46,12 +46,6 @@ const Navbar = () => {
               link: '/directory',
             },
             {
-              label: 'Merchant List',
-              description: 'Find your favorite brands and shops',
-              icon: Building,
-              link: '/directory',
-            },
-            {
               label: 'Floor Plan',
               description: 'Interactive mall map and navigation',
               icon: MapPin,
@@ -82,7 +76,6 @@ const Navbar = () => {
       ],
     },
     { id: 4, label: 'VIP Card', link: '#' },
-    { id: 5, label: 'CSR', link: '#' },
     {
       id: 6,
       label: 'Contact',
@@ -94,11 +87,6 @@ const Navbar = () => {
               label: 'Contact Info',
               description: 'Phone, email, and location details',
               icon: Phone,
-            },
-            {
-              label: 'Customer Service',
-              description: '24/7 support and assistance',
-              icon: Users,
             },
             {
               label: 'Feedback',
@@ -118,7 +106,6 @@ const Navbar = () => {
       href: '/directory',
       submenu: [
         { name: 'Mall Directory', href: '/directory' },
-        { name: 'Merchant List', href: '/directory' },
         { name: 'Floor Plan', href: '#' }
       ]
     },
@@ -131,7 +118,6 @@ const Navbar = () => {
       ]
     },
     { name: 'VIP Card', href: '#' },
-    { name: 'CSR', href: '#' },
     { name: 'Contact', href: '#' }
   ];
 
