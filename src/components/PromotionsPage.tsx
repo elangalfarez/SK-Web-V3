@@ -1,5 +1,5 @@
 // src/components/PromotionsPage.tsx
-// Modified: updated to use new category components, removed hardcoded colors and special cases
+// Modified: updated imports to use consolidated supabase client, unified category fetching with MallDirectory
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
@@ -9,7 +9,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-import { supabase, PromotionWithTenant, TenantCategory } from '@/lib/supabase';
+import { supabase, PromotionWithTenant, TenantCategory, fetchTenantCategories } from '@/lib/supabase';
 import { SearchInput } from '@/components/ui/search-input';
 import { CategoryPillList, Category } from '@/components/ui/category-pill-list';
 import { CategoryFilterDrawer } from '@/components/ui/category-filter-drawer';
@@ -69,14 +69,10 @@ const PromotionsPage: React.FC = () => {
 
       if (promotionsError) throw promotionsError;
 
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('tenant_categories')
-        .select('*')
-        .order('sort_order');
+      // Fetch categories using the unified function
+      const categoriesData = await fetchTenantCategories();
 
-      if (categoriesError) throw categoriesError;
-
+      setPromotions(promotionsData || []);
       setPromotions(promotionsData || []);
       setCategories(categoriesData || []);
     } catch (err) {
@@ -87,9 +83,16 @@ const PromotionsPage: React.FC = () => {
     }
   };
 
-  // Transform categories to match our Category interface
+  // Transform categories to match our Category interface (same as MallDirectory)
   const transformedCategories = useMemo((): Category[] => {
-    return categories
+    const allCategory: Category = {
+      id: '',
+      name: 'All Categories',
+      count: promotions.length,
+      icon: 'store'
+    };
+
+    const categoriesWithCounts = categories
       .filter(category => category && category.id && category.name)
       .map(category => ({
         id: category.id,
@@ -97,6 +100,8 @@ const PromotionsPage: React.FC = () => {
         count: promotions.filter(p => p?.tenant_category_id === category.id).length,
         icon: category.icon || 'store'
       }));
+
+    return [allCategory, ...categoriesWithCounts];
   }, [categories, promotions]);
 
   // Filter promotions based on current filters - only active promotions

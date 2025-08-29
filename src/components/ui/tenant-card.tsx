@@ -1,7 +1,9 @@
 // src/components/ui/tenant-card.tsx
+// Modified: fixed JSON object handling to prevent React rendering errors
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Clock, Star, Sparkles, Building2 } from 'lucide-react';
+import { MapPin, Clock, Star, Sparkles } from 'lucide-react';
+import { parseOperatingHours } from '@/lib/supabase';
 
 interface Tenant {
   id: string;
@@ -14,7 +16,7 @@ interface Tenant {
   is_featured: boolean;
   is_new_tenant: boolean;
   description?: string;
-  operating_hours?: string;
+  operating_hours?: any; // Can be JSON object or string
 }
 
 interface TenantCardProps {
@@ -26,30 +28,19 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const formatFloor = (floor: string) => {
-    switch (floor.toUpperCase()) {
+  const formatFloor = (floor: string): string => {
+    switch (floor?.toUpperCase()) {
       case 'FF': return 'First Floor';
       case 'SF': return 'Second Floor';
       case 'TF': return 'Third Floor';
       case 'UG': return 'Underground';
       case 'GF': return 'Ground Floor';
-      default: return floor;
+      default: return floor || 'Floor TBD';
     }
   };
 
-  const formatOperatingHours = (hours?: string) => {
-    if (!hours) return 'See store for hours';
-    
-    try {
-      const parsed = JSON.parse(hours);
-      if (parsed['mon-sun']) {
-        return parsed['mon-sun'];
-      }
-      return 'See store for hours';
-    } catch {
-      return hours;
-    }
-  };
+  // Use the safe parsing function from supabase client
+  const operatingHours = parseOperatingHours(tenant.operating_hours);
 
   return (
     <motion.div
@@ -58,7 +49,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
       onClick={onClick}
       className={`
         bg-surface-secondary rounded-2xl overflow-hidden shadow-lg hover:shadow-xl
-        transition-all duration-300 cursor-pointer border border-border-primary
+        transition-all duration-300 border border-border-primary
         hover:border-accent/20 group relative
         ${onClick ? 'cursor-pointer' : 'cursor-default'}
       `}
@@ -69,7 +60,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
           <div className="relative w-full h-full">
             <img
               src={tenant.logo_url}
-              alt={tenant.name}
+              alt={tenant.name || 'Store logo'}
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
               className={`
@@ -85,7 +76,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface-tertiary to-surface-secondary">
             <div className="text-4xl font-bold text-text-muted/30 group-hover:text-accent/40 transition-colors duration-300">
-              {tenant.name.charAt(0).toUpperCase()}
+              {(tenant.name || tenant.brand_name || 'S').charAt(0).toUpperCase()}
             </div>
           </div>
         )}
@@ -129,9 +120,9 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
         {/* Store Name */}
         <div>
           <h3 className="font-bold text-lg text-text-primary leading-tight group-hover:text-accent transition-colors duration-200">
-            {tenant.brand_name || tenant.name}
+            {tenant.brand_name || tenant.name || 'Unnamed Store'}
           </h3>
-          {tenant.brand_name && tenant.brand_name !== tenant.name && (
+          {tenant.brand_name && tenant.brand_name !== tenant.name && tenant.name && (
             <p className="text-sm text-text-muted mt-1">{tenant.name}</p>
           )}
         </div>
@@ -166,7 +157,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
           <div className="flex items-center gap-1.5 text-text-muted">
             <Clock className="h-4 w-4" />
             <span className="text-sm">
-              {formatOperatingHours(tenant.operating_hours)}
+              {operatingHours}
             </span>
           </div>
         </div>
