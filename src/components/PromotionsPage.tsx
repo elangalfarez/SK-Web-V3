@@ -1,5 +1,5 @@
 // src/components/PromotionsPage.tsx
-// Modified: updated imports to use consolidated supabase client, unified category fetching with MallDirectory
+// Modified: removed "All Categories" pill creation, replaced SearchInput with unified component
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
@@ -73,7 +73,6 @@ const PromotionsPage: React.FC = () => {
       const categoriesData = await fetchTenantCategories();
 
       setPromotions(promotionsData || []);
-      setPromotions(promotionsData || []);
       setCategories(categoriesData || []);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -83,16 +82,9 @@ const PromotionsPage: React.FC = () => {
     }
   };
 
-  // Transform categories to match our Category interface (same as MallDirectory)
+  // Transform categories to match our Category interface (no synthetic "All Categories" pill)
   const transformedCategories = useMemo((): Category[] => {
-    const allCategory: Category = {
-      id: '',
-      name: 'All Categories',
-      count: promotions.length,
-      icon: 'store'
-    };
-
-    const categoriesWithCounts = categories
+    return categories
       .filter(category => category && category.id && category.name)
       .map(category => ({
         id: category.id,
@@ -100,9 +92,16 @@ const PromotionsPage: React.FC = () => {
         count: promotions.filter(p => p?.tenant_category_id === category.id).length,
         icon: category.icon || 'store'
       }));
-
-    return [allCategory, ...categoriesWithCounts];
   }, [categories, promotions]);
+
+  // Dynamic placeholder based on active category
+  const searchPlaceholder = useMemo(() => {
+    if (filters.categoryId) {
+      const categoryName = transformedCategories.find(c => c.id === filters.categoryId)?.name;
+      return categoryName ? `Search in ${categoryName} promotions...` : 'Search promotions...';
+    }
+    return 'Search promotions...';
+  }, [filters.categoryId, transformedCategories]);
 
   // Filter promotions based on current filters - only active promotions
   const filteredPromotions = useMemo(() => {
@@ -229,16 +228,13 @@ const PromotionsPage: React.FC = () => {
             transition={{ delay: 0.3 }}
             className="space-y-4"
           >
-            {/* Search Bar */}
+            {/* Search Bar - Using unified SearchInput with contained width for filters section */}
             <SearchInput
               value={filters.search}
               onChange={handleSearchChange}
-              placeholder={
-                filters.categoryId
-                  ? "Search within category promotions..."
-                  : "Search promotions..."
-              }
-              className="max-w-xl mx-auto"
+              placeholder={searchPlaceholder}
+              className="max-w-2xl mx-auto"
+              debounceMs={300}
             />
 
             {/* Category Filter Pills */}

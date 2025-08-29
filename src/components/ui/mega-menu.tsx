@@ -9,12 +9,15 @@ export interface MegaMenuItem {
   id: number;
   label: string;
   link?: string;
+  href?: string;
   subMenus?: {
     title: string;
     items: {
       label: string;
       description: string;
       icon: React.ComponentType<{ className?: string }>;
+      href?: string;
+      link?: string;
     }[];
   }[];
 }
@@ -134,7 +137,7 @@ const MegaMenu = forwardRef<HTMLUListElement, MegaMenuProps>(
                             {menu.items.map((item, itemIndex) => (
                               <a
                                 key={itemIndex}
-                                href="#"
+                                href={item.href ?? '#'} 
                                 className="group flex items-start gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-accent-subtle"
                               >
                                 <div className="flex-shrink-0 w-8 h-8 bg-accent-subtle rounded-lg flex items-center justify-center group-hover:bg-accent group-hover:text-text-inverse transition-colors">

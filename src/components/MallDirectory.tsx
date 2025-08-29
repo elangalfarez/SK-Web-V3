@@ -1,5 +1,5 @@
 // src/components/MallDirectory.tsx
-// Modified: replaced mock data with useTenants hook, added server pagination, Load More, and ErrorBoundary
+// Modified: replaced hardcoded search input with unified SearchInput component, consistent sizing with PromotionsPage
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Sparkles } from 'lucide-react';
@@ -10,6 +10,7 @@ import { Button } from './ui/button';
 import { LoadingSpinner } from './ui/loading-spinner';
 import { MallDirectorySkeleton, TenantGridSkeleton } from './ui/skeletons/tenant-card-skeleton';
 import { ErrorBoundary } from './ui/error-boundary';
+import { SearchInput } from './ui/search-input';
 import { useTenants } from '@/lib/hooks/useTenants';
 import { cn } from '@/lib/utils';
 
@@ -56,18 +57,39 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
 
   // UI state
   const [showCategoryDrawer, setShowCategoryDrawer] = React.useState(false);
-  const [isSearchFocused, setIsSearchFocused] = React.useState(false);
   const [loadingMore, setLoadingMore] = React.useState(false);
 
-  // Transform categories to match CategoryPillList interface
+  // Transform categories to match CategoryPillList interface (filter out synthetic "All Categories")
   const transformedCategories = useMemo((): Category[] => {
-    return categories.map(category => ({
-      id: category.id,
-      name: category.display_name || category.name,
-      count: category.tenant_count,
-      icon: category.icon || 'store'
-    }));
+    return categories
+      .filter(category => category.id !== 'all') // Remove synthetic "All Categories" 
+      .map(category => ({
+        id: category.id,
+        name: category.display_name || category.name,
+        count: category.tenant_count,
+        icon: category.icon || 'store'
+      }));
   }, [categories]);
+
+  // Custom category change handler with toggle logic (like PromotionsPage)
+  const handleCategoryChange = (categoryId: string) => {
+    if (activeCategory === categoryId) {
+      // If clicking the same category, deselect it (show all)
+      setActiveCategory('all');
+    } else {
+      // Select the new category
+      setActiveCategory(categoryId);
+    }
+  };
+
+  // Dynamic placeholder based on active category
+  const searchPlaceholder = useMemo(() => {
+    if (activeCategory && activeCategory !== 'all') {
+      const categoryName = transformedCategories.find(c => c.id === activeCategory)?.name;
+      return categoryName ? `Search in ${categoryName}...` : 'Search for stores, brands, or categories...';
+    }
+    return 'Search for stores, brands, or categories...';
+  }, [activeCategory, transformedCategories]);
 
   // Handle load more with loading state
   const handleLoadMore = async () => {
@@ -160,41 +182,14 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
             </p>
           </motion.div>
 
-          {/* Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative mb-8"
-          >
-            <div className={cn(
-              'relative transition-all duration-300',
-              isSearchFocused && 'transform scale-[1.02]'
-            )}>
-              <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                <Search className={cn(
-                  'h-5 w-5 transition-colors duration-200',
-                  isSearchFocused ? 'text-accent' : 'text-text-muted'
-                )} />
-              </div>
-              <input
-                type="text"
-                placeholder="Search for stores, brands, or categories..."
-                value={search || ''}
-                onChange={(e) => setSearch(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                className={cn(
-                  'w-full pl-14 pr-6 py-4 bg-surface-secondary border-2 rounded-2xl text-lg',
-                  'placeholder:text-text-muted text-text-primary transition-all duration-200',
-                  'focus:outline-none focus:border-accent focus:bg-surface focus:shadow-lg',
-                  isSearchFocused 
-                    ? 'border-accent shadow-lg' 
-                    : 'border-border-primary hover:border-border-secondary'
-                )}
-              />
-            </div>
-          </motion.div>
+          {/* Search Bar - Using unified SearchInput with full width */}
+          <SearchInput
+            value={search || ''}
+            onChange={setSearch}
+            placeholder={searchPlaceholder}
+            className="mb-8"
+            debounceMs={300}
+          />
 
           {/* Category Filters */}
           <motion.div
@@ -205,8 +200,8 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
           >
             <CategoryPillList
               categories={transformedCategories}
-              activeCategory={activeCategory || 'all'}
-              onCategoryChange={setActiveCategory}
+              activeCategory={activeCategory === 'all' ? '' : activeCategory}
+              onCategoryChange={handleCategoryChange}
               onFilterClick={() => setShowCategoryDrawer(true)}
               maxVisibleMobile={5}
               showFilterButton={true}
@@ -384,8 +379,8 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
             isOpen={showCategoryDrawer}
             onClose={() => setShowCategoryDrawer(false)}
             categories={transformedCategories}
-            activeCategory={activeCategory || 'all'}
-            onCategoryChange={setActiveCategory}
+            activeCategory={activeCategory === 'all' ? '' : activeCategory}
+            onCategoryChange={handleCategoryChange}
             searchPlaceholder="Search store categories..."
           />
         </div>

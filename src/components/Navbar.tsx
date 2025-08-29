@@ -43,7 +43,7 @@ const Navbar = () => {
               label: 'Mall Directory',
               description: 'Complete list of all stores and services',
               icon: Store,
-              link: '/directory',
+              href: '/directory',
             },
             {
               label: 'Floor Plan',
@@ -65,6 +65,7 @@ const Navbar = () => {
               label: 'Promotions',
               description: 'Latest deals and special offers',
               icon: Gift,
+              href: '/promotions',
             },
             {
               label: 'Events',
