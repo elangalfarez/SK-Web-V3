@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"    # <-- [Inference] assumes npm script "build" runs Vite build
+  publish = "dist"             # <-- [Inference] Vite default output dir is "dist"
+
+# Ensure every path serves index.html so client-side routing works
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
