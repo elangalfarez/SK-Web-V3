@@ -1,7 +1,8 @@
 // src/components/PromotionsPage.tsx
+// Modified: updated to use new category components, removed hardcoded colors and special cases
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, ChevronDown, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -10,10 +11,11 @@ import 'swiper/css/navigation';
 
 import { supabase, PromotionWithTenant, TenantCategory } from '@/lib/supabase';
 import { SearchInput } from '@/components/ui/search-input';
-import { CategoryPill } from '@/components/ui/category-pill';
+import { CategoryPillList, Category } from '@/components/ui/category-pill-list';
+import { CategoryFilterDrawer } from '@/components/ui/category-filter-drawer';
 import { PromotionCard } from '@/components/ui/promotion-card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { LoadingSpinner, PageLoader, InlineLoader } from '@/components/ui/loading-spinner';
+import { LoadingSpinner, PageLoader } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -46,7 +48,7 @@ const PromotionsPage: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
 
   // UI state
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
 
   // Fetch initial data
   useEffect(() => {
@@ -85,6 +87,18 @@ const PromotionsPage: React.FC = () => {
     }
   };
 
+  // Transform categories to match our Category interface
+  const transformedCategories = useMemo((): Category[] => {
+    return categories
+      .filter(category => category && category.id && category.name)
+      .map(category => ({
+        id: category.id,
+        name: category.display_name || category.name,
+        count: promotions.filter(p => p?.tenant_category_id === category.id).length,
+        icon: category.icon || 'store'
+      }));
+  }, [categories, promotions]);
+
   // Filter promotions based on current filters - only active promotions
   const filteredPromotions = useMemo(() => {
     return promotions.filter(promotion => {
@@ -101,7 +115,6 @@ const PromotionsPage: React.FC = () => {
 
       // Category filter
       if (filters.categoryId) {
-        // If F&B category is selected, search within that category scope
         if (promotion.tenant_category_id !== filters.categoryId) return false;
       }
 
@@ -111,7 +124,6 @@ const PromotionsPage: React.FC = () => {
 
   // Separate featured and regular promotions
   const featuredPromotions = useMemo(() => {
-    // Get first few promotions as featured, or promotions with specific criteria
     return filteredPromotions.slice(0, FEATURED_LIMIT);
   }, [filteredPromotions]);
 
@@ -126,9 +138,6 @@ const PromotionsPage: React.FC = () => {
   }, [regularPromotions, currentPage]);
 
   const hasMorePages = currentPage * ITEMS_PER_PAGE < regularPromotions.length;
-
-  // Get Food & Beverages category for special handling
-  const fbCategory = categories.find(cat => cat?.name === 'Food & Beverages');
 
   // Handle filter changes
   const handleSearchChange = (search: string) => {
@@ -163,7 +172,6 @@ const PromotionsPage: React.FC = () => {
   const handlePromotionClick = (promotion: PromotionWithTenant) => {
     // For now, just log - could implement modal or navigation
     console.log('Clicked promotion:', promotion);
-    // Could open promotion detail modal or navigate to detail page
   };
 
   if (loading) {
@@ -197,17 +205,17 @@ const PromotionsPage: React.FC = () => {
             className="text-center"
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="heading-primary">What's On</span>{' '}
-              <span className="heading-accent">(Promotions)</span>
+              <span className="text-text-primary">What's On</span>{' '}
+              <span className="text-accent">(Promotions)</span>
             </h1>
-            <p className="text-lg md:text-xl body-text max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto">
               Discover amazing deals and special offers from our tenants
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Filters Section - Moved to top */}
+      {/* Filters Section - Mobile-first sticky header */}
       <section className="py-8 bg-surface-secondary border-y border-border-primary sticky top-0 z-40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -221,129 +229,41 @@ const PromotionsPage: React.FC = () => {
               value={filters.search}
               onChange={handleSearchChange}
               placeholder={
-                filters.categoryId && fbCategory?.id === filters.categoryId
-                  ? "Search Food & Beverages promotions..."
+                filters.categoryId
+                  ? "Search within category promotions..."
                   : "Search promotions..."
               }
               className="max-w-xl mx-auto"
             />
 
-            {/* Filter Pills - Mobile-First Design */}
-            <div className="flex flex-col gap-4">
-              {/* Mobile: Horizontal Scrollable Categories */}
-              <div className="md:hidden">
-                <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
-                  {/* Priority categories first for mobile */}
-                  {categories
-                    .filter(category => category && category.id && category.name)
-                    .sort((a, b) => {
-                      // Prioritize F&B, Fashion, Electronics for mobile
-                      const priority = ['Food & Beverages', 'Fashion & Accessories', 'Gadgets & Electronics'];
-                      const aIndex = priority.indexOf(a.name);
-                      const bIndex = priority.indexOf(b.name);
-                      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-                      if (aIndex !== -1) return -1;
-                      if (bIndex !== -1) return 1;
-                      return 0;
-                    })
-                    .slice(0, 8) // Show only top 8 on mobile
-                    .map((category) => (
-                      <CategoryPill
-                        key={category.id}
-                        id={category.id}
-                        name={category.name}
-                        displayName={category.display_name || category.name}
-                        count={promotions.filter(p => p?.tenant_category_id === category.id).length}
-                        icon={category.icon || 'store'}
-                        color={category.color || '#5A2E8A'}
-                        isActive={filters.categoryId === category.id}
-                        isSpecial={category.name === 'Food & Beverages'}
-                        onClick={handleCategoryChange}
-                      />
-                    ))}
-                  
-                  {/* "More" button for additional categories */}
-                  {categories.length > 8 && (
-                    <button
-                      onClick={() => setShowMobileFilters(!showMobileFilters)}
-                      className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full bg-surface-secondary border border-border-primary text-text-secondary hover:text-accent transition-colors duration-200"
-                    >
-                      <span className="text-sm font-medium whitespace-nowrap">More</span>
-                      <ChevronDown className={cn(
-                        "w-4 h-4 transition-transform duration-200",
-                        showMobileFilters && "rotate-180"
-                      )} />
-                    </button>
-                  )}
-                </div>
+            {/* Category Filter Pills */}
+            <CategoryPillList
+              categories={transformedCategories}
+              activeCategory={filters.categoryId}
+              onCategoryChange={handleCategoryChange}
+              onFilterClick={() => setShowCategoryDrawer(true)}
+              maxVisibleMobile={6}
+              showFilterButton={true}
+              pillSize="md"
+              showCounts={true}
+            />
 
-                {/* Expandable Additional Categories */}
-                {showMobileFilters && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden mt-4"
-                  >
-                    <div className="grid grid-cols-2 gap-2 p-4 bg-surface-tertiary rounded-xl">
-                      {categories
-                        .filter(category => category && category.id && category.name)
-                        .slice(8) // Remaining categories
-                        .map((category) => (
-                          <CategoryPill
-                            key={category.id}
-                            id={category.id}
-                            name={category.name}
-                            displayName={category.display_name || category.name}
-                            count={promotions.filter(p => p?.tenant_category_id === category.id).length}
-                            icon={category.icon || 'store'}
-                            color={category.color || '#5A2E8A'}
-                            isActive={filters.categoryId === category.id}
-                            isSpecial={category.name === 'Food & Beverages'}
-                            onClick={handleCategoryChange}
-                          />
-                        ))}
-                    </div>
-                  </motion.div>
-                )}
+            {/* Clear filters button */}
+            {(filters.search || filters.categoryId) && (
+              <div className="flex justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="text-text-muted hover:text-accent"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Clear all filters
+                </Button>
               </div>
+            )}
 
-              {/* Desktop: Full Category Display */}
-              <div className="hidden md:flex flex-wrap gap-2">
-                {categories.filter(category => category && category.id && category.name).map((category) => (
-                  <CategoryPill
-                    key={category.id}
-                    id={category.id}
-                    name={category.name}
-                    displayName={category.display_name || category.name}
-                    count={promotions.filter(p => p?.tenant_category_id === category.id).length}
-                    icon={category.icon || 'store'}
-                    color={category.color || '#5A2E8A'}
-                    isActive={filters.categoryId === category.id}
-                    isSpecial={category.name === 'Food & Beverages'}
-                    onClick={handleCategoryChange}
-                  />
-                ))}
-              </div>
-
-              {/* Clear filters */}
-              {(filters.search || filters.categoryId) && (
-                <div className="flex justify-center md:justify-start">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearAllFilters}
-                    className="text-text-muted hover:text-accent"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Clear all filters
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Active filters summary - Mobile optimized */}
+            {/* Active filters summary */}
             {(filters.search || filters.categoryId) && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-text-muted">
                 <span className="font-medium">
@@ -357,7 +277,7 @@ const PromotionsPage: React.FC = () => {
                   )}
                   {filters.categoryId && (
                     <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/20">
-                      {categories.find(c => c.id === filters.categoryId)?.display_name}
+                      {transformedCategories.find(c => c.id === filters.categoryId)?.name}
                     </Badge>
                   )}
                 </div>
@@ -377,7 +297,7 @@ const PromotionsPage: React.FC = () => {
               transition={{ delay: 0.2 }}
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold heading-primary">
+                <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
                   Featured Promotions
                 </h2>
                 <Badge variant="secondary">
@@ -494,7 +414,17 @@ const PromotionsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Custom Swiper Styles */}
+      {/* Category Filter Drawer - Mobile */}
+      <CategoryFilterDrawer
+        isOpen={showCategoryDrawer}
+        onClose={() => setShowCategoryDrawer(false)}
+        categories={transformedCategories}
+        activeCategory={filters.categoryId}
+        onCategoryChange={handleCategoryChange}
+        searchPlaceholder="Search promotion categories..."
+      />
+
+      {/* Custom Swiper Styles - using semantic tokens */}
       <style dangerouslySetInnerHTML={{
         __html: `
           .featured-promotions-swiper {

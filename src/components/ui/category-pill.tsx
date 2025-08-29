@@ -1,4 +1,5 @@
 // src/components/ui/category-pill.tsx
+// Modified: refactored for mobile-first design, removed special cases, semantic tokens only
 import React from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
@@ -8,14 +9,13 @@ import { cn } from '@/lib/utils';
 interface CategoryPillProps {
   id: string;
   name: string;
-  displayName: string;
-  count: number;
-  icon: string;
-  color: string;
+  count?: number;
+  icon?: string;
   isActive: boolean;
-  isSpecial?: boolean; // For the special F&B pill
   onClick: (categoryId: string) => void;
   disabled?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  showCount?: boolean;
 }
 
 // Map icon names to actual Lucide icons
@@ -36,6 +36,7 @@ const getIconComponent = (iconName: string): LucideIcon => {
     'shopping-cart': Icons.ShoppingCart,
     'car': Icons.Car,
     'book-open': Icons.BookOpen,
+    'store': Icons.Store,
   };
   
   return iconMap[iconName] || Icons.Store;
@@ -44,74 +45,73 @@ const getIconComponent = (iconName: string): LucideIcon => {
 export const CategoryPill: React.FC<CategoryPillProps> = ({
   id,
   name,
-  displayName,
-  count,
-  icon,
-  color,
+  count = 0,
+  icon = 'store',
   isActive,
-  isSpecial = false,
   onClick,
-  disabled = false
+  disabled = false,
+  size = 'md',
+  showCount = true
 }) => {
   // Defensive programming - handle undefined/null values
-  if (!id || !name || !displayName) {
-    console.warn('CategoryPill received invalid props:', { id, name, displayName });
+  if (!id || !name) {
+    console.warn('CategoryPill received invalid props:', { id, name });
     return null;
   }
 
   const IconComponent = getIconComponent(icon);
+
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-xs gap-1.5',
+    md: 'px-4 py-2 text-sm gap-2',
+    lg: 'px-5 py-2.5 text-base gap-2.5'
+  };
+
+  const iconSizes = {
+    sm: 'w-3 h-3',
+    md: 'w-4 h-4', 
+    lg: 'w-5 h-5'
+  };
 
   return (
     <motion.button
       onClick={() => !disabled && onClick(id)}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-2 px-4 py-2 rounded-full',
-        'text-sm font-medium transition-all duration-200',
+        // Base styles - mobile-first, min touch target 44px
+        'inline-flex items-center min-h-[44px] rounded-full',
+        'font-medium transition-all duration-200 flex-shrink-0',
         'focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2',
         'hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed',
-        'relative overflow-hidden',
+        // Semantic theme colors only
         isActive
           ? 'bg-accent text-text-inverse shadow-lg'
-          : 'bg-surface-secondary text-text-primary border border-border-primary hover:border-border-secondary',
-        isSpecial && !isActive && 'border-2 border-accent/30 bg-accent-subtle',
-        isSpecial && isActive && 'bg-gradient-to-r from-accent to-accent-hover'
+          : 'bg-surface-secondary text-text-primary border border-border-primary hover:border-border-secondary hover:bg-surface-tertiary',
+        // Size variants
+        sizeClasses[size]
       )}
       whileHover={!disabled ? { scale: 1.02 } : undefined}
       whileTap={!disabled ? { scale: 0.98 } : undefined}
       aria-pressed={isActive}
-      role="tab"
+      role="button"
+      type="button"
     >
-      {/* Special glow effect for F&B pill */}
-      {isSpecial && (
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/20 to-transparent"
-          animate={{ 
-            x: [-100, 300],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            repeatDelay: 3,
-            ease: 'easeInOut'
-          }}
-        />
-      )}
-
       <IconComponent 
         className={cn(
-          'w-4 h-4 flex-shrink-0',
+          'flex-shrink-0',
+          iconSizes[size],
           isActive ? 'text-text-inverse' : 'text-text-secondary'
         )}
         aria-hidden="true"
       />
       
       <span className="whitespace-nowrap">
-        {displayName}
-        {count > 0 && (
+        {name}
+        {showCount && count > 0 && (
           <span 
             className={cn(
-              'ml-1 text-xs',
+              'ml-1',
+              size === 'sm' ? 'text-xs' : 'text-xs',
               isActive 
                 ? 'text-text-inverse/80' 
                 : 'text-text-muted'
@@ -121,25 +121,9 @@ export const CategoryPill: React.FC<CategoryPillProps> = ({
           </span>
         )}
       </span>
-
-      {isSpecial && (
-        <motion.div
-          className={cn(
-            'w-2 h-2 rounded-full ml-1',
-            isActive ? 'bg-text-inverse' : 'bg-accent'
-          )}
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.7, 1, 0.7]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut'
-          }}
-          aria-hidden="true"
-        />
-      )}
     </motion.button>
   );
 };
+
+// Export default for backward compatibility
+export default CategoryPill;

@@ -1,8 +1,10 @@
 // src/components/MallDirectory.tsx
+// Modified: updated to use new category components, mobile-first design
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Sparkles } from 'lucide-react';
-import { CategoryPill } from './ui/category-pill';
+import { CategoryPillList, Category } from './ui/category-pill-list';
+import { CategoryFilterDrawer } from './ui/category-filter-drawer';
 import { TenantCard } from './ui/tenant-card';
 
 // Types
@@ -20,12 +22,6 @@ export interface Tenant {
   operating_hours?: string;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  count: number;
-}
-
 interface MallDirectoryProps {
   tenants?: Tenant[];
   categories?: Category[];
@@ -34,14 +30,14 @@ interface MallDirectoryProps {
 
 // Mock data for demonstration - replace with real Supabase data
 const mockCategories: Category[] = [
-  { id: 'all', name: 'All', count: 156 },
-  { id: '953734bb-2bba-42c5-9139-567e23e56640', name: 'Food & Beverages', count: 42 },
-  { id: 'fashion-001', name: 'Fashion & Lifestyle', count: 38 },
-  { id: '4bf1202c-ecc5-4c02-93d5-de78ca575237', name: 'Entertainment', count: 24 },
-  { id: 'beauty-001', name: 'Beauty & Personal Care', count: 18 },
-  { id: 'electronics-001', name: 'Electronics', count: 16 },
-  { id: 'health-001', name: 'Health & Wellness', count: 14 },
-  { id: 'services-001', name: 'Services', count: 12 }
+  { id: 'all', name: 'All Categories', count: 156 },
+  { id: '953734bb-2bba-42c5-9139-567e23e56640', name: 'Food & Beverages', count: 42, icon: 'utensils' },
+  { id: 'fashion-001', name: 'Fashion & Lifestyle', count: 38, icon: 'shirt' },
+  { id: '4bf1202c-ecc5-4c02-93d5-de78ca575237', name: 'Entertainment', count: 24, icon: 'gamepad2' },
+  { id: 'beauty-001', name: 'Beauty & Personal Care', count: 18, icon: 'heart' },
+  { id: 'electronics-001', name: 'Electronics', count: 16, icon: 'smartphone' },
+  { id: 'health-001', name: 'Health & Wellness', count: 14, icon: 'dumbbell' },
+  { id: 'services-001', name: 'Services', count: 12, icon: 'briefcase' }
 ];
 
 const mockTenants: Tenant[] = [
@@ -91,6 +87,7 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
 
   // Filter tenants based on search and category
   const filteredTenants = useMemo(() => {
@@ -245,23 +242,23 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({
           </div>
         </motion.div>
 
-        {/* Category Filters */}
+        {/* Category Filters - Using new components */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-8"
         >
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {updatedCategories.map((category) => (
-              <CategoryPill
-                key={category.id}
-                category={category}
-                isActive={activeCategory === category.id}
-                onClick={() => setActiveCategory(category.id)}
-              />
-            ))}
-          </div>
+          <CategoryPillList
+            categories={updatedCategories}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+            onFilterClick={() => setShowCategoryDrawer(true)}
+            maxVisibleMobile={5}
+            showFilterButton={true}
+            pillSize="md"
+            showCounts={true}
+          />
         </motion.div>
 
         {/* Results Count */}
@@ -376,6 +373,16 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Category Filter Drawer - Mobile */}
+        <CategoryFilterDrawer
+          isOpen={showCategoryDrawer}
+          onClose={() => setShowCategoryDrawer(false)}
+          categories={updatedCategories}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+          searchPlaceholder="Search store categories..."
+        />
       </div>
     </div>
   );
