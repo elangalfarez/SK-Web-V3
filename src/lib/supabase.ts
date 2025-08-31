@@ -1,5 +1,5 @@
 // src/lib/supabase.ts
-// Modified: consolidated client and queries, adapted types from actual DB schema
+// Modified: Added Contact types and functions for contacts table integration
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -46,6 +46,43 @@ export interface Tenant {
   updated_at: string;
   // Joined category data
   category_name?: string;
+}
+
+// Contact types - matching the SQL schema
+export interface Contact {
+  id: string;
+  full_name: string;
+  email: string;
+  phone_number: string | null;
+  enquiry_type: 'General' | 'Leasing' | 'Marketing' | 'Legal' | 'Lost & Found' | 'Parking & Security';
+  enquiry_details: string;
+  submitted_date: string;
+  created_at: string;
+}
+
+// Type for creating new contacts (without generated fields)
+export interface ContactInsert {
+  full_name: string;
+  email: string;
+  phone_number?: string | null;
+  enquiry_type: 'General' | 'Leasing' | 'Marketing' | 'Legal' | 'Lost & Found' | 'Parking & Security';
+  enquiry_details: string;
+}
+
+// Contact fetch result for admin/pagination
+export interface ContactFetchResult {
+  data: Contact[];
+  total: number;
+  hasMore: boolean;
+}
+
+export interface ContactFetchParams {
+  page?: number;
+  perPage?: number;
+  enquiryType?: string;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 // Helper functions for safe JSON parsing
@@ -136,6 +173,179 @@ export interface PromotionWithTenant {
   brand_name: string;
   tenant_category: string;
   tenant_category_id: string;
+}
+
+/**
+ * Submit a new contact form entry
+ */
+export async function submitContactForm(contactData: ContactInsert): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('contacts')
+      .insert([contactData]);
+
+    if (error) {
+      console.error('Contact form submission error:', error);
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Unexpected error submitting contact form:', error);
+    
+    let errorMessage = 'Failed to submit contact form';
+    
+    if (error?.message?.includes('duplicate')) {
+      errorMessage = 'This message has already been submitted recently';
+    } else if (error?.message?.includes('network') || error?.code === 'PGRST301') {
+      errorMessage = 'Network error. Please check your connection and try again';
+    } else if (error?.message?.includes('validation')) {
+      errorMessage = 'Please check your information and try again';
+    } else if (error?.code === '23505') {
+      errorMessage = 'A similar message was recently submitted';
+    }
+
+    return { success: false, error: errorMessage };
+  }
+}
+
+/**
+ * Fetch contacts with server-side pagination and filtering (for admin use)
+ */
+export async function fetchContacts(params: ContactFetchParams = {}): Promise<ContactFetchResult> {
+  try {
+    const {
+      page = 1,
+      perPage = 50,
+      enquiryType,
+      search,
+      dateFrom,
+      dateTo
+    } = params;
+
+    let query = supabase
+      .from('contacts')
+      .select('*', { count: 'exact' })
+      .order('submitted_date', { ascending: false });
+
+    // Apply filters
+    if (enquiryType && enquiryType !== 'all') {
+      query = query.eq('enquiry_type', enquiryType);
+    }
+
+    if (search && search.trim()) {
+      const searchTerm = search.trim();
+      query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,enquiry_details.ilike.%${searchTerm}%`);
+    }
+
+    if (dateFrom) {
+      query = query.gte('submitted_date', dateFrom);
+    }
+
+    if (dateTo) {
+      query = query.lte('submitted_date', dateTo);
+    }
+
+    // Apply pagination
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    const { data, error, count } = await query.range(from, to);
+
+    if (error) {
+      console.error('Error fetching contacts:', error);
+      throw error;
+    }
+
+    const total = count || 0;
+    const hasMore = (from + (data?.length || 0)) < total;
+
+    return { data: data || [], total, hasMore };
+  } catch (error) {
+    console.error('Unexpected error fetching contacts:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get contact statistics for admin dashboard
+ */
+export async function getContactStats(): Promise<{
+  total: number;
+  thisWeek: number;
+  thisMonth: number;
+  byEnquiryType: Record<string, number>;
+}> {
+  try {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Get total count
+    const { count: total } = await supabase
+      .from('contacts')
+      .select('*', { count: 'exact', head: true });
+
+    // Get this week's count
+    const { count: thisWeek } = await supabase
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .gte('submitted_date', weekAgo.toISOString());
+
+    // Get this month's count
+    const { count: thisMonth } = await supabase
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .gte('submitted_date', monthAgo.toISOString());
+
+    // Get breakdown by enquiry type
+    const { data: typeBreakdown } = await supabase
+      .from('contacts')
+      .select('enquiry_type')
+      .gte('submitted_date', monthAgo.toISOString());
+
+    const byEnquiryType: Record<string, number> = {};
+    typeBreakdown?.forEach(contact => {
+      byEnquiryType[contact.enquiry_type] = (byEnquiryType[contact.enquiry_type] || 0) + 1;
+    });
+
+    return {
+      total: total || 0,
+      thisWeek: thisWeek || 0,
+      thisMonth: thisMonth || 0,
+      byEnquiryType
+    };
+  } catch (error) {
+    console.error('Error fetching contact stats:', error);
+    return {
+      total: 0,
+      thisWeek: 0,
+      thisMonth: 0,
+      byEnquiryType: {}
+    };
+  }
+}
+
+/**
+ * Real-time subscription for contact updates (for admin notifications)
+ */
+export function subscribeContactUpdates(callback: (payload: any) => void): () => void {
+  const subscription = supabase
+    .channel('contact-updates')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'contacts'
+      },
+      callback
+    )
+    .subscribe();
+
+  return () => {
+    subscription.unsubscribe();
+  };
 }
 
 /**

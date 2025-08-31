@@ -1,4 +1,5 @@
 // src/components/Navbar.tsx
+// Modified: Added proper href for Contact menu items to link to /contact page
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { 
@@ -85,14 +86,16 @@ const Navbar = () => {
           title: 'Get in Touch',
           items: [
             {
-              label: 'Contact Info',
-              description: 'Phone, email, and location details',
+              label: 'Contact Us',
+              description: 'Send us a message or find our contact details',
               icon: Phone,
+              href: '/contact',
             },
             {
               label: 'Feedback',
               description: 'Share your experience with us',
               icon: Heart,
+              href: '/contact',
             },
           ],
         },
@@ -114,12 +117,12 @@ const Navbar = () => {
       name: "What's On",
       href: '#',
       submenu: [
-        { name: 'Promotions', href: '#' },
+        { name: 'Promotions', href: '/promotions' },
         { name: 'Events', href: '#' }
       ]
     },
     { name: 'VIP Card', href: '#' },
-    { name: 'Contact', href: '#' }
+    { name: 'Contact', href: '/contact' }
   ];
 
   const handleDropdownToggle = (itemName: string) => {
