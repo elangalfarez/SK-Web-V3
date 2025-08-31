@@ -1,5 +1,5 @@
 // src/components/PromotionsPage.tsx
-// Modified: removed "All Categories" pill creation, replaced SearchInput with unified component
+// Modified: Replaced hardcoded header section with reusable Hero component
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
@@ -18,6 +18,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingSpinner, PageLoader } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Hero } from '@/components/ui/Hero';
 import { cn } from '@/lib/utils';
 
 // Types for filters - simplified since we only show active promotions
@@ -200,24 +201,13 @@ const PromotionsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* Header Section */}
-      <section className="bg-surface-tertiary py-12 md:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="text-text-primary">What's On</span>{' '}
-              <span className="text-accent">(Promotions)</span>
-            </h1>
-            <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto">
-              Discover amazing deals and special offers from our tenants
-            </p>
-          </motion.div>
-        </div>
-      </section>
+      {/* Header Section - Now using reusable Hero component */}
+      <Hero
+        title={<>What's On <span className="text-accent">(Promotions)</span></>}
+        subtitle="Discover amazing deals and special offers from our tenants"
+        variant="default"
+        bgPattern="soft-circles"
+      />
 
       {/* Filters Section - Mobile-first sticky header */}
       <section className="py-8 bg-surface-secondary border-y border-border-primary sticky top-0 z-40 backdrop-blur-sm">

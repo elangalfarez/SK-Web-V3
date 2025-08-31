@@ -1,9 +1,10 @@
 // src/components/ContactPage.tsx
-// Created: Main contact page with hero section, contact info, and form integration
+// Modified: Replaced hardcoded hero section with reusable Hero component
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Clock, MessageCircle, Building, Shield, Car, HeadphonesIcon, Briefcase, Scale } from 'lucide-react';
 import { ContactForm } from './ui/contact-form';
+import { Hero } from './ui/Hero';
 
 const ContactPage: React.FC = () => {
   const contactInfo = [
@@ -77,48 +78,18 @@ const ContactPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* Hero Section */}
-      <section className="relative bg-surface-tertiary py-16 md:py-24 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-accent rounded-full -translate-x-48 -translate-y-48"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent rounded-full translate-x-48 translate-y-48"></div>
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              <span className="text-text-primary">Get in</span>{' '}
-              <span className="text-accent">Touch</span>
-            </h1>
-            <p className="text-lg md:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed mb-8">
-              We're here to help! Whether you have questions about our stores, want to plan your visit, 
-              or need assistance with anything else, our team is ready to assist you.
-            </p>
-            
-            {/* Quick Stats */}
-            <div className="flex flex-wrap justify-center gap-6 md:gap-12 text-center">
-              <div className="flex flex-col">
-                <span className="text-2xl md:text-3xl font-bold text-accent">300+</span>
-                <span className="text-sm text-text-muted uppercase tracking-wide">Stores</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-2xl md:text-3xl font-bold text-accent">3000+</span>
-                <span className="text-sm text-text-muted uppercase tracking-wide">Parking Spaces</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-2xl md:text-3xl font-bold text-accent">24/7</span>
-                <span className="text-sm text-text-muted uppercase tracking-wide">Security</span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero Section - Now using reusable Hero component */}
+      <Hero
+        title={<>Get in <span className="text-accent">Touch</span></>}
+        subtitle="We're here to help! Whether you have questions about our stores, want to plan your visit, or need assistance with anything else, our team is ready to assist you."
+        stats={[
+          { value: "300+", label: "Stores" },
+          { value: "3000+", label: "Parking Spaces" },
+          { value: "24/7", label: "Security" }
+        ]}
+        variant="lead"
+        bgPattern="soft-circles"
+      />
 
       {/* Main Content */}
       <section className="py-16 md:py-24">

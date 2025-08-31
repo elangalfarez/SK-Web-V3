@@ -1,5 +1,5 @@
 // src/components/MallDirectory.tsx
-// Modified: replaced hardcoded search input with unified SearchInput component, consistent sizing with PromotionsPage
+// Modified: Replaced hardcoded header section with reusable Hero component
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Sparkles } from 'lucide-react';
@@ -11,6 +11,7 @@ import { LoadingSpinner } from './ui/loading-spinner';
 import { MallDirectorySkeleton, TenantGridSkeleton } from './ui/skeletons/tenant-card-skeleton';
 import { ErrorBoundary } from './ui/error-boundary';
 import { SearchInput } from './ui/search-input';
+import { Hero } from './ui/Hero';
 import { useTenants } from '@/lib/hooks/useTenants';
 import { cn } from '@/lib/utils';
 
@@ -165,224 +166,220 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
 
   return (
     <ErrorBoundary>
-      <div className={cn("min-h-screen bg-surface py-8 px-4 sm:px-6 lg:px-8", className)}>
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-8"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-text-primary mb-4">
-              Mall <span className="text-accent">Directory</span>
-            </h1>
-            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-              Discover all the amazing brands and experiences waiting for you at Supermal Karawaci
-            </p>
-          </motion.div>
+      <div className={cn("min-h-screen bg-surface", className)}>
+        {/* Hero Section - Now using reusable Hero component */}
+        <Hero
+          title={<>Mall <span className="text-accent">Directory</span></>}
+          subtitle="Discover all the amazing brands and experiences waiting for you at Supermal Karawaci"
+          variant="default"
+          bgPattern="soft-circles"
+        />
 
-          {/* Search Bar - Using unified SearchInput with full width */}
-          <SearchInput
-            value={search || ''}
-            onChange={setSearch}
-            placeholder={searchPlaceholder}
-            className="mb-8"
-            debounceMs={300}
-          />
+        {/* Main Content */}
+        <div className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Search Bar - Using unified SearchInput with full width */}
+            <SearchInput
+              value={search || ''}
+              onChange={setSearch}
+              placeholder={searchPlaceholder}
+              className="mb-8"
+              debounceMs={300}
+            />
 
-          {/* Category Filters */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-8"
-          >
-            <CategoryPillList
+            {/* Category Filters */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-8"
+            >
+              <CategoryPillList
+                categories={transformedCategories}
+                activeCategory={activeCategory === 'all' ? '' : activeCategory}
+                onCategoryChange={handleCategoryChange}
+                onFilterClick={() => setShowCategoryDrawer(true)}
+                maxVisibleMobile={5}
+                showFilterButton={true}
+                pillSize="md"
+                showCounts={true}
+              />
+            </motion.div>
+
+            {/* Results Count & Summary */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="mb-6 flex items-center justify-between"
+            >
+              <div className="space-y-1">
+                <p className="text-text-secondary">
+                  {tenants.length > 0 ? (
+                    <>
+                      Showing <span className="font-semibold text-text-primary">{tenants.length}</span> 
+                      {total > tenants.length && (
+                        <span> of <span className="font-semibold text-text-primary">{total}</span></span>
+                      )}
+                      {' '}{tenants.length === 1 ? 'store' : 'stores'}
+                      {search && (
+                        <span> for "<span className="font-semibold text-accent">{search}</span>"</span>
+                      )}
+                      {activeCategory && activeCategory !== 'all' && (
+                        <span> in <span className="font-semibold text-accent">
+                          {transformedCategories.find(c => c.id === activeCategory)?.name}
+                        </span></span>
+                      )}
+                    </>
+                  ) : (
+                    'No results found'
+                  )}
+                </p>
+                
+                {/* Clear filters button */}
+                {(search || (activeCategory && activeCategory !== 'all')) && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-sm text-accent hover:text-accent-hover underline transition-colors duration-200"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>
+              
+              {tenants.length > 0 && (
+                <div className="hidden sm:flex items-center gap-2 text-text-muted text-sm">
+                  <Building2 className="h-4 w-4" />
+                  <span>Floor Guide Available</span>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Tenant Grid */}
+            <AnimatePresence mode="wait">
+              {tenants.length > 0 ? (
+                <motion.div
+                  key="tenant-grid"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  className="space-y-8"
+                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {tenants.map((tenant, index) => {
+                    // Validate tenant data before rendering
+                    if (!tenant || !tenant.id) {
+                      console.warn('Skipping invalid tenant:', tenant);
+                      return null;
+                    }
+
+                    return (
+                      <ErrorBoundary key={tenant.id}>
+                        <motion.div variants={itemVariants}>
+                          <TenantCard tenant={tenant} />
+                        </motion.div>
+                      </ErrorBoundary>
+                    );
+                  })}
+                </div>
+
+                  {/* Load More Section */}
+                  {hasMore && (
+                    <div className="flex flex-col items-center gap-4 pt-8">
+                      <Button
+                        onClick={handleLoadMore}
+                        disabled={loadingMore || loading}
+                        size="lg"
+                        className="px-8 py-3"
+                      >
+                        {loadingMore ? (
+                          <>
+                            <LoadingSpinner size="sm" className="mr-2" />
+                            Loading more stores...
+                          </>
+                        ) : (
+                          <>
+                            Load More Stores
+                            <span className="ml-2 text-sm opacity-75">
+                              ({total - tenants.length} remaining)
+                            </span>
+                          </>
+                        )}
+                      </Button>
+                      
+                      {/* Loading skeleton for additional items */}
+                      {loadingMore && (
+                        <div className="w-full">
+                          <TenantGridSkeleton count={8} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty-state"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-center py-16"
+                >
+                  <div className="max-w-md mx-auto">
+                    <div className="mb-6 relative">
+                      <div className="w-24 h-24 mx-auto bg-surface-tertiary rounded-full flex items-center justify-center">
+                        <Search className="h-10 w-10 text-text-muted" />
+                      </div>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        className="absolute top-0 right-1/2 transform translate-x-8 -translate-y-2"
+                      >
+                        <Sparkles className="h-6 w-6 text-accent opacity-60" />
+                      </motion.div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-text-primary mb-3">
+                      No stores found
+                    </h3>
+                    <p className="text-text-secondary mb-6 leading-relaxed">
+                      {search ? (
+                        <>
+                          We couldn't find any stores matching "<span className="font-semibold text-accent">{search}</span>".
+                          <br />Try adjusting your search or browse by category.
+                        </>
+                      ) : (
+                        'No stores available in this category at the moment.'
+                      )}
+                    </p>
+                    {search && (
+                      <div className="space-y-3">
+                        <Button
+                          onClick={clearFilters}
+                          className="px-6 py-3"
+                        >
+                          Clear search & show all stores
+                        </Button>
+                        <div className="text-sm text-text-muted">
+                          or try searching for: fashion, food, entertainment, electronics
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Category Filter Drawer - Mobile */}
+            <CategoryFilterDrawer
+              isOpen={showCategoryDrawer}
+              onClose={() => setShowCategoryDrawer(false)}
               categories={transformedCategories}
               activeCategory={activeCategory === 'all' ? '' : activeCategory}
               onCategoryChange={handleCategoryChange}
-              onFilterClick={() => setShowCategoryDrawer(true)}
-              maxVisibleMobile={5}
-              showFilterButton={true}
-              pillSize="md"
-              showCounts={true}
+              searchPlaceholder="Search store categories..."
             />
-          </motion.div>
-
-          {/* Results Count & Summary */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="mb-6 flex items-center justify-between"
-          >
-            <div className="space-y-1">
-              <p className="text-text-secondary">
-                {tenants.length > 0 ? (
-                  <>
-                    Showing <span className="font-semibold text-text-primary">{tenants.length}</span> 
-                    {total > tenants.length && (
-                      <span> of <span className="font-semibold text-text-primary">{total}</span></span>
-                    )}
-                    {' '}{tenants.length === 1 ? 'store' : 'stores'}
-                    {search && (
-                      <span> for "<span className="font-semibold text-accent">{search}</span>"</span>
-                    )}
-                    {activeCategory && activeCategory !== 'all' && (
-                      <span> in <span className="font-semibold text-accent">
-                        {transformedCategories.find(c => c.id === activeCategory)?.name}
-                      </span></span>
-                    )}
-                  </>
-                ) : (
-                  'No results found'
-                )}
-              </p>
-              
-              {/* Clear filters button */}
-              {(search || (activeCategory && activeCategory !== 'all')) && (
-                <button
-                  onClick={clearFilters}
-                  className="text-sm text-accent hover:text-accent-hover underline transition-colors duration-200"
-                >
-                  Clear all filters
-                </button>
-              )}
-            </div>
-            
-            {tenants.length > 0 && (
-              <div className="hidden sm:flex items-center gap-2 text-text-muted text-sm">
-                <Building2 className="h-4 w-4" />
-                <span>Floor Guide Available</span>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Tenant Grid */}
-          <AnimatePresence mode="wait">
-            {tenants.length > 0 ? (
-              <motion.div
-                key="tenant-grid"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                className="space-y-8"
-              >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {tenants.map((tenant, index) => {
-                  // Validate tenant data before rendering
-                  if (!tenant || !tenant.id) {
-                    console.warn('Skipping invalid tenant:', tenant);
-                    return null;
-                  }
-
-                  return (
-                    <ErrorBoundary key={tenant.id}>
-                      <motion.div variants={itemVariants}>
-                        <TenantCard tenant={tenant} />
-                      </motion.div>
-                    </ErrorBoundary>
-                  );
-                })}
-              </div>
-
-                {/* Load More Section */}
-                {hasMore && (
-                  <div className="flex flex-col items-center gap-4 pt-8">
-                    <Button
-                      onClick={handleLoadMore}
-                      disabled={loadingMore || loading}
-                      size="lg"
-                      className="px-8 py-3"
-                    >
-                      {loadingMore ? (
-                        <>
-                          <LoadingSpinner size="sm" className="mr-2" />
-                          Loading more stores...
-                        </>
-                      ) : (
-                        <>
-                          Load More Stores
-                          <span className="ml-2 text-sm opacity-75">
-                            ({total - tenants.length} remaining)
-                          </span>
-                        </>
-                      )}
-                    </Button>
-                    
-                    {/* Loading skeleton for additional items */}
-                    {loadingMore && (
-                      <div className="w-full">
-                        <TenantGridSkeleton count={8} />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            ) : (
-              <motion.div
-                key="empty-state"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4 }}
-                className="text-center py-16"
-              >
-                <div className="max-w-md mx-auto">
-                  <div className="mb-6 relative">
-                    <div className="w-24 h-24 mx-auto bg-surface-tertiary rounded-full flex items-center justify-center">
-                      <Search className="h-10 w-10 text-text-muted" />
-                    </div>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                      className="absolute top-0 right-1/2 transform translate-x-8 -translate-y-2"
-                    >
-                      <Sparkles className="h-6 w-6 text-accent opacity-60" />
-                    </motion.div>
-                  </div>
-                  <h3 className="text-2xl font-bold text-text-primary mb-3">
-                    No stores found
-                  </h3>
-                  <p className="text-text-secondary mb-6 leading-relaxed">
-                    {search ? (
-                      <>
-                        We couldn't find any stores matching "<span className="font-semibold text-accent">{search}</span>".
-                        <br />Try adjusting your search or browse by category.
-                      </>
-                    ) : (
-                      'No stores available in this category at the moment.'
-                    )}
-                  </p>
-                  {search && (
-                    <div className="space-y-3">
-                      <Button
-                        onClick={clearFilters}
-                        className="px-6 py-3"
-                      >
-                        Clear search & show all stores
-                      </Button>
-                      <div className="text-sm text-text-muted">
-                        or try searching for: fashion, food, entertainment, electronics
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Category Filter Drawer - Mobile */}
-          <CategoryFilterDrawer
-            isOpen={showCategoryDrawer}
-            onClose={() => setShowCategoryDrawer(false)}
-            categories={transformedCategories}
-            activeCategory={activeCategory === 'all' ? '' : activeCategory}
-            onCategoryChange={handleCategoryChange}
-            searchPlaceholder="Search store categories..."
-          />
+          </div>
         </div>
       </div>
     </ErrorBoundary>
