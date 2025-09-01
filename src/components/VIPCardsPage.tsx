@@ -1,4 +1,4 @@
-// src/pages/VIPCardsPage.tsx
+// src/components/VIPCardsPage.tsx
 // Created: Main VIP Cards page with Hero, card layout, compare panel, eligibility checker, and FAQ
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -284,7 +284,7 @@ const VIPCardsPage: React.FC = () => {
             </div>
 
             {/* Mobile Horizontal Scroll */}
-            <div className="md:hidden">
+            <div className="md:hidden overflow-hidden">
               {/* Scroll indicator */}
               <div className="flex items-center justify-between mb-4 px-1">
                 <p className="text-sm text-text-muted">
@@ -301,9 +301,9 @@ const VIPCardsPage: React.FC = () => {
               </div>
 
               {/* Scrollable container with proper mobile setup */}
-              <div className="relative -mx-4">
+              <div className="relative">
                 <div 
-                  className="flex space-x-4 overflow-x-auto overscroll-x-contain scrollbar-hide px-4 pb-4 snap-x snap-mandatory"
+                  className="flex gap-4 overflow-x-auto overscroll-x-contain scrollbar-hide px-4 pb-4 snap-x snap-mandatory -mx-4"
                   style={{
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',
@@ -313,13 +313,13 @@ const VIPCardsPage: React.FC = () => {
                   {tiers.map((tier, index) => (
                     <motion.div
                       key={tier.id}
-                      initial={{ opacity: 0, x: 50 }}
+                      initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ 
-                        duration: 0.4, 
+                        duration: 0.3, 
                         delay: index * 0.1 
                       }}
-                      className="flex-shrink-0 w-[280px] sm:w-[320px] snap-start"
+                      className="flex-none w-[280px] sm:w-[300px] snap-start first:ml-0"
                     >
                       <VipCard
                         tier={tier}
@@ -332,12 +332,12 @@ const VIPCardsPage: React.FC = () => {
                   ))}
                   
                   {/* Scroll end spacer */}
-                  <div className="flex-shrink-0 w-4" />
+                  <div className="flex-none w-4" />
                 </div>
               </div>
 
               {/* Mobile scroll hint */}
-              <div className="text-center mt-4">
+              <div className="text-center mt-3">
                 <p className="text-xs text-text-muted">
                   ← Swipe left and right to see all tiers →
                 </p>
@@ -469,6 +469,7 @@ const VIPCardsPage: React.FC = () => {
       {/* Custom CSS for mobile scrolling */}
       <style dangerouslySetInnerHTML={{
         __html: `
+          /* Hide scrollbars */
           .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -476,6 +477,11 @@ const VIPCardsPage: React.FC = () => {
           
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
+          }
+
+          /* Prevent horizontal overflow on main page */
+          body, html {
+            overflow-x: hidden;
           }
 
           /* Ensure smooth touch scrolling on mobile */
@@ -492,6 +498,25 @@ const VIPCardsPage: React.FC = () => {
             
             .snap-start {
               scroll-snap-align: start;
+            }
+          }
+
+          /* Prevent any accidental horizontal scroll */
+          .max-w-7xl {
+            max-width: min(1280px, 100vw);
+          }
+
+          /* Fix mobile modal to be truly full screen */
+          @media (max-width: 640px) {
+            .modal-fullscreen {
+              position: fixed !important;
+              inset: 0 !important;
+              margin: 0 !important;
+              border-radius: 0 !important;
+              max-height: 100vh !important;
+              max-width: 100vw !important;
+              width: 100vw !important;
+              height: 100vh !important;
             }
           }
         `

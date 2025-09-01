@@ -332,15 +332,15 @@ export const VipCard: React.FC<VipCardProps> = ({
             <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
               <motion.div
                 ref={modalRef}
-                initial={!reducedMotion ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={!reducedMotion ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0 }}
+                initial={!reducedMotion ? { opacity: 0, y: '100%' } : { opacity: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={!reducedMotion ? { opacity: 0, y: '100%' } : { opacity: 0 }}
                 transition={{ 
                   type: "spring", 
-                  duration: 0.5,
-                  bounce: 0.3
+                  duration: 0.4,
+                  bounce: 0.1
                 }}
-                className="relative w-full max-w-2xl bg-surface border border-border-primary sm:rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto"
+                className="modal-fullscreen relative w-full h-full sm:max-w-2xl sm:h-auto bg-surface border-0 sm:border border-border-primary sm:rounded-2xl shadow-2xl overflow-hidden sm:max-h-[95vh] overflow-y-auto"
                 onKeyDown={handleModalKeyDown}
               >
                 {/* Close Button */}
@@ -355,21 +355,21 @@ export const VipCard: React.FC<VipCardProps> = ({
 
                 {/* Modal Header */}
                 <div className="relative">
-                  <div className="h-48 sm:h-56 bg-surface-tertiary overflow-hidden">
+                  <div className="h-40 sm:h-48 md:h-56 bg-surface-tertiary overflow-hidden">
                     <img
                       src={cardImageUrl}
                       alt={`${tier.name} VIP card`}
-                      className="w-full h-full object-contain object-center"
+                      className="w-full h-full object-cover object-center"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                   </div>
 
                   {/* Title overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
-                    <h2 id={`${tier.id}-modal-title`} className="text-2xl sm:text-3xl font-bold mb-2">
+                    <h2 id={`${tier.id}-modal-title`} className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">
                       {tier.name}
                     </h2>
-                    <p className="text-white/90 text-sm sm:text-base">
+                    <p className="text-white/90 text-sm sm:text-base line-clamp-2">
                       {tier.description}
                     </p>
                   </div>
