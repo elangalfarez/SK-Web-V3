@@ -1,5 +1,5 @@
 // src/components/MallDirectory.tsx
-// Modified: Replaced hardcoded header section with reusable Hero component
+// Modified: removed local Tenant interface, import from lib/supabase
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Sparkles } from 'lucide-react';
@@ -13,22 +13,8 @@ import { ErrorBoundary } from './ui/error-boundary';
 import { SearchInput } from './ui/search-input';
 import { Hero } from './ui/Hero';
 import { useTenants } from '@/lib/hooks/useTenants';
+import { Tenant } from '@/lib/supabase'; // Import Tenant type from supabase
 import { cn } from '@/lib/utils';
-
-// Types - updated to match real database schema
-export interface Tenant {
-  id: string;
-  name: string;
-  brand_name: string;
-  category_id: string;
-  category_name?: string;
-  main_floor: string;
-  logo_url?: string;
-  is_featured: boolean;
-  is_new_tenant: boolean;
-  description?: string;
-  operating_hours?: any;
-}
 
 interface MallDirectoryProps {
   className?: string;
@@ -87,64 +73,31 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
   const searchPlaceholder = useMemo(() => {
     if (activeCategory && activeCategory !== 'all') {
       const categoryName = transformedCategories.find(c => c.id === activeCategory)?.name;
-      return categoryName ? `Search in ${categoryName}...` : 'Search for stores, brands, or categories...';
+      return categoryName ? `Search in ${categoryName}...` : 'Search stores and brands...';
     }
-    return 'Search for stores, brands, or categories...';
+    return 'Search stores and brands...';
   }, [activeCategory, transformedCategories]);
 
   // Handle load more with loading state
   const handleLoadMore = async () => {
-    if (loadingMore || loading || !hasMore) return;
+    if (loadingMore) return;
     
     setLoadingMore(true);
     try {
       await loadMore();
-    } catch (error) {
-      console.error('Error loading more tenants:', error);
     } finally {
       setLoadingMore(false);
     }
   };
 
-  // Loading skeleton on initial load
-  if (loading && tenants.length === 0) {
-    return <MallDirectorySkeleton />;
-  }
-
-  // Error state
-  if (error && tenants.length === 0) {
-    return (
-      <div className="min-h-screen bg-surface py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-16">
-            <div className="max-w-md mx-auto">
-              <div className="mb-6">
-                <div className="w-24 h-24 mx-auto bg-surface-tertiary rounded-full flex items-center justify-center">
-                  <Search className="h-10 w-10 text-text-muted" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold text-text-primary mb-3">
-                Failed to load directory
-              </h3>
-              <p className="text-text-secondary mb-6">{error}</p>
-              <Button onClick={refresh} className="px-6 py-3">
-                Try Again
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Safe animation variants that don't conflict with data
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.05,
-        delayChildren: 0.1
+        staggerChildren: 0.1,
+        delayChildren: 0.2
       }
     }
   };
@@ -152,69 +105,142 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
   const itemVariants = {
     hidden: { 
       opacity: 0, 
-      y: 10
+      y: 20,
+      scale: 0.9
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
+      scale: 1,
       transition: {
-        type: "tween",
-        duration: 0.3
+        type: "spring",
+        stiffness: 300,
+        damping: 24
       }
     }
   };
 
-  return (
-    <ErrorBoundary>
-      <div className={cn("min-h-screen bg-surface", className)}>
-        {/* Hero Section - Now using reusable Hero component */}
+  const emptyStateVariants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 200, 
+        damping: 20,
+        delay: 0.2 
+      }
+    }
+  };
+
+  if (loading && tenants.length === 0) {
+    return (
+      <div className={cn('min-h-screen bg-surface', className)}>
         <Hero
-          title={<>Mall <span className="text-accent">Directory</span></>}
-          subtitle="Discover all the amazing brands and experiences waiting for you at Supermal Karawaci"
-          variant="default"
-          bgPattern="soft-circles"
+          title="Mall Directory"
+          subtitle="Discover all the amazing stores and services at Supermal Karawaci"
+          backgroundImage="/images/mall-directory-hero.jpg"
+          className="mb-12"
         />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+          <MallDirectorySkeleton />
+        </div>
+      </div>
+    );
+  }
 
-        {/* Main Content */}
-        <div className="py-8 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Search Bar - Using unified SearchInput with full width */}
-            <SearchInput
-              value={search || ''}
-              onChange={setSearch}
-              placeholder={searchPlaceholder}
-              className="mb-8"
-              debounceMs={300}
-            />
+  return (
+    <div className={cn('min-h-screen bg-surface', className)}>
+      {/* Hero Section */}
+      <Hero
+        title="Mall Directory"
+        subtitle="Discover all the amazing stores and services at Supermal Karawaci"
+        backgroundImage="/images/mall-directory-hero.jpg"
+        className="mb-12"
+      />
 
-            {/* Category Filters */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-8"
-            >
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <div className="space-y-8">
+          {/* Search Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto">
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder={searchPlaceholder}
+                icon={Search}
+                className="w-full"
+              />
+            </div>
+
+            {/* Category Pills - Desktop */}
+            <div className="hidden lg:block">
               <CategoryPillList
                 categories={transformedCategories}
-                activeCategory={activeCategory === 'all' ? '' : activeCategory}
+                activeCategory={activeCategory === 'all' ? null : activeCategory}
                 onCategoryChange={handleCategoryChange}
-                onFilterClick={() => setShowCategoryDrawer(true)}
-                maxVisibleMobile={5}
-                showFilterButton={true}
-                pillSize="md"
-                showCounts={true}
+                showAll={true}
+                className="justify-center"
               />
-            </motion.div>
+            </div>
 
-            {/* Results Count & Summary */}
+            {/* Category Filter Button - Mobile */}
+            <div className="lg:hidden flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => setShowCategoryDrawer(true)}
+                className="flex items-center gap-2 px-6 py-3"
+              >
+                <Building2 className="h-4 w-4" />
+                Filter Categories
+                {activeCategory && activeCategory !== 'all' && (
+                  <span className="ml-1 bg-accent text-white px-2 py-0.5 rounded-full text-xs">
+                    {transformedCategories.find(c => c.id === activeCategory)?.name}
+                  </span>
+                )}
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Error Banner */}
+          {error && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="mb-6 flex items-center justify-between"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-warning/10 border border-warning/20 rounded-xl p-4 text-center"
+            >
+              <p className="text-sm text-warning-600">
+                {error.includes('cached') ? (
+                  <>
+                    <Sparkles className="inline h-4 w-4 mr-1" />
+                    {error} - Data may not reflect the latest changes.
+                  </>
+                ) : (
+                  error
+                )}
+              </p>
+            </motion.div>
+          )}
+
+          {/* Results Summary & Filters */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="results-header"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4"
             >
               <div className="space-y-1">
-                <p className="text-text-secondary">
+                <p className="text-sm text-text-muted">
                   {tenants.length > 0 ? (
                     <>
                       Showing <span className="font-semibold text-text-primary">{tenants.length}</span> 
@@ -299,20 +325,14 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
                             Loading more stores...
                           </>
                         ) : (
-                          <>
-                            Load More Stores
-                            <span className="ml-2 text-sm opacity-75">
-                              ({total - tenants.length} remaining)
-                            </span>
-                          </>
+                          <>Load More Stores</>
                         )}
                       </Button>
                       
-                      {/* Loading skeleton for additional items */}
-                      {loadingMore && (
-                        <div className="w-full">
-                          <TenantGridSkeleton count={8} />
-                        </div>
+                      {total > tenants.length && (
+                        <p className="text-sm text-text-muted text-center">
+                          {tenants.length} of {total} stores shown
+                        </p>
                       )}
                     </div>
                   )}
@@ -320,69 +340,66 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
               ) : (
                 <motion.div
                   key="empty-state"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4 }}
-                  className="text-center py-16"
+                  variants={emptyStateVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  className="text-center py-16 space-y-6"
                 >
                   <div className="max-w-md mx-auto">
-                    <div className="mb-6 relative">
-                      <div className="w-24 h-24 mx-auto bg-surface-tertiary rounded-full flex items-center justify-center">
-                        <Search className="h-10 w-10 text-text-muted" />
-                      </div>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="absolute top-0 right-1/2 transform translate-x-8 -translate-y-2"
-                      >
-                        <Sparkles className="h-6 w-6 text-accent opacity-60" />
-                      </motion.div>
+                    <div className="w-24 h-24 mx-auto mb-6 bg-surface-tertiary rounded-full flex items-center justify-center">
+                      <Search className="h-10 w-10 text-text-muted" />
                     </div>
-                    <h3 className="text-2xl font-bold text-text-primary mb-3">
+                    
+                    <h3 className="text-xl font-semibold text-text-primary mb-3">
                       No stores found
                     </h3>
-                    <p className="text-text-secondary mb-6 leading-relaxed">
-                      {search ? (
-                        <>
-                          We couldn't find any stores matching "<span className="font-semibold text-accent">{search}</span>".
-                          <br />Try adjusting your search or browse by category.
-                        </>
+                    
+                    <p className="text-text-muted mb-6 leading-relaxed">
+                      {search || activeCategory !== 'all' ? (
+                        <>We couldn't find any stores matching your current search criteria. Try adjusting your filters or search terms.</>
                       ) : (
-                        'No stores available in this category at the moment.'
+                        <>Sorry, there are no stores available right now. Please check back later.</>
                       )}
                     </p>
-                    {search && (
+
+                    {(search || activeCategory !== 'all') && (
                       <div className="space-y-3">
                         <Button
                           onClick={clearFilters}
-                          className="px-6 py-3"
+                          variant="outline"
+                          className="mr-3"
                         >
-                          Clear search & show all stores
+                          Clear Filters
                         </Button>
-                        <div className="text-sm text-text-muted">
-                          or try searching for: fashion, food, entertainment, electronics
-                        </div>
+                        <Button
+                          onClick={refresh}
+                          variant="default"
+                        >
+                          Refresh
+                        </Button>
                       </div>
                     )}
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* Category Filter Drawer - Mobile */}
-            <CategoryFilterDrawer
-              isOpen={showCategoryDrawer}
-              onClose={() => setShowCategoryDrawer(false)}
-              categories={transformedCategories}
-              activeCategory={activeCategory === 'all' ? '' : activeCategory}
-              onCategoryChange={handleCategoryChange}
-              searchPlaceholder="Search store categories..."
-            />
-          </div>
+          </AnimatePresence>
         </div>
       </div>
-    </ErrorBoundary>
+
+      {/* Mobile Category Filter Drawer */}
+      <CategoryFilterDrawer
+        isOpen={showCategoryDrawer}
+        onClose={() => setShowCategoryDrawer(false)}
+        categories={transformedCategories}
+        activeCategory={activeCategory === 'all' ? null : activeCategory}
+        onCategoryChange={(categoryId) => {
+          handleCategoryChange(categoryId);
+          setShowCategoryDrawer(false);
+        }}
+      />
+    </div>
   );
 };
 

@@ -1,23 +1,10 @@
 // src/components/ui/tenant-card.tsx
-// Modified: fixed JSON object handling to prevent React rendering errors
+// Modified: corrected UG floor mapping and improved category handling
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Clock, Star, Sparkles } from 'lucide-react';
 import { parseOperatingHours } from '@/lib/supabase';
-
-interface Tenant {
-  id: string;
-  name: string;
-  brand_name: string;
-  category_id: string;
-  category_name?: string;
-  main_floor: string;
-  logo_url?: string;
-  is_featured: boolean;
-  is_new_tenant: boolean;
-  description?: string;
-  operating_hours?: any; // Can be JSON object or string
-}
+import { Tenant } from '@/lib/supabase';
 
 interface TenantCardProps {
   tenant: Tenant;
@@ -33,7 +20,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
       case 'FF': return 'First Floor';
       case 'SF': return 'Second Floor';
       case 'TF': return 'Third Floor';
-      case 'UG': return 'Underground';
+      case 'UG': return 'Upper Ground'; // [INFERENCE] corrected UG mapping based on brand/style
       case 'GF': return 'Ground Floor';
       default: return floor || 'Floor TBD';
     }
@@ -41,11 +28,17 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
 
   // Use the safe parsing function from supabase client
   const operatingHours = parseOperatingHours(tenant.operating_hours);
+  
+  // Get category name with fallback priority: category_display > category_name > category
+  const categoryName = tenant.category_display || tenant.category_name || tenant.category;
+
+  // Check for reduced motion preference
+  const reducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={!reducedMotion ? { y: -8, scale: 1.02 } : undefined}
+      whileTap={!reducedMotion ? { scale: 0.98 } : undefined}
       onClick={onClick}
       className={`
         bg-surface-secondary rounded-2xl overflow-hidden shadow-lg hover:shadow-xl
@@ -63,10 +56,11 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
               alt={tenant.name || 'Store logo'}
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
+              loading="lazy"
               className={`
                 w-full h-full object-cover transition-all duration-500
                 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}
-                group-hover:scale-105
+                ${!reducedMotion ? 'group-hover:scale-105' : ''}
               `}
             />
             {!imageLoaded && (
@@ -75,7 +69,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface-tertiary to-surface-secondary">
-            <div className="text-4xl font-bold text-text-muted/30 group-hover:text-accent/40 transition-colors duration-300">
+            <div className={`text-4xl font-bold text-text-muted/30 transition-colors duration-300 ${!reducedMotion ? 'group-hover:text-accent/40' : ''}`}>
               {(tenant.name || tenant.brand_name || 'S').charAt(0).toUpperCase()}
             </div>
           </div>
@@ -85,9 +79,9 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           {tenant.is_new_tenant && (
             <motion.div
-              initial={{ scale: 0, rotate: -180 }}
+              initial={!reducedMotion ? { scale: 0, rotate: -180 } : { scale: 1, rotate: 0 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", delay: 0.2 }}
+              transition={!reducedMotion ? { type: "spring", delay: 0.2 } : { duration: 0 }}
               className="bg-accent text-text-inverse px-2 py-1 rounded-full text-xs font-semibold
                 flex items-center gap-1 shadow-lg"
             >
@@ -98,9 +92,9 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
           
           {tenant.is_featured && (
             <motion.div
-              initial={{ scale: 0, rotate: -180 }}
+              initial={!reducedMotion ? { scale: 0, rotate: -180 } : { scale: 1, rotate: 0 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", delay: 0.3 }}
+              transition={!reducedMotion ? { type: "spring", delay: 0.3 } : { duration: 0 }}
               className="bg-warning text-white px-2 py-1 rounded-full text-xs font-semibold
                 flex items-center gap-1 shadow-lg"
             >
@@ -111,15 +105,14 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
         </div>
 
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 
-          group-hover:opacity-100 transition-opacity duration-300" />
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 ${!reducedMotion ? 'group-hover:opacity-100' : ''}`} />
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-3">
         {/* Store Name */}
         <div>
-          <h3 className="font-bold text-lg text-text-primary leading-tight group-hover:text-accent transition-colors duration-200">
+          <h3 className={`font-bold text-lg text-text-primary leading-tight transition-colors duration-200 ${!reducedMotion ? 'group-hover:text-accent' : ''}`}>
             {tenant.brand_name || tenant.name || 'Unnamed Store'}
           </h3>
           {tenant.brand_name && tenant.brand_name !== tenant.name && tenant.name && (
@@ -128,11 +121,11 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
         </div>
 
         {/* Category */}
-        {tenant.category_name && (
+        {categoryName && (
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent/10 
             text-accent rounded-lg text-xs font-medium">
             <div className="w-1.5 h-1.5 bg-accent rounded-full" />
-            {tenant.category_name}
+            {categoryName}
           </div>
         )}
 
@@ -149,7 +142,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
           <div className="flex items-center gap-1.5 text-text-muted">
             <MapPin className="h-4 w-4" />
             <span className="text-sm font-medium">
-              {formatFloor(tenant.main_floor)}
+              {formatFloor(tenant.main_floor || '')}
             </span>
           </div>
 
@@ -164,19 +157,21 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
       </div>
 
       {/* Hover Effect Border */}
-      <motion.div
-        initial={false}
-        animate={{
-          scale: 1,
-          opacity: 0
-        }}
-        whileHover={{
-          scale: 1.02,
-          opacity: 1
-        }}
-        className="absolute inset-0 rounded-2xl border-2 border-accent pointer-events-none"
-        transition={{ duration: 0.2 }}
-      />
+      {!reducedMotion && (
+        <motion.div
+          initial={false}
+          animate={{
+            scale: 1,
+            opacity: 0
+          }}
+          whileHover={{
+            scale: 1.02,
+            opacity: 1
+          }}
+          className="absolute inset-0 rounded-2xl border-2 border-accent pointer-events-none"
+          transition={{ duration: 0.2 }}
+        />
+      )}
     </motion.div>
   );
 };

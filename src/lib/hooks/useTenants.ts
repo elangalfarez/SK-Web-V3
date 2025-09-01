@@ -1,4 +1,5 @@
 // src/lib/hooks/useTenants.ts
+// Modified: use updated fetchTenants and types from tenant_directory view
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   fetchTenants, 
@@ -103,9 +104,7 @@ export function useTenants(config: UseTenantConfig = {}): UseTenantResult {
         console.error('Error loading categories:', error);
         setState(prev => ({
           ...prev,
-          error: error instanceof Error ? error.message : 'Failed to load categories',
-          // Provide fallback empty array so UI doesn't break
-          categories: []
+          error: error instanceof Error ? error.message : 'Failed to load categories'
         }));
       }
     };
@@ -113,27 +112,19 @@ export function useTenants(config: UseTenantConfig = {}): UseTenantResult {
     loadCategories();
   }, []);
 
-  // Main data fetching function
-  const fetchData = useCallback(async (
-    page = 1, 
-    append = false,
-    currentSearch = debouncedSearch,
-    currentCategoryId = filters.categoryId,
-    currentFloorFilter = filters.floorFilter
-  ) => {
-    try {
-      if (!append) {
-        setState(prev => ({ ...prev, loading: true, error: null }));
-      } else {
-        setLoadingMore(true);
-      }
+  // Fetch tenants data
+  const fetchData = useCallback(async (page: number = 1, append: boolean = false) => {
+    if (!append) {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+    }
 
+    try {
       const result = await fetchTenants({
         page,
         perPage,
-        search: currentSearch || undefined,
-        categoryId: currentCategoryId === 'all' ? undefined : currentCategoryId,
-        floorFilter: currentFloorFilter
+        categoryId: filters.categoryId === 'all' ? undefined : filters.categoryId,
+        search: debouncedSearch.trim() || undefined,
+        floorFilter: filters.floorFilter
       });
 
       setState(prev => ({
@@ -148,23 +139,17 @@ export function useTenants(config: UseTenantConfig = {}): UseTenantResult {
 
     } catch (error) {
       console.error('Error fetching tenants:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load tenants';
-      
       setState(prev => ({
         ...prev,
-        loading: false,
-        error: errorMessage,
-        // Don't clear existing data on error if appending
-        tenants: append ? prev.tenants : [],
-        total: append ? prev.total : 0,
-        hasMore: false
+        error: error instanceof Error ? 
+          (error.message.includes('fallback') ? 'Showing cached data' : error.message) : 
+          'Failed to load tenants',
+        loading: false
       }));
-    } finally {
-      setLoadingMore(false);
     }
-  }, [perPage, debouncedSearch, filters.categoryId, filters.floorFilter]);
+  }, [filters.categoryId, debouncedSearch, filters.floorFilter, perPage]);
 
-  // Load initial data and reset on filter changes
+  // Load data when filters change
   useEffect(() => {
     fetchData(1, false);
   }, [fetchData]);
@@ -173,25 +158,49 @@ export function useTenants(config: UseTenantConfig = {}): UseTenantResult {
   useEffect(() => {
     if (!enableRealtime) return;
 
-    const unsubscribeTenants = subscribeTenantUpdates(() => {
-      fetchData(1, false); // Refresh on changes
-    });
+    let unsubscribeTenants: (() => void) | null = null;
+    let unsubscribeCategories: (() => void) | null = null;
 
-    const unsubscribeCategories = subscribeCategoryUpdates(async () => {
-      try {
-        const categoriesData = await fetchTenantCategories();
-        setState(prev => ({
-          ...prev,
-          categories: categoriesData
-        }));
-      } catch (error) {
-        console.error('Error refreshing categories:', error);
-      }
-    });
+    try {
+      // Subscribe to tenant updates with view subscription enabled if needed
+      unsubscribeTenants = subscribeTenantUpdates((payload) => {
+        console.log('Tenant update received:', payload);
+        // Refresh data on any tenant change
+        fetchData(1, false);
+      }, { enableViewSubscribe: true });
+
+      // Subscribe to category updates
+      unsubscribeCategories = subscribeCategoryUpdates((payload) => {
+        console.log('Category update received:', payload);
+        // Reload categories
+        fetchTenantCategories().then(categoriesData => {
+          setState(prev => ({
+            ...prev,
+            categories: categoriesData
+          }));
+        }).catch(error => {
+          console.error('Error refreshing categories:', error);
+        });
+      });
+    } catch (error) {
+      console.warn('Error setting up realtime subscriptions:', error);
+    }
 
     return () => {
-      unsubscribeTenants();
-      unsubscribeCategories();
+      if (unsubscribeTenants) {
+        try {
+          unsubscribeTenants();
+        } catch (error) {
+          console.warn('Error unsubscribing from tenant updates:', error);
+        }
+      }
+      if (unsubscribeCategories) {
+        try {
+          unsubscribeCategories();
+        } catch (error) {
+          console.warn('Error unsubscribing from category updates:', error);
+        }
+      }
     };
   }, [enableRealtime, fetchData]);
 
@@ -217,8 +226,10 @@ export function useTenants(config: UseTenantConfig = {}): UseTenantResult {
   const loadMore = useCallback(async () => {
     if (!state.hasMore || loadingMore || state.loading) return;
     
+    setLoadingMore(true);
     const nextPage = state.currentPage + 1;
     await fetchData(nextPage, true);
+    setLoadingMore(false);
   }, [state.hasMore, state.currentPage, loadingMore, state.loading, fetchData]);
 
   const refresh = useCallback(async () => {
@@ -280,116 +291,3 @@ export function useTenants(config: UseTenantConfig = {}): UseTenantResult {
     clearFilters
   };
 }
-
-// Usage examples:
-
-/*
-// Basic usage in a component
-function MyComponent() {
-  const {
-    tenants,
-    categories,
-    loading,
-    error,
-    search,
-    setSearch,
-    activeCategory,
-    setActiveCategory,
-    loadMore,
-    hasMore
-  } = useTenants();
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-
-  return (
-    <div>
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search tenants..."
-      />
-      
-      <div>
-        {categories.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={activeCategory === cat.id ? 'active' : ''}
-          >
-            {cat.display_name} ({cat.tenant_count})
-          </button>
-        ))}
-      </div>
-
-      <div>
-        {tenants.map(tenant => (
-          <div key={tenant.id}>{tenant.name}</div>
-        ))}
-      </div>
-
-      {hasMore && (
-        <button onClick={loadMore}>Load More</button>
-      )}
-    </div>
-  );
-}
-
-// Advanced usage with real-time updates and custom pagination
-function AdvancedComponent() {
-  const {
-    tenants,
-    categories,
-    loading,
-    error,
-    search,
-    setSearch,
-    categoryId: activeCategory,
-    setActiveCategory,
-    loadMore,
-    hasMore,
-    refresh,
-    clearFilters,
-    total
-  } = useTenants({
-    perPage: 24,
-    enableRealtime: true,
-    debounceMs: 500,
-    initialCategoryId: 'food-beverages'
-  });
-
-  return (
-    <div>
-      <h1>Mall Directory ({total} tenants)</h1>
-      
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search tenants..."
-      />
-      
-      <button onClick={clearFilters}>Clear All Filters</button>
-      <button onClick={refresh}>Refresh</button>
-      
-      {loading && <div>Loading...</div>}
-      {error && <div>Error: {error}</div>}
-      
-      <div>
-        {tenants.map(tenant => (
-          <div key={tenant.id}>
-            <h3>{tenant.name}</h3>
-            <p>{tenant.description}</p>
-            <span>Floor: {tenant.main_floor}</span>
-            {tenant.is_featured && <span>⭐ Featured</span>}
-            {tenant.is_new_tenant && <span>🆕 New</span>}
-          </div>
-        ))}
-      </div>
-
-      {hasMore && (
-        <button onClick={loadMore}>Load More Tenants</button>
-      )}
-    </div>
-  );
-}
-*/
