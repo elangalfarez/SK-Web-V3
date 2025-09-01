@@ -121,7 +121,7 @@ const Navbar = () => {
         { name: 'Events', href: '#' }
       ]
     },
-    { name: 'VIP Card', href: '#' },
+    { name: 'VIP Card', href: '/vip-cards' },
     { name: 'Contact', href: '/contact' }
   ];
 
