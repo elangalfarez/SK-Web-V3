@@ -1,5 +1,5 @@
 // src/App.tsx
-// Modified: Added /contact route for ContactPage component and React Hot Toast Toaster
+// Modified: Added /vip-cards route for VIPCardsPage component
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -15,14 +15,11 @@ import Facilities from './components/Facilities';
 import VisitorInfo from './components/VisitorInfo';
 import Footer from './components/Footer';
 
-// Mall Directory Component
+// Page Components
 import MallDirectory from './components/MallDirectory';
-
-// Promotions component
 import PromotionsPage from './components/PromotionsPage';
-
-// Contact component
 import ContactPage from './components/ContactPage';
+import VIPCardsPage from './components/VIPCardsPage';
 
 // Layout Component for consistent navbar/footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -33,6 +30,34 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {children}
       </div>
       <Footer />
+      {/* Toast Container */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: 'var(--color-surface-secondary)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--color-border-primary)',
+            borderRadius: '12px',
+            padding: '16px',
+            fontSize: '14px',
+            fontWeight: '500',
+          },
+          success: {
+            iconTheme: {
+              primary: 'var(--color-accent)',
+              secondary: 'var(--color-text-inverse)',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: 'var(--color-error)',
+              secondary: 'var(--color-text-inverse)',
+            },
+          },
+        }}
+      />
     </div>
   );
 };
@@ -93,6 +118,16 @@ function App() {
           element={
             <Layout>
               <ContactPage />
+            </Layout>
+          } 
+        />
+
+        {/* VIP Cards Page */}
+        <Route 
+          path="/vip-cards" 
+          element={
+            <Layout>
+              <VIPCardsPage />
             </Layout>
           } 
         />

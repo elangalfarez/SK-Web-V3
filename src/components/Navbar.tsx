@@ -77,7 +77,7 @@ const Navbar = () => {
         },
       ],
     },
-    { id: 4, label: 'VIP Card', link: '#' },
+    { id: 4, label: 'VIP Card', link: '/vip-cards' },
     {
       id: 6,
       label: 'Contact',
