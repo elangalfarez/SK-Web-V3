@@ -240,13 +240,13 @@ const VIPCardsPage: React.FC = () => {
       )}
 
       {/* VIP Cards Section */}
-      <section id="vip-cards" className="py-16 md:py-24 bg-surface">
+      <section id="vip-cards" className="py-12 sm:py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
               Choose Your <span className="text-accent">VIP Experience</span>
@@ -256,10 +256,10 @@ const VIPCardsPage: React.FC = () => {
             </p>
           </motion.div>
 
-          {/* Cards Grid - Desktop: 4 cards in row, Mobile: horizontal scroll */}
+          {/* Cards Layout - Responsive */}
           <div className="relative">
             {/* Desktop Grid */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {tiers.map((tier, index) => (
                 <motion.div
                   key={tier.id}
@@ -285,27 +285,62 @@ const VIPCardsPage: React.FC = () => {
 
             {/* Mobile Horizontal Scroll */}
             <div className="md:hidden">
-              <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4 px-4 -mx-4">
-                {tiers.map((tier, index) => (
-                  <motion.div
-                    key={tier.id}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ 
-                      duration: 0.4, 
-                      delay: index * 0.1 
-                    }}
-                    className="flex-shrink-0 w-80"
-                  >
-                    <VipCard
-                      tier={tier}
-                      benefits={tierBenefits[tier.id] || []}
-                      isExpanded={expandedTierId === tier.id}
-                      onExpand={() => handleCardExpand(tier.id)}
-                      usingFallback={usingFallback}
+              {/* Scroll indicator */}
+              <div className="flex items-center justify-between mb-4 px-1">
+                <p className="text-sm text-text-muted">
+                  Swipe to explore all {tiers.length} VIP tiers
+                </p>
+                <div className="flex space-x-1">
+                  {tiers.map((_, index) => (
+                    <div
+                      key={index}
+                      className="w-2 h-2 rounded-full bg-border-primary"
                     />
-                  </motion.div>
-                ))}
+                  ))}
+                </div>
+              </div>
+
+              {/* Scrollable container with proper mobile setup */}
+              <div className="relative -mx-4">
+                <div 
+                  className="flex space-x-4 overflow-x-auto overscroll-x-contain scrollbar-hide px-4 pb-4 snap-x snap-mandatory"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {tiers.map((tier, index) => (
+                    <motion.div
+                      key={tier.id}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.1 
+                      }}
+                      className="flex-shrink-0 w-[280px] sm:w-[320px] snap-start"
+                    >
+                      <VipCard
+                        tier={tier}
+                        benefits={tierBenefits[tier.id] || []}
+                        isExpanded={expandedTierId === tier.id}
+                        onExpand={() => handleCardExpand(tier.id)}
+                        usingFallback={usingFallback}
+                      />
+                    </motion.div>
+                  ))}
+                  
+                  {/* Scroll end spacer */}
+                  <div className="flex-shrink-0 w-4" />
+                </div>
+              </div>
+
+              {/* Mobile scroll hint */}
+              <div className="text-center mt-4">
+                <p className="text-xs text-text-muted">
+                  ← Swipe left and right to see all tiers →
+                </p>
               </div>
             </div>
           </div>
@@ -430,6 +465,37 @@ const VIPCardsPage: React.FC = () => {
           <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-text-inverse rounded-full"></div>
         </div>
       </section>
+
+      {/* Custom CSS for mobile scrolling */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+
+          /* Ensure smooth touch scrolling on mobile */
+          .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+          }
+
+          /* Mobile scroll snap points */
+          @media (max-width: 768px) {
+            .snap-x {
+              scroll-snap-type: x mandatory;
+            }
+            
+            .snap-start {
+              scroll-snap-align: start;
+            }
+          }
+        `
+      }} />
     </div>
   );
 };

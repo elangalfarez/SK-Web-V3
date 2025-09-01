@@ -201,7 +201,7 @@ export const VipCard: React.FC<VipCardProps> = ({
         )}
 
         {/* Card image */}
-        <div className="relative h-48 md:h-52 bg-surface-tertiary overflow-hidden">
+        <div className="relative h-40 sm:h-48 md:h-52 bg-surface-tertiary overflow-hidden">
           <motion.img
             src={cardImageUrl}
             alt={`${tier.name} VIP card`}
@@ -235,14 +235,14 @@ export const VipCard: React.FC<VipCardProps> = ({
         </div>
 
         {/* Card content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Title */}
-          <h3 className="text-xl font-bold text-text-primary mb-2 group-hover:text-accent transition-colors duration-200">
+          <h3 className="text-lg sm:text-xl font-bold text-text-primary mb-2 group-hover:text-accent transition-colors duration-200 line-clamp-1">
             {tier.name}
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-text-secondary mb-4 line-clamp-2 leading-relaxed">
+          <p className="text-xs sm:text-sm text-text-secondary mb-4 line-clamp-2 leading-relaxed">
             {tier.description}
           </p>
 
@@ -251,7 +251,7 @@ export const VipCard: React.FC<VipCardProps> = ({
             <div className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
               Requirement
             </div>
-            <div className="text-lg font-bold text-accent">
+            <div className="text-base sm:text-lg font-bold text-accent line-clamp-2">
               {requirement}
             </div>
           </div>
@@ -262,21 +262,21 @@ export const VipCard: React.FC<VipCardProps> = ({
               Key Benefits
             </div>
             <div className="flex flex-wrap gap-1">
-              {benefits.slice(0, 3).map((benefit) => {
+              {benefits.slice(0, 2).map((benefit) => {
                 const IconComponent = getIconComponent(benefit.icon);
                 return (
                   <div
                     key={benefit.id}
                     className="flex items-center px-2 py-1 bg-accent/10 text-accent rounded-full text-xs"
                   >
-                    <IconComponent className="w-3 h-3 mr-1" />
-                    {benefit.name}
+                    <IconComponent className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">{benefit.name}</span>
                   </div>
                 );
               })}
-              {benefits.length > 3 && (
+              {benefits.length > 2 && (
                 <div className="flex items-center px-2 py-1 bg-text-muted/10 text-text-muted rounded-full text-xs">
-                  +{benefits.length - 3} more
+                  +{benefits.length - 2} more
                 </div>
               )}
             </div>
@@ -285,15 +285,16 @@ export const VipCard: React.FC<VipCardProps> = ({
           {/* Expand button */}
           <Button
             variant="outline"
+            size="sm"
             className="w-full group-hover:bg-accent group-hover:text-text-inverse group-hover:border-accent transition-all duration-200"
             onClick={(e) => {
               e.stopPropagation();
               onExpand();
             }}
           >
-            View All Benefits
+            <span className="text-xs sm:text-sm">View All Benefits</span>
             <ChevronDown className={cn(
-              'w-4 h-4 ml-2 transition-transform duration-200',
+              'w-4 h-4 ml-2 transition-transform duration-200 flex-shrink-0',
               isExpanded && 'rotate-180'
             )} />
           </Button>
@@ -328,7 +329,7 @@ export const VipCard: React.FC<VipCardProps> = ({
             />
 
             {/* Modal Container */}
-            <div className="flex min-h-full items-center justify-center p-4">
+            <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
               <motion.div
                 ref={modalRef}
                 initial={!reducedMotion ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0 }}
@@ -339,22 +340,22 @@ export const VipCard: React.FC<VipCardProps> = ({
                   duration: 0.5,
                   bounce: 0.3
                 }}
-                className="relative w-full max-w-2xl bg-surface border border-border-primary rounded-2xl shadow-2xl overflow-hidden"
+                className="relative w-full max-w-2xl bg-surface border border-border-primary sm:rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto"
                 onKeyDown={handleModalKeyDown}
               >
                 {/* Close Button */}
                 <button
                   ref={closeButtonRef}
                   onClick={onExpand}
-                  className="absolute top-4 right-4 z-10 p-2 text-text-muted hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 p-2 text-text-muted hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 bg-black/20 backdrop-blur-sm"
                   aria-label="Close VIP card details"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </button>
 
                 {/* Modal Header */}
                 <div className="relative">
-                  <div className="h-56 bg-surface-tertiary overflow-hidden">
+                  <div className="h-48 sm:h-56 bg-surface-tertiary overflow-hidden">
                     <img
                       src={cardImageUrl}
                       alt={`${tier.name} VIP card`}
@@ -364,20 +365,20 @@ export const VipCard: React.FC<VipCardProps> = ({
                   </div>
 
                   {/* Title overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h2 id={`${tier.id}-modal-title`} className="text-3xl font-bold mb-2">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
+                    <h2 id={`${tier.id}-modal-title`} className="text-2xl sm:text-3xl font-bold mb-2">
                       {tier.name}
                     </h2>
-                    <p className="text-white/90">
+                    <p className="text-white/90 text-sm sm:text-base">
                       {tier.description}
                     </p>
                   </div>
 
                   {/* Badge */}
                   {badgeInfo && (
-                    <div className="absolute top-4 left-4">
-                      <Badge variant={badgeInfo.variant} className="px-3 py-1 shadow-lg">
-                        <badgeInfo.icon className="w-4 h-4 mr-1" />
+                    <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
+                      <Badge variant={badgeInfo.variant} className="px-2 sm:px-3 py-1 shadow-lg text-xs">
+                        <badgeInfo.icon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
                         {badgeInfo.label}
                       </Badge>
                     </div>
@@ -385,23 +386,23 @@ export const VipCard: React.FC<VipCardProps> = ({
                 </div>
 
                 {/* Modal Content */}
-                <div className="p-6 md:p-8">
+                <div className="p-4 sm:p-6 md:p-8">
                   {/* Requirements */}
-                  <div className="mb-8">
-                    <h3 className="text-xl font-semibold text-text-primary mb-4">
+                  <div className="mb-6 sm:mb-8">
+                    <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">
                       Requirements
                     </h3>
-                    <div className="p-4 bg-surface-secondary rounded-xl border border-border-primary">
-                      <p className="text-text-secondary mb-2">{tier.qualification_requirement}</p>
-                      <div className="text-2xl font-bold text-accent">
+                    <div className="p-3 sm:p-4 bg-surface-secondary rounded-xl border border-border-primary">
+                      <p className="text-sm sm:text-base text-text-secondary mb-2 leading-relaxed">{tier.qualification_requirement}</p>
+                      <div className="text-xl sm:text-2xl font-bold text-accent">
                         {requirement}
                       </div>
                     </div>
                   </div>
 
                   {/* Benefits */}
-                  <div className="mb-8">
-                    <h3 className="text-xl font-semibold text-text-primary mb-4">
+                  <div className="mb-6 sm:mb-8">
+                    <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">
                       Exclusive Benefits
                     </h3>
                     <div className="space-y-3">
@@ -413,17 +414,17 @@ export const VipCard: React.FC<VipCardProps> = ({
                             initial={!reducedMotion ? { opacity: 0, x: -20 } : { opacity: 1 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="flex items-start space-x-4 p-4 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors duration-200"
+                            className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors duration-200"
                           >
-                            <div className="p-2 bg-accent/10 rounded-lg flex-shrink-0">
-                              <IconComponent className="w-5 h-5 text-accent" />
+                            <div className="p-1.5 sm:p-2 bg-accent/10 rounded-lg flex-shrink-0">
+                              <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-text-primary mb-1">
+                              <h4 className="font-semibold text-text-primary mb-1 text-sm sm:text-base">
                                 {benefit.name}
                               </h4>
                               {benefit.description && (
-                                <p className="text-sm text-text-secondary mb-1">
+                                <p className="text-xs sm:text-sm text-text-secondary mb-1 leading-relaxed">
                                   {benefit.description}
                                 </p>
                               )}
@@ -442,14 +443,14 @@ export const VipCard: React.FC<VipCardProps> = ({
                   {/* Action Button */}
                   <div className="flex justify-center">
                     <Button 
-                      className="w-full py-3"
+                      className="w-full py-3 sm:py-4 text-sm sm:text-base"
                       onClick={() => {
                         // Could trigger registration flow
                         console.log(`Register for ${tier.name}`);
                       }}
                     >
-                      <Star className="w-4 h-4 mr-2" />
-                      Register for {tier.name} at VIP Lounge Supermal Karawaci
+                      <Star className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Register for {tier.name} at VIP Lounge Supermal Karawaci</span>
                     </Button>
                   </div>
                 </div>
