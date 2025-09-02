@@ -114,62 +114,132 @@ const VIPCardsPage: React.FC = () => {
   const faqData = [
     {
       question: {
-        en: 'How do I register for a VIP card?',
+        en: 'How do I register for VIP Membership?',
         id: 'Bagaimana cara mendaftar kartu VIP?'
       },
       answer: {
-        en: 'Visit our VIP Lounge located on the Ground Floor near the Main Lobby. Bring a valid ID and proof of spending to qualify for your desired tier.',
-        id: 'Kunjungi VIP Lounge kami yang terletak di Lantai Dasar dekat Main Lobby. Bawa KTP yang masih berlaku dan bukti belanja untuk kualifikasi tier yang diinginkan.'
+        en: 'Important: You must first register at the VIP Lounge. After that, submit/register your purchase receipts on the same day as each purchase during a single calendar month, according to the tier you wish to qualify for.',
+        id: 'PENTING harus daftar terlebih dahulu ke VIP Lounge, lalu daftarkan struk belanja di hari yang sama dalam sebulan sesuai dengan tier yang diinginkan.'
       }
     },
     {
       question: {
-        en: 'What are the spending requirements?',
-        id: 'Berapa persyaratan belanja?'
+        en: 'Can I collect receipts first and register them later within the month?',
+        id: 'Apakah bisa mengumpulkan struk terlebih dahulu baru dalam sebulan lalu mendaftar sebagai VIP Member?'
       },
       answer: {
-        en: 'Requirements vary by tier: Shopping Card needs Rp 500K in one receipt, VIP Platinum needs Rp 5M monthly spend, Super VIP needs Rp 10M monthly spend, and Super VIP Flazz needs Rp 15M monthly spend.',
-        id: 'Persyaratan bervariasi per tier: Shopping Card butuh Rp 500K dalam satu struk, VIP Platinum butuh Rp 5M belanja bulanan, Super VIP butuh Rp 10M belanja bulanan, dan Super VIP Flazz butuh Rp 15M belanja bulanan.'
+        en: 'No. Receipts must be registered on the day of purchase. Exception: If a customer makes a single qualifying purchase (for example, a mobile phone worth IDR 15,000,000) and registers for a VIP tier (e.g., Super VIP Flazz, the highest tier) on that same day, they may qualify immediately and will receive the Super VIP Flazz card and VIP membership activation right away.',
+        id: 'Tidak bisa, karena struk harus didaftarkan di hari yang sama. Kecuali, customer telah membeli misal sebuah handphone senilai Rp 15 juta dan di hari yang sama memutuskan untuk daftar sebagai VIP Member Supermal Karawaci Super VIP Flazz (tier tertinggi), maka bisa qualify dan langsung mendapatkan kartu Super VIP Flazz serta aktif sebagai VIP Member Supermal Karawaci.'
       }
     },
     {
       question: {
-        en: 'How long is the VIP card valid?',
-        id: 'Berapa lama masa berlaku kartu VIP?'
+        en: 'After I register and submit receipts, is my VIP card activated immediately?',
+        id: 'Setelah saya registrasi dan mendaftarkan struk, apakah kartu VIP member saya langsung aktif?'
       },
       answer: {
-        en: 'VIP cards are valid for 1 year from the issue date. You can renew by maintaining your spending tier or re-qualifying at the VIP Lounge.',
-        id: 'Kartu VIP berlaku selama 1 tahun dari tanggal penerbitan. Anda bisa memperpanjang dengan mempertahankan tier belanja atau kualifikasi ulang di VIP Lounge.'
+        en: 'Yes. Once you have registered and met the minimum total spend required from the receipts you submitted for the chosen tier, your VIP membership will be activated immediately. You can then begin earning points and redeeming rewards and other member benefits.',
+        id: 'Ya, setelah daftar dan memenuhi syarat minimal oembalanjaan dari seluruh struk yang telah didaftarkan sesuai dengan tier yang dipilih, maka VIP member akan langsung aktif, dan langsung bisa dipakai untuk mengumpulkan poin dan menukar hadiah serta benefit lainnya.'
       }
     },
     {
       question: {
-        en: 'Can I upgrade my VIP tier?',
-        id: 'Bisakah saya upgrade tier VIP saya?'
+        en: 'While I am in the process of submitting receipts to reach the required spend, do the points from those receipts remain?',
+        id: 'Apakah dalam proses saya mendaftarkan struk hingga VIP member saya aktif, poin dari struk yang saya kumpulkan tetap ada?'
       },
       answer: {
-        en: 'Yes! Once you meet the spending requirements for a higher tier, visit the VIP Lounge to upgrade your card and unlock additional benefits.',
-        id: 'Ya! Setelah Anda memenuhi persyaratan belanja untuk tier yang lebih tinggi, kunjungi VIP Lounge untuk upgrade kartu dan buka manfaat tambahan.'
+        en: 'Yes. For example, if you aim to qualify for Super VIP Flazz and submit receipts of IDR 500,000 each day for 30 days to reach the minimum, you will receive the Super VIP Flazz card at the end of the month with the points accumulated from those registered receipts — and you may immediately redeem those points for available merchandise.',
+        id: 'Ya, misal Anda ingin mendaftar sebagai Super VIP Flazz, Anda sedang dalam proses memenuhi minimal pembelanjaan dengan mendaftarkan struk senilai Rp 500k setiap hari selama sebulan (30 hari), di akhir bulan Anda akan menerima kartu Super VIP Flazz dengan poin dari struk belanja yang sudah Anda kumpulkan, dan bisa langsung ditukar untuk merchandise yang tersedia!.'
       }
     },
     {
       question: {
-        en: 'What is Flazz payment integration?',
-        id: 'Apa itu integrasi pembayaran Flazz?'
+        en: 'What happens if I fail to reach the minimum spend within the month?',
+        id: 'Bagaimana jika saya gagal mencapai minimal pembelanjaan dalam sebulan?'
       },
       answer: {
-        en: 'Super VIP Flazz cards can be used for contactless payments at all Flazz-enabled merchants, combining your VIP benefits with convenient e-money functionality.',
-        id: 'Kartu Super VIP Flazz dapat digunakan untuk pembayaran contactless di semua merchant yang mendukung Flazz, menggabungkan manfaat VIP dengan fungsionalitas e-money yang praktis.'
+        en: 'If you have registered as a VIP applicant but do not reach the required minimum spend within the month, you will not receive the VIP card and the points from the collected receipts will be forfeited. You must re-register and submit receipts again (on the day of purchase) for 30 days in the following month to qualify and activate your VIP card.',
+        id: 'Jika Anda sudah mendaftar sebagai VIP Member namun gagal mencapai minimal pembelanjaan dalam sebulan, Anda tidak akan mendapatkan kartu VIP Member serta poin dari struk yang dikumpulkan akan hangus. Anda harus mendaftar kembali dan mendaftarkan kembali struk pembelanjaan di hari yang sama selama 30 hari di bulan depannya untuk mendaftarkan dan mengaktifkan kartu VIP member Anda.'
       }
     },
     {
       question: {
-        en: 'Where can I use VIP parking?',
-        id: 'Di mana saya bisa menggunakan parkir VIP?'
+        en: 'How long is the VIP membership valid?',
+        id: 'Berapa lama masa berlaku VIP Member Supermal Karawaci?'
       },
       answer: {
-        en: 'VIP parking is available on weekends and public holidays for Super VIP and Super VIP Flazz cardholders. Look for the designated VIP parking areas near mall entrances.',
-        id: 'Parkir VIP tersedia saat weekend dan hari libur untuk pemegang kartu Super VIP dan Super VIP Flazz. Cari area parkir VIP yang ditandai dekat pintu masuk mall.'
+        en: 'VIP Platinum and Super VIP: One (1) year from the card activation date. Super VIP Flazz: Two (2) years from the card activation date.',
+        id: 'Satu tahun sejak kartu diaktifkan untuk VIP Platinum dan Super VIP. Dua tahun untuk Super VIP Flazz.'
+      }
+    },
+    {
+      question: {
+        en: 'Do I need to meet the tier spending requirement again every year to renew my VIP membership?',
+        id: 'Apakah untuk perpanjangan masa aktif VIP Member harus melakukan transaksi senilai tier yang dipilih dalam satu bulan kembali?'
+      },
+      answer: {
+        en: 'No. To renew your VIP membership, you only need to continue shopping at Supermal Karawaci at any amount and register the transaction receipts on the same day regularly at our VIP Counter or Information Counter.',
+        id: 'Tidak. Untuk perpanjangan masa aktif cukup dengan aktif berbelanja di Supermal Karawaci dalam nominal berapapun dan mendaftarkan struk transaksi tersebut di hari yang sama secara rutin di VIP Counter atau Information Counter kami.'
+      }
+    },
+    {
+      question: {
+        en: 'How do I renew my VIP membership?',
+        id: 'Bagaimana cara memperpanjang masa aktif VIP Member?'
+      },
+      answer: {
+        en: 'Visit the VIP Lounge and submit your transaction receipts to process the renewal.',
+        id: 'Kunjungi VIP Lounge dan serahkan struk transaksi Anda untuk memproses perpanjangan.'
+      }
+    },
+    {
+      question: {
+        en: 'What happens if I do not submit transaction receipts for 6 months?',
+        id: 'Apa yang terjadi jika saya tidak mengumpulkan struk transaksi selama 6 bulan?'
+      },
+      answer: {
+        en: 'Any reward points you have accumulated will be forfeited.',
+        id: 'Poin reward yang telah Anda kumpulkan akan hangus.'
+      }
+    },
+    {
+      question: {
+        en: 'What happens if I do not submit transaction receipts for 12 months?',
+        id: 'Apa yang terjadi jika saya tidak mengumpulkan struk transaksi selama 12 bulan?'
+      },
+      answer: {
+        en: 'Your VIP card will be deactivated and you must reapply from the beginning.',
+        id: 'Kartu VIP Anda akan dinonaktifkan dan Anda harus mendaftar kembali dari awal.'
+      }
+    },
+    {
+      question: {
+        en: 'How can I upgrade my VIP tier?',
+        id: 'Bagaimana cara meningkatkan tier VIP saya?'
+      },
+      answer: {
+        en: 'You may redeem points to upgrade tiers: Redeem 200 points to upgrade from VIP Platinum → Super VIP, or Super VIP → Super VIP Flazz. Or redeem 250 points to upgrade directly from VIP Platinum → Super VIP Flazz.',
+        id: 'Anda dapat menukarkan poin untuk meningkatkan tier: Tukarkan 200 poin untuk meningkatkan dari VIP Platinum → Super VIP, atau Super VIP → Super VIP Flazz. Atau tukarkan 250 poin untuk meningkatkan langsung dari VIP Platinum → Super VIP Flazz.'
+      }
+    },
+    {
+      question: {
+        en: 'How long are my points valid?',
+        id: 'Berapa lama poin saya berlaku?'
+      },
+      answer: {
+        en: 'Your points are valid for 12 months from the date they are earned or from the date your card was issued',
+        id: 'Poin Anda berlaku selama 12 bulan sejak tanggal diperoleh atau sejak tanggal kartu Anda diterbitkan.'
+      }
+    },
+    {
+      question: {
+        en: 'What if my VIP card is lost?',
+        id: 'Apa yang terjadi jika kartu VIP saya hilang?'
+      },
+      answer: {
+        en: 'You can reissue the card at the VIP Lounge for a replacement fee: VIP Platinum and Super VIP: IDR 50,000. Super VIP Flazz: IDR 100,000.',
+        id: 'Anda dapat menerbitkan kembali kartu di VIP Lounge dengan biaya penggantian: VIP Platinum dan Super VIP: IDR 50,000. Super VIP Flazz: IDR 100,000.'
       }
     }
   ];
