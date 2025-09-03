@@ -56,6 +56,55 @@ export interface Tenant {
   lease_status?: string;
 }
 
+// Events system types - matching the SQL schema exactly
+export interface Event {
+  id: string;
+  title: string;
+  slug: string;
+  body: string | null;
+  start_at: string;
+  end_at: string | null;
+  timezone: string | null;
+  is_published: boolean;
+  is_featured: boolean;
+  venue: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  images: EventImage[];
+  tags: string[];
+  accent_color: string | null;
+  tickets_url: string | null;
+  summary: string | null;
+  metadata: any;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventImage {
+  url: string;
+  alt: string;
+  caption?: string;
+}
+
+export interface EventFetchParams {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  upcomingOnly?: boolean;
+  fromDate?: string;
+  toDate?: string;
+  isFeatured?: boolean;
+  tags?: string[];
+  isAdmin?: boolean;
+}
+
+export interface EventFetchResult {
+  data: Event[];
+  total: number;
+  hasMore: boolean;
+}
+
 export interface Contact {
   id: string;
   full_name: string;
@@ -215,6 +264,321 @@ export function parseJsonArray(data: any, defaultValue: any[] = []): any[] {
     return Array.isArray(parsed) ? parsed : defaultValue;
   } catch {
     return defaultValue;
+  }
+}
+/* EXPORTING FUNCTION OF EVENTS PAGE */
+export function parseEventImages(images: any): EventImage[] {
+  const parsed = parseJsonArray(images);
+  return parsed.map(img => ({
+    url: img.url || '',
+    alt: img.alt || 'Event image',
+    caption: img.caption || null
+  }));
+}
+
+export function parseEventTags(tags: any): string[] {
+  const parsed = parseJsonArray(tags);
+  return parsed.filter(tag => typeof tag === 'string' && tag.trim().length > 0);
+}
+
+// Generate URL-safe slug from title
+export function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
+/**
+ * Fetch events with comprehensive filtering and pagination
+ * @param params - Filter and pagination parameters
+ * @returns Promise resolving to events fetch result
+ */
+export async function fetchEvents(params: EventFetchParams = {}): Promise<EventFetchResult> {
+  try {
+    const {
+      page = 1,
+      perPage = 12,
+      search,
+      upcomingOnly = false,
+      fromDate,
+      toDate,
+      isFeatured,
+      tags = [],
+      isAdmin = false
+    } = params;
+
+    let query = supabase
+      .from('events')
+      .select('*', { count: 'exact' });
+
+    // Filter by published status unless admin
+    if (!isAdmin) {
+      query = query.eq('is_published', true);
+    }
+
+    // Search functionality - title, body, and summary
+    if (search && search.trim()) {
+      const searchTerm = search.trim();
+      query = query.or(`title.ilike.%${searchTerm}%,body.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
+    }
+
+    // Filter by upcoming events only
+    if (upcomingOnly) {
+      query = query.gte('start_at', new Date().toISOString());
+    }
+
+    // Date range filtering
+    if (fromDate) {
+      query = query.gte('start_at', fromDate);
+    }
+    
+    if (toDate) {
+      query = query.lte('start_at', toDate);
+    }
+
+    // Featured filter
+    if (isFeatured !== undefined) {
+      query = query.eq('is_featured', isFeatured);
+    }
+
+    // Tags filtering (if any tags match)
+    if (tags.length > 0) {
+      query = query.overlaps('tags', tags);
+    }
+
+    // Pagination
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    const { data, error, count } = await query
+      .order('start_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      console.error('Error fetching events:', error);
+      throw error;
+    }
+
+    // Transform data - parse JSON fields safely
+    const transformedData: Event[] = (data || []).map(event => ({
+      ...event,
+      images: parseEventImages(event.images),
+      tags: parseEventTags(event.tags)
+    }));
+
+    const total = count || 0;
+    const hasMore = (from + (transformedData.length || 0)) < total;
+
+    return { data: transformedData, total, hasMore };
+  } catch (error) {
+    console.error('Unexpected error fetching events:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch a single event by slug
+ * @param slug - URL slug of the event
+ * @param isAdmin - Whether to fetch unpublished events (admin access)
+ * @returns Promise resolving to event or null if not found
+ */
+export async function fetchEventBySlug(slug: string, isAdmin: boolean = false): Promise<Event | null> {
+  try {
+    let query = supabase
+      .from('events')
+      .select('*')
+      .eq('slug', slug);
+
+    // Filter by published status unless admin
+    if (!isAdmin) {
+      query = query.eq('is_published', true);
+    }
+
+    const { data, error } = await query.single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Not found
+        return null;
+      }
+      console.error('Error fetching event by slug:', error);
+      throw error;
+    }
+
+    // Transform data - parse JSON fields safely
+    return {
+      ...data,
+      images: parseEventImages(data.images),
+      tags: parseEventTags(data.tags)
+    };
+  } catch (error) {
+    console.error('Unexpected error fetching event by slug:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch featured events for homepage/promotional use
+ * @param limit - Maximum number of events to return (default 6)
+ * @returns Promise resolving to array of featured events
+ */
+export async function fetchFeaturedEvents(limit: number = 6): Promise<Event[]> {
+  try {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('is_published', true)
+      .eq('is_featured', true)
+      .order('start_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching featured events:', error);
+      throw error;
+    }
+
+    // Transform data - parse JSON fields safely
+    return (data || []).map(event => ({
+      ...event,
+      images: parseEventImages(event.images),
+      tags: parseEventTags(event.tags)
+    }));
+  } catch (error) {
+    console.error('Unexpected error fetching featured events:', error);
+    throw error;
+  }
+}
+
+/**
+ * Search events by query string
+ * @param query - Search term
+ * @param limit - Maximum results to return (default 10)
+ * @returns Promise resolving to array of matching events
+ */
+export async function searchEvents(query: string, limit: number = 10): Promise<Event[]> {
+  if (!query.trim()) {
+    return [];
+  }
+
+  try {
+    const searchTerm = query.trim();
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('is_published', true)
+      .or(`title.ilike.%${searchTerm}%,body.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`)
+      .order('start_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error searching events:', error);
+      throw error;
+    }
+
+    // Transform data - parse JSON fields safely
+    return (data || []).map(event => ({
+      ...event,
+      images: parseEventImages(event.images),
+      tags: parseEventTags(event.tags)
+    }));
+  } catch (error) {
+    console.error('Unexpected error searching events:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create or update an event (admin function)
+ * @param eventData - Event data to insert/update
+ * @param eventId - ID for update, omit for insert
+ * @returns Promise resolving to created/updated event
+ */
+export async function createOrUpdateEvent(
+  eventData: Partial<Event>, 
+  eventId?: string
+): Promise<Event> {
+  try {
+    // Generate slug if title provided and no slug exists
+    if (eventData.title && !eventData.slug) {
+      eventData.slug = generateSlug(eventData.title);
+    }
+
+    // Ensure JSON fields are properly formatted
+    const processedData = {
+      ...eventData,
+      images: JSON.stringify(eventData.images || []),
+      tags: JSON.stringify(eventData.tags || []),
+      metadata: JSON.stringify(eventData.metadata || {})
+    };
+
+    let query = supabase.from('events');
+    
+    if (eventId) {
+      // Update existing event
+      const { data, error } = await query
+        .update(processedData)
+        .eq('id', eventId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      return {
+        ...data,
+        images: parseEventImages(data.images),
+        tags: parseEventTags(data.tags)
+      };
+    } else {
+      // Create new event
+      const { data, error } = await query
+        .insert([processedData])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      return {
+        ...data,
+        images: parseEventImages(data.images),
+        tags: parseEventTags(data.tags)
+      };
+    }
+  } catch (error) {
+    console.error('Error creating/updating event:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get unique event tags for filtering
+ * @returns Promise resolving to array of unique tags
+ */
+export async function fetchEventTags(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('events')
+      .select('tags')
+      .eq('is_published', true);
+
+    if (error) {
+      console.error('Error fetching event tags:', error);
+      throw error;
+    }
+
+    // Extract and flatten all tags
+    const allTags = (data || [])
+      .map(event => parseEventTags(event.tags))
+      .flat()
+      .filter((tag, index, arr) => arr.indexOf(tag) === index) // Unique only
+      .sort();
+
+    return allTags;
+  } catch (error) {
+    console.error('Unexpected error fetching event tags:', error);
+    throw error;
   }
 }
 
