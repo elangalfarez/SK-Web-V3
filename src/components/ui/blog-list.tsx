@@ -3,7 +3,7 @@
 
 import React, { memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import BlogCard from './blog-card';
+import BlogCard from '@/components/ui/blog-card';
 import type { Post } from '../../lib/supabase';
 
 interface BlogListProps {

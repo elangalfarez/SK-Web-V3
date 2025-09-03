@@ -5,7 +5,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Calendar, Tag } from 'lucide-react';
-import { Badge } from './Badge';
+import { Badge } from '@/components/ui/badge';
 import type { Post } from '../../lib/supabase';
 
 interface BlogCardProps {

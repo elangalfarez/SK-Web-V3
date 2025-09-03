@@ -4,8 +4,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Search, Filter, X, ChevronDown, Star } from 'lucide-react';
-import { Button } from './Button';
-import { Badge } from './Badge';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { seededCategories } from '../../data/seeded-posts';
 
 interface BlogFiltersProps {

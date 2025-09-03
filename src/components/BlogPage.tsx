@@ -20,12 +20,12 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { AlertCircle, X } from 'lucide-react';
 import { fetchPosts, fetchFeaturedPosts, type Post, type PostFetchParams } from '../lib/supabase';
 import { seededPosts } from '../data/seeded-posts';
-import Hero from './ui/Hero';
+import { Hero } from './ui/Hero';
 import BlogCard from './ui/blog-card';
 import BlogList from './ui/blog-list';
 import BlogFilters from './ui/blog-filters';
 import BlogFAQ from './ui/blog-faq';
-import { Button } from './ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface BlogPageState {
   posts: Post[];
