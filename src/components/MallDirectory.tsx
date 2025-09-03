@@ -1,27 +1,20 @@
-// src/components/MallDirectory.tsx
-// Modified: updated to use full-width search while preserving all existing functionality
-import React, { useMemo } from 'react';
+// src/components/MallDirectory.tsx  
+// Modified: Updated grid to ensure equal card heights using CSS grid auto-rows
+
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Building2, Sparkles } from 'lucide-react';
-import { CategoryPillList, Category } from './ui/category-pill-list';
-import { CategoryFilterDrawer } from './ui/category-filter-drawer';
-import { TenantCard } from './ui/tenant-card';
-import { Button } from './ui/button';
-import { LoadingSpinner } from './ui/loading-spinner';
-import { MallDirectorySkeleton, TenantGridSkeleton } from './ui/skeletons/tenant-card-skeleton';
-import { ErrorBoundary } from './ui/error-boundary';
-import { SearchInput } from './ui/search-input';
-import { Hero } from './ui/Hero';
+import { Search, Building2, Filter, X } from 'lucide-react';
 import { useTenants } from '@/lib/hooks/useTenants';
-import { Tenant } from '@/lib/supabase'; // Import Tenant type from supabase
-import { cn } from '@/lib/utils';
+import { TenantCard } from './ui/tenant-card';
+import { SearchInput } from './ui/search-input';
+import { CategoryPillList } from './ui/category-pill-list';
+import { CategoryFilterDrawer } from './ui/category-filter-drawer';
+import { LoadingSpinner } from './ui/loading-spinner';
+import { Button } from './ui/button';
+import { TenantGridSkeleton } from './ui/skeletons/tenant-card-skeleton';
 
-interface MallDirectoryProps {
-  className?: string;
-}
-
-const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
-  // Use the custom hook for data management
+export default function MallDirectory() {
+  // State management using the useTenants hook
   const {
     tenants,
     categories,
@@ -30,65 +23,47 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
     total,
     hasMore,
     search,
-    setSearch,
     categoryId: activeCategory,
+    setSearch,
     setActiveCategory,
     loadMore,
     refresh,
-    clearFilters
+    clearFilters,
   } = useTenants({
     perPage: 50,
-    enableRealtime: false, // Can be enabled if needed
-    debounceMs: 300
+    enableRealtime: false,
+    debounceMs: 300,
+    initialCategoryId: 'all'
   });
 
   // UI state
-  const [showCategoryDrawer, setShowCategoryDrawer] = React.useState(false);
-  const [loadingMore, setLoadingMore] = React.useState(false);
+  const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Transform categories to match CategoryPillList interface (filter out synthetic "All Categories")
-  const transformedCategories = useMemo((): Category[] => {
-    return categories
-      .filter(category => category.id !== 'all') // Remove synthetic "All Categories" 
-      .map(category => ({
-        id: category.id,
-        name: category.display_name || category.name,
-        count: category.tenant_count,
-        icon: category.icon || 'store'
-      }));
-  }, [categories]);
-
-  // Custom category change handler with toggle logic (like PromotionsPage)
-  const handleCategoryChange = (categoryId: string) => {
-    if (activeCategory === categoryId) {
-      // If clicking the same category, deselect it (show all)
-      setActiveCategory('all');
-    } else {
-      // Select the new category
-      setActiveCategory(categoryId);
-    }
-  };
-
-  // Dynamic placeholder based on active category
-  const searchPlaceholder = useMemo(() => {
-    if (activeCategory && activeCategory !== 'all') {
-      const categoryName = transformedCategories.find(c => c.id === activeCategory)?.name;
-      return categoryName ? `Search in ${categoryName}...` : 'Search stores and brands...';
-    }
-    return 'Search stores and brands...';
-  }, [activeCategory, transformedCategories]);
-
-  // Handle load more with loading state
-  const handleLoadMore = async () => {
-    if (loadingMore) return;
+  // Transform categories for UI consumption
+  const transformedCategories = useMemo(() => {
+    const allCategory = { 
+      id: 'all', 
+      name: 'All Categories', 
+      tenant_count: total 
+    };
     
+    return [allCategory, ...categories.map(cat => ({
+      id: cat.id,
+      name: cat.display_name || cat.name,
+      tenant_count: cat.tenant_count
+    }))];
+  }, [categories, total]);
+
+  // Load more with loading state
+  const handleLoadMore = useCallback(async () => {
     setLoadingMore(true);
     try {
       await loadMore();
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [loadMore]);
 
   // Animation variants
   const containerVariants = {
@@ -96,127 +71,172 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
+        staggerChildren: 0.05,
+        delayChildren: 0.1
       }
     }
   };
 
   const itemVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 20,
-      scale: 0.9
-    },
-    visible: {
+    hidden: { opacity: 0, y: 20 },
+    visible: (index: number) => ({
       opacity: 1,
       y: 0,
-      scale: 1,
       transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 24
+        delay: index * 0.05,
+        duration: 0.5,
+        ease: [0.25, 0.46, 0.45, 0.94]
       }
-    }
+    })
   };
 
   const emptyStateVariants = {
-    hidden: { opacity: 0, y: 40 },
+    hidden: { opacity: 0, scale: 0.95 },
     visible: { 
       opacity: 1, 
-      y: 0,
-      transition: { 
-        type: "spring", 
-        stiffness: 200, 
-        damping: 20,
-        delay: 0.2 
-      }
-    }
+      scale: 1,
+      transition: { duration: 0.4 }
+    },
+    exit: { opacity: 0, scale: 0.95 }
   };
 
+  // Show loading skeleton on initial load
   if (loading && tenants.length === 0) {
     return (
-      <div className={cn('min-h-screen bg-surface', className)}>
-        <Hero
-          title="Mall Directory"
-          subtitle="Discover all the amazing stores and services at Supermal Karawaci"
-          backgroundImage="/images/mall-directory-hero.jpg"
-          className="mb-12"
-        />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-          <MallDirectorySkeleton />
+      <div className="min-h-screen bg-surface py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
+              <span className="heading-primary">Mall</span> <span className="heading-accent">Directory</span>
+            </h1>
+            <p className="text-lg md:text-xl body-text max-w-2xl mx-auto">
+              Discover all the amazing stores and dining options at Supermal Karawaci
+            </p>
+          </div>
+          
+          <TenantGridSkeleton count={12} />
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-surface py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-16">
+            <h1 className="text-2xl font-bold text-text-primary mb-4">
+              Unable to load directory
+            </h1>
+            <p className="text-text-muted mb-6">{error}</p>
+            <Button onClick={refresh}>Try Again</Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn('min-h-screen bg-surface', className)}>
-      {/* Hero Section */}
-      <Hero
-        title="Mall Directory"
-        subtitle="Discover all the amazing stores and services at Supermal Karawaci"
-        backgroundImage="/images/mall-directory-hero.jpg"
-        className="mb-12"
-      />
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="space-y-8">
-          {/* Search Section */}
-          <motion.div
+    <div className="min-h-screen bg-surface py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold"
+          >
+            <span className="heading-primary">Mall</span> <span className="heading-accent">Directory</span>
+          </motion.h1>
+          
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-lg md:text-xl body-text max-w-2xl mx-auto"
+          >
+            Discover all the amazing stores and dining options at Supermal Karawaci
+          </motion.p>
+        </div>
+
+        {/* Search Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="max-w-2xl mx-auto"
+        >
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search stores, brands, categories..."
+            className="w-full"
+          />
+        </motion.div>
+
+        {/* Category Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="space-y-4"
+        >
+          {/* Desktop Category Pills */}
+          <div className="hidden md:block">
+            <CategoryPillList
+              categories={transformedCategories}
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+            />
+          </div>
+
+          {/* Mobile Category Filter Button */}
+          <div className="md:hidden flex justify-center">
+            <Button
+              onClick={() => setShowCategoryDrawer(true)}
+              variant="outline"
+              className="gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              {activeCategory === 'all' ? 'All Categories' : 
+                transformedCategories.find(c => c.id === activeCategory)?.name || 'Filter'}
+              {(search || activeCategory !== 'all') && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearFilters();
+                  }}
+                  className="ml-1 p-0.5 hover:bg-border-secondary rounded-full transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Results Section */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${search}-${activeCategory}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            {/* Full-Width Search Bar */}
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder={searchPlaceholder}
-            />
-
-            {/* Category Pills - Desktop */}
-            <div className="hidden lg:block">
-              <CategoryPillList
-                categories={transformedCategories}
-                activeCategory={activeCategory === 'all' ? '' : activeCategory}
-                onCategoryChange={handleCategoryChange}
-                onFilterClick={() => setShowCategoryDrawer(true)}
-              />
-            </div>
-
-            {/* Category Filter Button - Mobile */}
-            <div className="lg:hidden flex justify-center">
-              <Button
-                onClick={() => setShowCategoryDrawer(true)}
-                variant="outline"
-                className="gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                Filter by Category
-                {activeCategory && activeCategory !== 'all' && (
-                  <span className="ml-1 px-2 py-0.5 bg-accent text-text-inverse text-xs rounded-full">
-                    1
-                  </span>
-                )}
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Results Summary */}
-          <AnimatePresence mode="wait">
+            {/* Results Header */}
             <motion.div
-              key={`${search}-${activeCategory}-${total}`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+              transition={{ delay: 0.1 }}
+              className="flex items-center justify-between"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <p className="text-sm text-text-secondary">
+              <div className="flex items-center gap-4">
+                <p className="text-text-secondary">
                   {tenants.length > 0 ? (
                     <>
                       Showing <span className="font-semibold text-text-primary">{tenants.length}</span> 
@@ -267,12 +287,17 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
                   animate="visible"
                   className="space-y-6"
                 >
-                  <motion.div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {/* UPDATED GRID: Added auto-rows-fr equivalent and h-full on cards for equal heights */}
+                  <motion.div 
+                    className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    style={{ gridAutoRows: '1fr' }} // Forces equal row heights
+                  >
                     {tenants.map((tenant, index) => (
                       <motion.div
                         key={tenant.id}
                         variants={itemVariants}
                         custom={index}
+                        className="h-full" // Ensures card stretches to fill grid cell
                       >
                         <TenantCard tenant={tenant} />
                       </motion.div>
@@ -353,8 +378,8 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
                 </motion.div>
               )}
             </AnimatePresence>
-          </AnimatePresence>
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Mobile Category Filter Drawer */}
@@ -363,11 +388,11 @@ const MallDirectory: React.FC<MallDirectoryProps> = ({ className }) => {
         onClose={() => setShowCategoryDrawer(false)}
         categories={transformedCategories}
         activeCategory={activeCategory === 'all' ? '' : activeCategory}
-        onCategoryChange={handleCategoryChange}
-        searchPlaceholder="Search store categories..."
+        onCategorySelect={(categoryId) => {
+          setActiveCategory(categoryId || 'all');
+          setShowCategoryDrawer(false);
+        }}
       />
     </div>
   );
-};
-
-export default MallDirectory;
+}
