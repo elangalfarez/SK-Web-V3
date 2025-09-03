@@ -261,6 +261,58 @@ export interface PromotionFetchResult {
   hasMore: boolean;
 }
 
+// Blog-related types
+export interface BlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  accent_color: string | null;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string | null;
+  body_html: string | null;
+  category_id: string | null;
+  category?: Pick<BlogCategory, 'id' | 'name' | 'slug' | 'accent_color'> | null;
+  tags: string[];
+  is_published: boolean;
+  is_featured: boolean;
+  publish_at: string | null;
+  image_url: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostFetchParams {
+  search?: string;
+  tags?: string[];
+  categoryId?: string;
+  isFeatured?: boolean;
+  fromDate?: string;
+  toDate?: string;
+  isAdmin?: boolean;
+  page?: number;
+  perPage?: number;
+}
+
+export interface PostFetchResult {
+  posts: Post[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
+}
+
+
 // Helper functions for safe JSON parsing (existing)
 export function parseOperatingHours(hours: any): string {
   if (!hours) return 'See store for hours';
@@ -289,6 +341,24 @@ export function parseJsonArray(data: any, defaultValue: any[] = []): any[] {
     return defaultValue;
   }
 }
+
+/**
+ * Helper function to safely parse JSON array values from database
+ */
+function safeParseJsonArray(value: any): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 /* EXPORTING FUNCTION OF EVENTS PAGE */
 export function parseEventImages(images: any): EventImage[] {
   const parsed = parseJsonArray(images);
@@ -312,6 +382,295 @@ export function generateSlug(title: string): string {
     .replace(/[^\w\s-]/g, '') // Remove special characters
     .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
+/**
+ * Fetch posts with optional filtering, pagination, and search
+ * @param params - Filter and pagination parameters
+ * @returns Promise resolving to posts with pagination metadata
+ */
+export async function fetchPosts(params: PostFetchParams = {}): Promise<PostFetchResult> {
+  const {
+    search,
+    tags,
+    categoryId,
+    isFeatured,
+    fromDate,
+    toDate,
+    isAdmin = false,
+    page = 1,
+    perPage = 12
+  } = params;
+
+  try {
+    let query = supabase
+      .from('posts')
+      .select(`
+        id,
+        title,
+        slug,
+        summary,
+        body_html,
+        category_id,
+        category:blog_categories(id,name,slug,accent_color),
+        tags,
+        is_published,
+        is_featured,
+        publish_at,
+        image_url,
+        created_at,
+        updated_at
+      `, { count: 'exact' });
+
+    // Apply published filter unless admin
+    if (!isAdmin) {
+      query = query
+        .eq('is_published', true)
+        .or('publish_at.is.null,publish_at.lte.' + new Date().toISOString());
+    }
+
+    // Apply search filter
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,summary.ilike.%${search}%`);
+    }
+
+    // Apply tag filter
+    if (tags && tags.length > 0) {
+      query = query.overlaps('tags', tags);
+    }
+
+    // Apply category filter
+    if (categoryId) {
+      query = query.eq('category_id', categoryId);
+    }
+
+    // Apply featured filter
+    if (isFeatured) {
+      query = query.eq('is_featured', true);
+    }
+
+    // Apply date range filters
+    if (fromDate) {
+      query = query.gte('publish_at', fromDate);
+    }
+    if (toDate) {
+      query = query.lte('publish_at', toDate);
+    }
+
+    // Apply pagination
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+    query = query.range(from, to);
+
+    // Order by publish_at desc, then created_at desc
+    query = query.order('publish_at', { ascending: false, nullsFirst: false })
+                 .order('created_at', { ascending: false });
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching posts:', error);
+      // Retry once on network error
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const retryResult = await query;
+      if (retryResult.error) {
+        console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
+        throw new Error(`Failed to fetch posts: ${retryResult.error.message}`);
+      }
+      return {
+        posts: (retryResult.data || []).map(post => ({
+          ...post,
+          tags: safeParseJsonArray(post.tags)
+        })),
+        total: retryResult.count || 0,
+        page,
+        perPage,
+        hasMore: (retryResult.count || 0) > to + 1
+      };
+    }
+
+    const posts = (data || []).map(post => ({
+      ...post,
+      tags: safeParseJsonArray(post.tags)
+    }));
+
+    return {
+      posts,
+      total: count || 0,
+      page,
+      perPage,
+      hasMore: (count || 0) > to + 1
+    };
+
+  } catch (error) {
+    console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
+    throw error;
+  }
+}
+
+/**
+ * Fetch a single post by slug
+ * @param slug - Post slug identifier
+ * @param options - Options including admin access
+ * @returns Promise resolving to post or null if not found
+ */
+export async function fetchPostBySlug(
+  slug: string, 
+  options: { isAdmin?: boolean } = {}
+): Promise<Post | null> {
+  const { isAdmin = false } = options;
+
+  try {
+    let query = supabase
+      .from('posts')
+      .select(`
+        id,
+        title,
+        slug,
+        summary,
+        body_html,
+        category_id,
+        category:blog_categories(id,name,slug,accent_color),
+        tags,
+        is_published,
+        is_featured,
+        publish_at,
+        image_url,
+        created_by,
+        created_at,
+        updated_at
+      `)
+      .eq('slug', slug)
+      .single();
+
+    // Apply published filter unless admin
+    if (!isAdmin) {
+      query = query
+        .eq('is_published', true)
+        .or('publish_at.is.null,publish_at.lte.' + new Date().toISOString());
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      console.error('Error fetching post by slug:', error);
+      // Retry once
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const retryResult = await query;
+      if (retryResult.error) {
+        console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
+        return null;
+      }
+      return retryResult.data ? {
+        ...retryResult.data,
+        tags: safeParseJsonArray(retryResult.data.tags)
+      } : null;
+    }
+
+    return data ? {
+      ...data,
+      tags: safeParseJsonArray(data.tags)
+    } : null;
+
+  } catch (error) {
+    console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
+    return null;
+  }
+}
+
+/**
+ * Fetch featured posts for display in hero sections
+ * @param limit - Maximum number of posts to return
+ * @returns Promise resolving to array of featured posts
+ */
+export async function fetchFeaturedPosts(limit: number = 6): Promise<Post[]> {
+  try {
+    const query = supabase
+      .from('posts')
+      .select(`
+        id,
+        title,
+        slug,
+        summary,
+        category_id,
+        category:blog_categories(id,name,slug,accent_color),
+        tags,
+        is_published,
+        is_featured,
+        publish_at,
+        image_url,
+        created_at
+      `)
+      .eq('is_published', true)
+      .eq('is_featured', true)
+      .or('publish_at.is.null,publish_at.lte.' + new Date().toISOString())
+      .order('publish_at', { ascending: false, nullsFirst: false })
+      .limit(limit);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching featured posts:', error);
+      // Retry once
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const retryResult = await query;
+      if (retryResult.error) {
+        console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
+        throw new Error(`Failed to fetch featured posts: ${retryResult.error.message}`);
+      }
+      return (retryResult.data || []).map(post => ({
+        ...post,
+        tags: safeParseJsonArray(post.tags)
+      }));
+    }
+
+    return (data || []).map(post => ({
+      ...post,
+      tags: safeParseJsonArray(post.tags)
+    }));
+
+  } catch (error) {
+    console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
+    throw error;
+  }
+}
+
+/**
+ * Search posts for autocomplete/typeahead functionality
+ * @param query - Search query string
+ * @param limit - Maximum number of results
+ * @returns Promise resolving to minimal post data for search results
+ */
+export async function searchPosts(
+  query: string, 
+  limit: number = 10
+): Promise<Pick<Post, 'id' | 'title' | 'slug' | 'image_url' | 'summary' | 'publish_at'>[]> {
+  if (!query.trim()) return [];
+
+  try {
+    const searchQuery = supabase
+      .from('posts')
+      .select('id,title,slug,image_url,summary,publish_at')
+      .eq('is_published', true)
+      .or('publish_at.is.null,publish_at.lte.' + new Date().toISOString())
+      .or(`title.ilike.%${query}%,summary.ilike.%${query}%`)
+      .order('publish_at', { ascending: false, nullsFirst: false })
+      .limit(limit);
+
+    const { data, error } = await searchQuery;
+
+    if (error) {
+      console.error('Error searching posts:', error);
+      return [];
+    }
+
+    return data || [];
+
+  } catch (error) {
+    console.warn('Search posts failed, returning empty results');
+    return [];
+  }
 }
 
 /* All function related to new Promotions Page 

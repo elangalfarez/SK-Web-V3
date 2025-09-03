@@ -1,5 +1,6 @@
 // src/App.tsx
-// Modified: Added /events and /event/:slug routes for EventsPage and EventDetailPage components
+// Modified: Added BlogPage import and corrected blog routes for the new blog system
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -22,6 +23,8 @@ import ContactPage from './components/ContactPage';
 import VIPCardsPage from './components/VIPCardsPage';
 import EventsPage from './components/EventsPage';
 import EventDetailPage from './components/EventDetailPage';
+import BlogPage from './components/BlogPage';
+import PostDetailPage from './components/PostDetailPage';
 
 // Layout Component for consistent navbar/footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -150,6 +153,26 @@ function App() {
           element={
             <Layout>
               <EventDetailPage />
+            </Layout>
+          } 
+        />
+
+        {/* Blog Page */}
+        <Route 
+          path="/blog" 
+          element={
+            <Layout>
+              <BlogPage />
+            </Layout>
+          } 
+        />
+
+        {/* Blog Detail Page */}
+        <Route 
+          path="/blog/:slug" 
+          element={
+            <Layout>
+              <PostDetailPage />
             </Layout>
           } 
         />
