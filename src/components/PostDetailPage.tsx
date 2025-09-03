@@ -9,8 +9,8 @@ import DOMPurify from 'dompurify';
 import { fetchPostBySlug, fetchPosts, type Post } from '../lib/supabase';
 import { seededPosts } from '../data/seeded-posts';
 import BlogCard from './ui/blog-card';
-import { Button } from './ui/Button';
-import { Badge } from './ui/Badge';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 
 interface PostDetailState {
   post: Post | null;
