@@ -203,7 +203,7 @@ export interface TenantFetchParams {
   search?: string;
   floorFilter?: string;
 }
-
+// Promotion types - enhanced with fetch parameters and results
 export interface Promotion {
   id: string;
   tenant_id: string;
@@ -217,6 +217,7 @@ export interface Promotion {
   published_at: string | null;
   raw_json: any;
   created_at: string;
+  media_id?: string | null;
 }
 
 export interface PromotionWithTenant {
@@ -232,10 +233,32 @@ export interface PromotionWithTenant {
   published_at: string | null;
   raw_json: any;
   created_at: string;
+  media_id?: string | null;
   tenant_name: string;
   brand_name: string;
   tenant_category: string;
+  tenant_category_display: string;
   tenant_category_id: string;
+  category_color?: string;
+  category_icon?: string;
+  main_floor?: string | null;
+}
+
+export interface PromotionFetchParams {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  categoryId?: string;
+  status?: 'staging' | 'published' | 'expired';
+  onlyFeatured?: boolean;
+  fromDate?: string;
+  toDate?: string;
+}
+
+export interface PromotionFetchResult {
+  data: PromotionWithTenant[];
+  total: number;
+  hasMore: boolean;
 }
 
 // Helper functions for safe JSON parsing (existing)
@@ -289,6 +312,504 @@ export function generateSlug(title: string): string {
     .replace(/[^\w\s-]/g, '') // Remove special characters
     .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
+/* All function related to new Promotions Page 
+* added a safe fallback in case of image_url not found which causes image error to load */
+// Utility function for safe image URL processing
+function sanitizeImageUrl(url: any): string | null {
+  if (!url || typeof url !== 'string') return null;
+  
+  // Check for common invalid formats
+  if (url.includes('private') || url.includes('.heic') || url.length > 2000) {
+    return null; // Invalid or problematic URL
+  }
+  
+  try {
+    new URL(url); // Validate URL format
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+// Utility function for safe JSON parsing of raw_json
+function parsePromotionRawJson(rawJson: any): any {
+  if (!rawJson) return {};
+  if (typeof rawJson === 'object') return rawJson;
+  
+  try {
+    return JSON.parse(rawJson);
+  } catch {
+    return {};
+  }
+}
+
+// Utility function for exponential backoff retry
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  retries: number = 1,
+  delay: number = 1000
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: any) {
+    if (retries > 0 && error?.message?.includes('network')) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return retryWithBackoff(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch promotions with comprehensive filtering, pagination, and robust fallback
+ * Primary: try v_promotions_full view
+ * Fallback: direct JOIN query on promotions + tenants + tenant_categories
+ */
+export async function fetchPromotions(params: PromotionFetchParams = {}): Promise<PromotionFetchResult> {
+  const {
+    page = 1,
+    perPage = 12,
+    search,
+    categoryId,
+    status = 'published',
+    onlyFeatured,
+    fromDate,
+    toDate
+  } = params;
+
+  const from = (page - 1) * perPage;
+  const to = from + perPage - 1;
+
+  // Primary approach: try v_promotions_full view
+  async function tryViewQuery(): Promise<PromotionFetchResult> {
+    let query = supabase
+      .from('v_promotions_full')
+      .select('*', { count: 'exact' })
+      .eq('status', status);
+
+    // Apply filters
+    if (search) {
+      const searchTerm = search.trim();
+      query = query.or(`title.ilike.%${searchTerm}%,tenant_name.ilike.%${searchTerm}%,full_description.ilike.%${searchTerm}%`);
+    }
+
+    if (categoryId) {
+      query = query.eq('tenant_category_id', categoryId);
+    }
+
+    if (onlyFeatured) {
+      query = query.eq('tenant_is_active', true);
+    }
+
+    if (fromDate) {
+      query = query.gte('published_at', fromDate);
+    }
+
+    if (toDate) {
+      query = query.lte('published_at', toDate);
+    }
+
+    const { data, error, count } = await query
+      .order('published_at', { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+
+    const promotions = (data || []).map(promo => ({
+      ...promo,
+      image_url: sanitizeImageUrl(promo.image_url),
+      raw_json: parsePromotionRawJson(promo.raw_json)
+    }));
+
+    return {
+      data: promotions,
+      total: count || 0,
+      hasMore: (count || 0) > to + 1
+    };
+  }
+
+  // Fallback approach: direct JOIN query
+  async function tryFallbackQuery(): Promise<PromotionFetchResult> {
+    let query = supabase
+      .from('promotions')
+      .select(`
+        id,
+        tenant_id,
+        title,
+        full_description,
+        image_url,
+        source_post,
+        start_date,
+        end_date,
+        status,
+        published_at,
+        raw_json,
+        created_at,
+        media_id,
+        tenants!left (
+          id,
+          name,
+          category_id,
+          main_floor,
+          is_active,
+          tenant_categories!left (
+            id,
+            display_name,
+            color,
+            icon
+          )
+        )
+      `, { count: 'exact' })
+      .eq('status', status);
+
+    // Apply filters (similar to view query)
+    if (search) {
+      const searchTerm = search.trim();
+      query = query.or(`title.ilike.%${searchTerm}%,full_description.ilike.%${searchTerm}%`);
+    }
+
+    if (categoryId) {
+      query = query.eq('tenants.category_id', categoryId);
+    }
+
+    if (onlyFeatured) {
+      query = query.eq('tenants.is_active', true);
+    }
+
+    if (fromDate) {
+      query = query.gte('published_at', fromDate);
+    }
+
+    if (toDate) {
+      query = query.lte('published_at', toDate);
+    }
+
+    const { data, error, count } = await query
+      .order('published_at', { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+
+    // Transform to match PromotionWithTenant interface
+    const promotions: PromotionWithTenant[] = (data || []).map(promo => {
+      const tenant = promo.tenants || {};
+      const category = tenant.tenant_categories || {};
+      
+      return {
+        id: promo.id,
+        tenant_id: promo.tenant_id,
+        title: promo.title,
+        full_description: promo.full_description,
+        image_url: sanitizeImageUrl(promo.image_url),
+        source_post: promo.source_post,
+        start_date: promo.start_date,
+        end_date: promo.end_date,
+        status: promo.status,
+        published_at: promo.published_at,
+        raw_json: parsePromotionRawJson(promo.raw_json),
+        created_at: promo.created_at,
+        media_id: promo.media_id,
+        tenant_name: tenant.name || 'Supermal Karawaci',
+        brand_name: tenant.name || 'Supermal Karawaci',
+        tenant_category: category.display_name || 'General',
+        tenant_category_display: category.display_name || 'General', 
+        tenant_category_id: tenant.category_id || '',
+        category_color: category.color,
+        category_icon: category.icon,
+        main_floor: tenant.main_floor
+      };
+    });
+
+    return {
+      data: promotions,
+      total: count || 0,
+      hasMore: (count || 0) > to + 1
+    };
+  }
+
+  try {
+    return await retryWithBackoff(tryViewQuery);
+  } catch (viewError: any) {
+    console.warn('v_promotions_full query failed or returned no rows; falling back to direct promotions join. Check that v_promotions_full exists and RLS policies allow public SELECT.', viewError);
+    
+    try {
+      return await retryWithBackoff(tryFallbackQuery);
+    } catch (fallbackError: any) {
+      console.error('Both view and fallback queries failed:', fallbackError);
+      throw new Error('Failed to load promotions');
+    }
+  }
+}
+
+/**
+ * Fetch featured promotions for homepage/promotional display
+ */
+export async function fetchFeaturedPromotions(limit: number = 6): Promise<PromotionWithTenant[]> {
+  async function tryViewQuery(): Promise<PromotionWithTenant[]> {
+    const { data, error } = await supabase
+      .from('v_promotions_full')
+      .select('*')
+      .eq('status', 'published')
+      .eq('tenant_is_active', true)
+      .order('published_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return (data || []).map(promo => ({
+      ...promo,
+      image_url: sanitizeImageUrl(promo.image_url),
+      raw_json: parsePromotionRawJson(promo.raw_json)
+    }));
+  }
+
+  async function tryFallbackQuery(): Promise<PromotionWithTenant[]> {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select(`
+        id,
+        tenant_id,
+        title,
+        full_description,
+        image_url,
+        source_post,
+        start_date,
+        end_date,
+        status,
+        published_at,
+        raw_json,
+        created_at,
+        media_id,
+        tenants!left (
+          id,
+          name,
+          category_id,
+          main_floor,
+          is_active,
+          tenant_categories!left (
+            id,
+            display_name,
+            color,
+            icon
+          )
+        )
+      `)
+      .eq('status', 'published')
+      .eq('tenants.is_active', true)
+      .order('published_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return (data || []).map(promo => {
+      const tenant = promo.tenants || {};
+      const category = tenant.tenant_categories || {};
+      
+      return {
+        id: promo.id,
+        tenant_id: promo.tenant_id,
+        title: promo.title,
+        full_description: promo.full_description,
+        image_url: sanitizeImageUrl(promo.image_url),
+        source_post: promo.source_post,
+        start_date: promo.start_date,
+        end_date: promo.end_date,
+        status: promo.status,
+        published_at: promo.published_at,
+        raw_json: parsePromotionRawJson(promo.raw_json),
+        created_at: promo.created_at,
+        media_id: promo.media_id,
+        tenant_name: tenant.name || 'Supermal Karawaci',
+        brand_name: tenant.name || 'Supermal Karawaci',
+        tenant_category: category.display_name || 'General',
+        tenant_category_display: category.display_name || 'General',
+        tenant_category_id: tenant.category_id || '',
+        category_color: category.color,
+        category_icon: category.icon,
+        main_floor: tenant.main_floor
+      };
+    });
+  }
+
+  try {
+    return await retryWithBackoff(tryViewQuery);
+  } catch (viewError: any) {
+    console.warn('v_promotions_full query failed for featured promotions; falling back to direct promotions join.', viewError);
+    
+    try {
+      return await retryWithBackoff(tryFallbackQuery);
+    } catch (fallbackError: any) {
+      console.error('Both view and fallback queries failed for featured promotions:', fallbackError);
+      return []; // Return empty array instead of throwing for featured promotions
+    }
+  }
+}
+
+/**
+ * Fetch single promotion by ID with tenant information
+ */
+export async function fetchPromotionById(id: string, includeTenant: boolean = true): Promise<PromotionWithTenant | null> {
+  if (!includeTenant) {
+    // Simple promotion fetch without tenant info
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+
+    return {
+      ...data,
+      image_url: sanitizeImageUrl(data.image_url),
+      raw_json: parsePromotionRawJson(data.raw_json),
+      tenant_name: 'Supermal Karawaci',
+      brand_name: 'Supermal Karawaci',
+      tenant_category: 'General',
+      tenant_category_display: 'General',
+      tenant_category_id: ''
+    };
+  }
+
+  async function tryViewQuery(): Promise<PromotionWithTenant | null> {
+    const { data, error } = await supabase
+      .from('v_promotions_full')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+
+    return {
+      ...data,
+      image_url: sanitizeImageUrl(data.image_url),
+      raw_json: parsePromotionRawJson(data.raw_json)
+    };
+  }
+
+  async function tryFallbackQuery(): Promise<PromotionWithTenant | null> {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select(`
+        id,
+        tenant_id,
+        title,
+        full_description,
+        image_url,
+        source_post,
+        start_date,
+        end_date,
+        status,
+        published_at,
+        raw_json,
+        created_at,
+        media_id,
+        tenants!left (
+          id,
+          name,
+          category_id,
+          main_floor,
+          is_active,
+          tenant_categories!left (
+            id,
+            display_name,
+            color,
+            icon
+          )
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+
+    const tenant = data.tenants || {};
+    const category = tenant.tenant_categories || {};
+    
+    return {
+      id: data.id,
+      tenant_id: data.tenant_id,
+      title: data.title,
+      full_description: data.full_description,
+      image_url: sanitizeImageUrl(data.image_url),
+      source_post: data.source_post,
+      start_date: data.start_date,
+      end_date: data.end_date,
+      status: data.status,
+      published_at: data.published_at,
+      raw_json: parsePromotionRawJson(data.raw_json),
+      created_at: data.created_at,
+      media_id: data.media_id,
+      tenant_name: tenant.name || 'Supermal Karawaci',
+      brand_name: tenant.name || 'Supermal Karawaci',
+      tenant_category: category.display_name || 'General',
+      tenant_category_display: category.display_name || 'General',
+      tenant_category_id: tenant.category_id || '',
+      category_color: category.color,
+      category_icon: category.icon,
+      main_floor: tenant.main_floor
+    };
+  }
+
+  try {
+    return await retryWithBackoff(tryViewQuery);
+  } catch (viewError: any) {
+    console.warn('v_promotions_full query failed for promotion by ID; falling back to direct promotions join.', viewError);
+    
+    try {
+      return await retryWithBackoff(tryFallbackQuery);
+    } catch (fallbackError: any) {
+      console.error('Both view and fallback queries failed for promotion by ID:', fallbackError);
+      return null;
+    }
+  }
+}
+
+/**
+ * Search promotions by query string for autocomplete
+ */
+export async function searchPromotions(query: string, limit: number = 10): Promise<Promotion[]> {
+  if (!query.trim()) return [];
+
+  const searchTerm = query.trim();
+
+  try {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('id, title, image_url, published_at, tenant_id, status')
+      .eq('status', 'published')
+      .or(`title.ilike.%${searchTerm}%,full_description.ilike.%${searchTerm}%`)
+      .order('published_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return (data || []).map(promo => ({
+      ...promo,
+      image_url: sanitizeImageUrl(promo.image_url),
+      full_description: null,
+      source_post: null,
+      start_date: null,
+      end_date: null,
+      raw_json: {},
+      created_at: promo.published_at || new Date().toISOString(),
+      media_id: null
+    }));
+  } catch (error) {
+    console.error('Error searching promotions:', error);
+    return [];
+  }
 }
 
 /**

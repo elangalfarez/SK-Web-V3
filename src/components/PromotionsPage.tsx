@@ -1,5 +1,5 @@
 // src/components/PromotionsPage.tsx
-// Modified: Replaced hardcoded header section with reusable Hero component
+// Modified: Use robust promotion fetch functions instead of direct supabase queries, add document title
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
@@ -9,7 +9,14 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-import { supabase, PromotionWithTenant, TenantCategory, fetchTenantCategories } from '@/lib/supabase';
+import { 
+  fetchPromotions, 
+  fetchFeaturedPromotions, 
+  fetchTenantCategories, 
+  PromotionWithTenant, 
+  TenantCategory, 
+  PromotionFetchParams 
+} from '@/lib/supabase';
 import { SearchInput } from '@/components/ui/search-input';
 import { CategoryPillList, Category } from '@/components/ui/category-pill-list';
 import { CategoryFilterDrawer } from '@/components/ui/category-filter-drawer';
@@ -34,6 +41,7 @@ const FEATURED_LIMIT = 6;
 const PromotionsPage: React.FC = () => {
   // Data state
   const [promotions, setPromotions] = useState<PromotionWithTenant[]>([]);
+  const [featuredPromotions, setFeaturedPromotions] = useState<PromotionWithTenant[]>([]);
   const [categories, setCategories] = useState<TenantCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,39 +55,112 @@ const PromotionsPage: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [totalPromotions, setTotalPromotions] = useState(0);
+  const [hasMorePromotions, setHasMorePromotions] = useState(false);
 
   // UI state
   const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
 
-  // Fetch initial data
+  // Set document title
   useEffect(() => {
-    fetchData();
+    document.title = 'Promotions — Supermal Karawaci';
   }, []);
 
-  const fetchData = async () => {
+  // Fetch initial data
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  // Refetch data when filters change
+  useEffect(() => {
+    if (loading) return; // Skip if initial load
+    fetchFilteredData();
+  }, [filters]);
+
+  // Load more data when page changes
+  useEffect(() => {
+    if (currentPage === 1 || loading) return; // Skip first page and initial load
+    loadMoreData();
+  }, [currentPage]);
+
+  const fetchInitialData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch promotions with tenant info using the view
-      const { data: promotionsData, error: promotionsError } = await supabase
-        .from('v_promotions_full')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
+      // Fetch all data in parallel
+      const [promotionsResult, featuredResult, categoriesData] = await Promise.all([
+        fetchPromotions({ 
+          page: 1, 
+          perPage: ITEMS_PER_PAGE,
+          status: 'published'
+        }),
+        fetchFeaturedPromotions(FEATURED_LIMIT),
+        fetchTenantCategories()
+      ]);
 
-      if (promotionsError) throw promotionsError;
-
-      // Fetch categories using the unified function
-      const categoriesData = await fetchTenantCategories();
-
-      setPromotions(promotionsData || []);
-      setCategories(categoriesData || []);
+      setPromotions(promotionsResult.data);
+      setTotalPromotions(promotionsResult.total);
+      setHasMorePromotions(promotionsResult.hasMore);
+      setFeaturedPromotions(featuredResult);
+      setCategories(categoriesData);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('Error fetching initial data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load promotions');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFilteredData = async () => {
+    try {
+      setError(null);
+      setCurrentPage(1);
+
+      const params: PromotionFetchParams = {
+        page: 1,
+        perPage: ITEMS_PER_PAGE,
+        status: 'published'
+      };
+
+      if (filters.search) params.search = filters.search;
+      if (filters.categoryId) params.categoryId = filters.categoryId;
+
+      const result = await fetchPromotions(params);
+      
+      setPromotions(result.data);
+      setTotalPromotions(result.total);
+      setHasMorePromotions(result.hasMore);
+    } catch (err) {
+      console.error('Error fetching filtered data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load promotions');
+    }
+  };
+
+  const loadMoreData = async () => {
+    if (!hasMorePromotions || loadingMore) return;
+    
+    try {
+      setLoadingMore(true);
+      
+      const params: PromotionFetchParams = {
+        page: currentPage,
+        perPage: ITEMS_PER_PAGE,
+        status: 'published'
+      };
+
+      if (filters.search) params.search = filters.search;
+      if (filters.categoryId) params.categoryId = filters.categoryId;
+
+      const result = await fetchPromotions(params);
+      
+      setPromotions(prev => [...prev, ...result.data]);
+      setHasMorePromotions(result.hasMore);
+    } catch (err) {
+      console.error('Error loading more data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load more promotions');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -90,10 +171,10 @@ const PromotionsPage: React.FC = () => {
       .map(category => ({
         id: category.id,
         name: category.display_name || category.name,
-        count: promotions.filter(p => p?.tenant_category_id === category.id).length,
+        count: 0, // We'll let the server handle filtering, so count isn't needed
         icon: category.icon || 'store'
       }));
-  }, [categories, promotions]);
+  }, [categories]);
 
   // Dynamic placeholder based on active category
   const searchPlaceholder = useMemo(() => {
@@ -104,50 +185,9 @@ const PromotionsPage: React.FC = () => {
     return 'Search promotions...';
   }, [filters.categoryId, transformedCategories]);
 
-  // Filter promotions based on current filters - only active promotions
-  const filteredPromotions = useMemo(() => {
-    return promotions.filter(promotion => {
-      // Search filter
-      if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        const matchesSearch = 
-          promotion.title.toLowerCase().includes(searchTerm) ||
-          promotion.tenant_name.toLowerCase().includes(searchTerm) ||
-          (promotion.full_description && promotion.full_description.toLowerCase().includes(searchTerm));
-        
-        if (!matchesSearch) return false;
-      }
-
-      // Category filter
-      if (filters.categoryId) {
-        if (promotion.tenant_category_id !== filters.categoryId) return false;
-      }
-
-      return true;
-    });
-  }, [promotions, filters]);
-
-  // Separate featured and regular promotions
-  const featuredPromotions = useMemo(() => {
-    return filteredPromotions.slice(0, FEATURED_LIMIT);
-  }, [filteredPromotions]);
-
-  const regularPromotions = useMemo(() => {
-    return filteredPromotions.slice(FEATURED_LIMIT);
-  }, [filteredPromotions]);
-
-  // Paginated regular promotions
-  const paginatedPromotions = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return regularPromotions.slice(0, startIndex + ITEMS_PER_PAGE);
-  }, [regularPromotions, currentPage]);
-
-  const hasMorePages = currentPage * ITEMS_PER_PAGE < regularPromotions.length;
-
   // Handle filter changes
   const handleSearchChange = (search: string) => {
     setFilters(prev => ({ ...prev, search }));
-    setCurrentPage(1);
   };
 
   const handleCategoryChange = (categoryId: string) => {
@@ -155,16 +195,14 @@ const PromotionsPage: React.FC = () => {
       ...prev, 
       categoryId: prev.categoryId === categoryId ? '' : categoryId 
     }));
-    setCurrentPage(1);
   };
 
   const clearAllFilters = () => {
     setFilters({ search: '', categoryId: '' });
-    setCurrentPage(1);
   };
 
   const loadMorePromotions = async () => {
-    if (!hasMorePages || loadingMore) return;
+    if (!hasMorePromotions || loadingMore) return;
     
     setLoadingMore(true);
     // Simulate loading delay for better UX
@@ -192,7 +230,7 @@ const PromotionsPage: React.FC = () => {
             title="Failed to load promotions"
             description={error}
             actionLabel="Try Again"
-            onAction={fetchData}
+            onAction={fetchInitialData}
           />
         </div>
       </div>
@@ -233,54 +271,29 @@ const PromotionsPage: React.FC = () => {
               activeCategory={filters.categoryId}
               onCategoryChange={handleCategoryChange}
               onFilterClick={() => setShowCategoryDrawer(true)}
-              maxVisibleMobile={6}
-              showFilterButton={true}
-              pillSize="md"
-              showCounts={true}
             />
 
-            {/* Clear filters button */}
+            {/* Clear Filters Button */}
             {(filters.search || filters.categoryId) && (
               <div className="flex justify-center">
                 <Button
-                  variant="ghost"
-                  size="sm"
                   onClick={clearAllFilters}
-                  className="text-text-muted hover:text-accent"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
                 >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Clear all filters
+                  <RotateCcw className="h-4 w-4" />
+                  Clear All Filters
                 </Button>
-              </div>
-            )}
-
-            {/* Active filters summary */}
-            {(filters.search || filters.categoryId) && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-text-muted">
-                <span className="font-medium">
-                  Showing {filteredPromotions.length} promotion{filteredPromotions.length !== 1 ? 's' : ''}
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {filters.search && (
-                    <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/20">
-                      "{filters.search}"
-                    </Badge>
-                  )}
-                  {filters.categoryId && (
-                    <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/20">
-                      {transformedCategories.find(c => c.id === filters.categoryId)?.name}
-                    </Badge>
-                  )}
-                </div>
               </div>
             )}
           </motion.div>
         </div>
       </section>
 
-      {/* Featured Promotions Carousel */}
+      {/* Featured Promotions Section */}
       {featuredPromotions.length > 0 && (
-        <section className="py-12 md:py-16 bg-surface">
+        <section className="py-12 md:py-16 bg-surface-secondary">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -344,7 +357,7 @@ const PromotionsPage: React.FC = () => {
       <section className="py-12 md:py-16 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatePresence mode="wait">
-            {filteredPromotions.length === 0 ? (
+            {promotions.length === 0 ? (
               <EmptyState 
                 type={filters.search ? 'search' : filters.categoryId ? 'filter' : 'no-data'}
                 onAction={clearAllFilters}
@@ -359,46 +372,44 @@ const PromotionsPage: React.FC = () => {
                 className="space-y-12"
               >
                 {/* Regular Promotions Grid */}
-                {paginatedPromotions.length > 0 && (
-                  <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {paginatedPromotions.map((promotion, index) => (
-                        <motion.div
-                          key={promotion.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <PromotionCard
-                            promotion={promotion}
-                            onClick={handlePromotionClick}
-                          />
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {/* Load More Button */}
-                    {hasMorePages && (
-                      <div className="flex justify-center mt-12">
-                        <Button
-                          onClick={loadMorePromotions}
-                          disabled={loadingMore}
-                          size="lg"
-                          className="px-8"
-                        >
-                          {loadingMore ? (
-                            <>
-                              <LoadingSpinner size="sm" className="mr-2" />
-                              Loading...
-                            </>
-                          ) : (
-                            `Load More Promotions (${regularPromotions.length - paginatedPromotions.length} remaining)`
-                          )}
-                        </Button>
-                      </div>
-                    )}
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {promotions.map((promotion, index) => (
+                      <motion.div
+                        key={promotion.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <PromotionCard
+                          promotion={promotion}
+                          onClick={handlePromotionClick}
+                        />
+                      </motion.div>
+                    ))}
                   </div>
-                )}
+
+                  {/* Load More Button */}
+                  {hasMorePromotions && (
+                    <div className="flex justify-center mt-12">
+                      <Button
+                        onClick={loadMorePromotions}
+                        disabled={loadingMore}
+                        size="lg"
+                        className="px-8"
+                      >
+                        {loadingMore ? (
+                          <>
+                            <LoadingSpinner size="sm" className="mr-2" />
+                            Loading...
+                          </>
+                        ) : (
+                          `Load More Promotions`
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
