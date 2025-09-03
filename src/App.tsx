@@ -1,5 +1,5 @@
 // src/App.tsx
-// Modified: Added /vip-cards route for VIPCardsPage component
+// Modified: Added /events and /event/:slug routes for EventsPage and EventDetailPage components
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -20,6 +20,8 @@ import MallDirectory from './components/MallDirectory';
 import PromotionsPage from './components/PromotionsPage';
 import ContactPage from './components/ContactPage';
 import VIPCardsPage from './components/VIPCardsPage';
+import EventsPage from './components/EventsPage';
+import EventDetailPage from './components/EventDetailPage';
 
 // Layout Component for consistent navbar/footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -128,6 +130,26 @@ function App() {
           element={
             <Layout>
               <VIPCardsPage />
+            </Layout>
+          } 
+        />
+
+        {/* Events Page */}
+        <Route 
+          path="/events" 
+          element={
+            <Layout>
+              <EventsPage />
+            </Layout>
+          } 
+        />
+
+        {/* Event Detail Page */}
+        <Route 
+          path="/event/:slug" 
+          element={
+            <Layout>
+              <EventDetailPage />
             </Layout>
           } 
         />

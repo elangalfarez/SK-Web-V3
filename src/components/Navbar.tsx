@@ -72,6 +72,7 @@ const Navbar = () => {
               label: 'Events',
               description: 'Upcoming activities and entertainment',
               icon: Calendar,
+              href: '/events',
             },
           ],
         },
@@ -118,7 +119,7 @@ const Navbar = () => {
       href: '#',
       submenu: [
         { name: 'Promotions', href: '/promotions' },
-        { name: 'Events', href: '#' }
+        { name: 'Events', href: '/events' }
       ]
     },
     { name: 'VIP Card', href: '/vip-cards' },
