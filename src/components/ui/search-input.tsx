@@ -1,5 +1,5 @@
 // src/components/ui/search-input.tsx
-// Modified: updated with polished MallDirectory styling (larger, border-2, rounded-2xl, better animations)
+// Modified: updated for full-width usage while preserving animations and behaviors
 import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { motion } from 'framer-motion';

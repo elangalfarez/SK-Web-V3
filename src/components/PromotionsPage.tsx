@@ -1,5 +1,5 @@
 // src/components/PromotionsPage.tsx
-// Modified: Use robust promotion fetch functions instead of direct supabase queries, add document title
+// Modified: removed sticky search section, added standard segregating section with full-width search
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
@@ -239,7 +239,7 @@ const PromotionsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* Header Section - Now using reusable Hero component */}
+      {/* Header Section - Using reusable Hero component */}
       <Hero
         title={<>What's On <span className="text-accent">(Promotions)</span></>}
         subtitle="Discover amazing deals and special offers from our tenants"
@@ -247,21 +247,20 @@ const PromotionsPage: React.FC = () => {
         bgPattern="soft-circles"
       />
 
-      {/* Filters Section - Mobile-first sticky header */}
-      <section className="py-8 bg-surface-secondary border-y border-border-primary sticky top-0 z-40 backdrop-blur-sm">
+      {/* Search & Filter Section - Standard segregating section with full-width search */}
+      <section className="py-12 md:py-16 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-4"
+            transition={{ delay: 0.2 }}
+            className="space-y-8"
           >
-            {/* Search Bar - Using unified SearchInput with contained width for filters section */}
+            {/* Full-Width Search Bar */}
             <SearchInput
               value={filters.search}
               onChange={handleSearchChange}
               placeholder={searchPlaceholder}
-              className="max-w-2xl mx-auto"
               debounceMs={300}
             />
 
@@ -360,7 +359,18 @@ const PromotionsPage: React.FC = () => {
             {promotions.length === 0 ? (
               <EmptyState 
                 type={filters.search ? 'search' : filters.categoryId ? 'filter' : 'no-data'}
-                onAction={clearAllFilters}
+                title={
+                  filters.search ? 'No promotions found' :
+                  filters.categoryId ? 'No promotions in this category' : 
+                  'No promotions available'
+                }
+                description={
+                  filters.search ? `Try adjusting your search terms or browse all promotions.` :
+                  filters.categoryId ? 'Try selecting a different category or browse all promotions.' :
+                  'Check back soon for amazing deals and offers from our tenants.'
+                }
+                actionLabel={filters.search || filters.categoryId ? 'Clear Filters' : 'Refresh'}
+                onAction={filters.search || filters.categoryId ? clearAllFilters : fetchInitialData}
               />
             ) : (
               <motion.div
@@ -369,47 +379,44 @@ const PromotionsPage: React.FC = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-12"
               >
-                {/* Regular Promotions Grid */}
-                <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {promotions.map((promotion, index) => (
-                      <motion.div
-                        key={promotion.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <PromotionCard
-                          promotion={promotion}
-                          onClick={handlePromotionClick}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Load More Button */}
-                  {hasMorePromotions && (
-                    <div className="flex justify-center mt-12">
-                      <Button
-                        onClick={loadMorePromotions}
-                        disabled={loadingMore}
-                        size="lg"
-                        className="px-8"
-                      >
-                        {loadingMore ? (
-                          <>
-                            <LoadingSpinner size="sm" className="mr-2" />
-                            Loading...
-                          </>
-                        ) : (
-                          `Load More Promotions`
-                        )}
-                      </Button>
-                    </div>
-                  )}
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {promotions.map((promotion, index) => (
+                    <motion.div
+                      key={promotion.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                    >
+                      <PromotionCard
+                        promotion={promotion}
+                        onClick={handlePromotionClick}
+                      />
+                    </motion.div>
+                  ))}
                 </div>
+
+                {/* Load More Button */}
+                {hasMorePromotions && (
+                  <div className="mt-12 text-center">
+                    <Button
+                      onClick={loadMorePromotions}
+                      variant="outline"
+                      size="lg"
+                      disabled={loadingMore}
+                      className="gap-2"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <LoadingSpinner size="sm" className="mr-2" />
+                          Loading...
+                        </>
+                      ) : (
+                        `Load More Promotions`
+                      )}
+                    </Button>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
