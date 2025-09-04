@@ -1,155 +1,253 @@
 // src/components/ui/blog-card.tsx
-// Created: Reusable blog post card component with responsive design and accessibility
+// Modified: Golden-ratio heights, consistent card dimensions, solid badges, ImageWithFallback integration, contrast fixes
+
+/*
+Golden ratio implementation: 
+Card min-height: 420px, Image container: ~260px (61.8%), Content area: ~160px (38.2%)
+Mobile: stack with image first, then content
+Badge styling: solid tokens, no backdrop-blur, shadow-sm for lift
+Text color fix: titles use text-primary (not white), hover uses text-accent
+*/
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Calendar, Tag } from 'lucide-react';
+import { Calendar, Tag, ArrowRight, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import ImageWithFallback from './ImageWithFallback';
+import BlogCategoryPill from './BlogCategoryPill';
+import { cn } from '@/lib/utils';
 import type { Post } from '../../lib/supabase';
 
 interface BlogCardProps {
   post: Post;
   className?: string;
+  variant?: 'default' | 'compact' | 'featured';
 }
 
-export default function BlogCard({ post, className = '' }: BlogCardProps) {
-  const shouldReduceMotion = useReducedMotion();
+export default function BlogCard({ 
+  post, 
+  className = '',
+  variant = 'default'
+}: BlogCardProps) {
 
-  // Format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
 
-  // Fallback for missing image
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const target = e.target as HTMLImageElement;
-    target.style.display = 'none';
-    const parent = target.parentElement;
-    if (parent) {
-      parent.classList.add('bg-surface');
-      parent.innerHTML = '<div class="flex items-center justify-center h-full text-muted-foreground text-sm">No image</div>';
-    }
+  const estimateReadTime = (content: string | null) => {
+    if (!content) return '5 min';
+    const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const minutes = Math.ceil(wordCount / 200);
+    return `${minutes} min`;
   };
 
-  return (
-    <motion.article
-      whileHover={shouldReduceMotion ? {} : { y: -4, scale: 1.02 }}
-      whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
-      transition={{ duration: 0.2 }}
-      className={`bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group ${className}`}
-      style={{
-        // CSS custom property fallback for database accent colors
-        ['--post-accent' as any]: post.category?.accent_color || 'transparent'
-      }}
-    >
+  // Compact variant for sidebar
+  if (variant === 'compact') {
+    return (
       <Link
         to={`/blog/${post.slug}`}
-        className="block focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded-xl"
-        aria-labelledby={`post-title-${post.id}`}
+        className="group flex gap-3 p-3 hover:bg-surface-secondary rounded-lg transition-colors"
         aria-describedby={`post-summary-${post.id}`}
       >
-        {/* Post Image */}
-        <div className="aspect-video overflow-hidden relative bg-surface-secondary">
-          {post.image_url ? (
-            <img
-              src={post.image_url}
-              alt=""
-              loading="lazy"
-              onError={handleImageError}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full bg-surface flex items-center justify-center">
-              <span className="text-muted-foreground text-sm">No image</span>
-            </div>
-          )}
+        <ImageWithFallback
+          src={post.image_url || ''}
+          alt=""
+          className="w-16 h-12 flex-shrink-0 rounded"
+          objectFit="cover"
+          loading="lazy"
+        />
+        
+        <div className="min-w-0 flex-1">
+          <h4 className="font-medium text-sm text-primary group-hover:text-accent transition-colors line-clamp-2 leading-tight mb-1">
+            {post.title}
+          </h4>
+          <p className="text-xs text-muted-foreground">
+            {formatDate(post.publish_at || post.created_at)}
+          </p>
+        </div>
+      </Link>
+    );
+  }
 
-          {/* Featured Badge */}
-          {post.is_featured && (
-            <div className="absolute top-3 left-3">
-              <Badge variant="primary" className="text-xs font-medium">
+  // Featured variant for hero sections
+  if (variant === 'featured') {
+    return (
+      <article className={cn('group relative overflow-hidden rounded-lg', className)}>
+        <Link
+          to={`/blog/${post.slug}`}
+          className="block h-full"
+          aria-describedby={`post-summary-${post.id}`}
+        >
+          <div className="relative h-80 sm:h-96">
+            <ImageWithFallback
+              src={post.image_url || ''}
+              alt=""
+              className="w-full h-full"
+              objectFit="cover"
+              fetchPriority="high"
+            />
+
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+            {/* Badges */}
+            <div className="absolute top-4 left-4 flex gap-2">
+              {post.is_featured && (
+                <Badge className="bg-accent text-text-inverse border-0 shadow-sm">
+                  Featured
+                </Badge>
+              )}
+              {post.category && (
+                <BlogCategoryPill
+                  name={post.category.name}
+                  variant="secondary"
+                  size="sm"
+                  accentColor={post.category.accent_color}
+                  className="bg-surface-secondary/90 backdrop-blur-sm"
+                />
+              )}
+            </div>
+
+            {/* Content Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 leading-tight group-hover:text-gray-200 transition-colors">
+                {post.title}
+              </h3>
+              
+              {post.summary && (
+                <p 
+                  id={`post-summary-${post.id}`}
+                  className="text-sm text-gray-200 line-clamp-2 mb-3"
+                >
+                  {post.summary}
+                </p>
+              )}
+
+              <div className="flex items-center gap-4 text-xs text-gray-300">
+                <time dateTime={post.publish_at || post.created_at}>
+                  {formatDate(post.publish_at || post.created_at)}
+                </time>
+                <div className="flex items-center gap-1">
+                  <Clock size={12} />
+                  {estimateReadTime(post.body_html)} read
+                </div>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </article>
+    );
+  }
+
+  // Default card variant - golden ratio proportions
+  return (
+    <article className={cn(
+      'group bg-background border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300',
+      'min-h-[420px] flex flex-col', // Golden ratio base height
+      className
+    )}>
+      <Link
+        to={`/blog/${post.slug}`}
+        className="block h-full flex flex-col"
+        aria-describedby={`post-summary-${post.id}`}
+      >
+        {/* Image Container - ~61.8% of card height (260px of 420px) */}
+        <div className="relative h-[260px] overflow-hidden bg-surface-secondary">
+          <ImageWithFallback
+            src={post.image_url || ''}
+            alt=""
+            className="w-full h-full group-hover:scale-105 transition-transform duration-500"
+            objectFit="cover"
+            objectPosition="center top"
+            loading="lazy"
+          />
+
+          {/* Solid badges - no glassmorphism */}
+          <div className="absolute top-3 left-3 flex gap-2">
+            {post.is_featured && (
+              <Badge className="bg-accent text-text-inverse border-0 shadow-sm text-xs">
                 Featured
               </Badge>
-            </div>
-          )}
-
-          {/* Category Badge */}
-          {post.category && (
-            <div className="absolute top-3 right-3">
-              <Badge 
-                variant="secondary" 
-                className="text-xs font-medium bg-background/90 backdrop-blur-sm"
-                style={{
-                  // Use CSS custom property for category accent color
-                  borderColor: 'var(--post-accent, transparent)'
-                }}
-              >
-                {post.category.name}
-              </Badge>
-            </div>
-          )}
-        </div>
-
-        {/* Post Content */}
-        <div className="p-6 space-y-4">
-          {/* Post Meta */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <time 
-              dateTime={post.publish_at || post.created_at}
-              className="flex items-center gap-1.5"
-            >
-              <Calendar size={14} />
-              {formatDate(post.publish_at || post.created_at)}
-            </time>
-
-            {post.tags.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Tag size={14} />
-                <span className="truncate">{post.tags[0]}</span>
-                {post.tags.length > 1 && (
-                  <span className="text-xs">+{post.tags.length - 1}</span>
-                )}
-              </div>
+            )}
+            {post.category && (
+              <BlogCategoryPill
+                name={post.category.name}
+                variant="secondary"
+                size="sm"
+                accentColor={post.category.accent_color}
+                className="shadow-sm"
+              />
             )}
           </div>
 
-          {/* Post Title */}
-          <h3 
-            id={`post-title-${post.id}`}
-            className="text-lg font-semibold text-primary line-clamp-2 leading-tight group-hover:text-accent transition-colors"
-          >
-            {post.title}
-          </h3>
+          {/* Read time indicator */}
+          <div className="absolute top-3 right-3">
+            <Badge className="bg-surface-secondary/90 text-primary border border-border shadow-sm text-xs">
+              <Clock size={10} className="mr-1" />
+              {estimateReadTime(post.body_html)}
+            </Badge>
+          </div>
+        </div>
 
-          {/* Post Summary */}
-          {post.summary && (
-            <p 
-              id={`post-summary-${post.id}`}
-              className="text-sm text-muted-foreground line-clamp-3 leading-relaxed"
-            >
-              {post.summary}
-            </p>
-          )}
+        {/* Content Area - ~38.2% of card height (160px of 420px) */}
+        <div className="flex-1 p-6 flex flex-col justify-between min-h-[160px]">
+          <div className="flex-1">
+            {/* Meta Row */}
+            <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+              <time 
+                dateTime={post.publish_at || post.created_at}
+                className="flex items-center gap-1.5"
+              >
+                <Calendar size={14} />
+                {formatDate(post.publish_at || post.created_at)}
+              </time>
 
-          {/* Read More Indicator */}
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-sm font-medium text-accent group-hover:underline">
+              {post.tags.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Tag size={14} />
+                  <span className="truncate max-w-20">{post.tags[0]}</span>
+                  {post.tags.length > 1 && (
+                    <span className="text-xs">+{post.tags.length - 1}</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Title - Fixed contrast: uses text-primary, hover text-accent */}
+            <h3 className="text-lg font-semibold text-primary group-hover:text-accent transition-colors line-clamp-2 leading-tight mb-3">
+              {post.title}
+            </h3>
+
+            {/* Summary - line-clamp to prevent overflow */}
+            {post.summary && (
+              <p 
+                id={`post-summary-${post.id}`}
+                className="text-sm text-muted-foreground line-clamp-3 leading-relaxed"
+              >
+                {post.summary}
+              </p>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-2 text-sm font-medium text-accent group-hover:text-accent/80 transition-colors">
               Read more
-            </span>
-            
-            {/* Tags Preview */}
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </div>
+
+            {/* Additional tags preview */}
             {post.tags.length > 1 && (
               <div className="flex gap-1">
                 {post.tags.slice(1, 3).map(tag => (
                   <Badge 
                     key={tag} 
                     variant="outline" 
-                    className="text-xs px-2 py-0.5"
+                    className="text-xs px-2 py-0.5 border-border text-muted-foreground"
                   >
                     {tag}
                   </Badge>
@@ -159,6 +257,6 @@ export default function BlogCard({ post, className = '' }: BlogCardProps) {
           </div>
         </div>
       </Link>
-    </motion.article>
+    </article>
   );
 }
