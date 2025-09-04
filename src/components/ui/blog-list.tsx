@@ -1,9 +1,9 @@
 // src/components/ui/blog-list.tsx
-// Modified: Load More pagination (as requested), consistent heights, ResponsiveImage support
+// Modified: Numeric pagination instead of Load More, consistent heights, ResponsiveImage support
 
 import React, { memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BlogCard from '@/components/ui/blog-card';
 import { cn } from '@/lib/utils';
@@ -28,21 +28,89 @@ const BlogList = memo(function BlogList({
 }: BlogListProps) {
   const shouldReduceMotion = useReducedMotion();
 
-  // Load More pagination (as per user request)
-  const renderLoadMore = () => {
-    if (!onPageChange || currentPage >= totalPages) return null;
+  // Numeric pagination (as per user request)
+  const renderPagination = () => {
+    if (!onPageChange || totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => onPageChange(i)}
+          className={cn(
+            'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            i === currentPage
+              ? 'bg-accent text-text-inverse shadow-sm'
+              : 'text-text-primary hover:bg-surface-secondary border border-border-primary'
+          )}
+          aria-label={`Go to page ${i}`}
+          aria-current={i === currentPage ? 'page' : undefined}
+        >
+          {i}
+        </button>
+      );
+    }
 
     return (
-      <div className="text-center mt-12">
-        <Button
-          onClick={() => onPageChange(currentPage + 1)}
-          variant="outline"
-          size="lg"
-          className="px-8 py-3"
+      <div className="flex justify-center items-center gap-2 mt-12">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+          className="p-2 rounded-lg text-text-primary hover:bg-surface-secondary border border-border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          aria-label="Previous page"
         >
-          <Plus size={16} className="mr-2" />
-          Load More Posts
-        </Button>
+          <ChevronLeft size={16} />
+        </button>
+        
+        {startPage > 1 && (
+          <>
+            <button
+              onClick={() => onPageChange(1)}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-surface-secondary border border-border-primary transition-colors"
+              aria-label="Go to page 1"
+            >
+              1
+            </button>
+            {startPage > 2 && (
+              <span className="px-2 text-text-muted">...</span>
+            )}
+          </>
+        )}
+        
+        {pages}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && (
+              <span className="px-2 text-text-muted">...</span>
+            )}
+            <button
+              onClick={() => onPageChange(totalPages)}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-surface-secondary border border-border-primary transition-colors"
+              aria-label={`Go to page ${totalPages}`}
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+        
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+          className="p-2 rounded-lg text-text-primary hover:bg-surface-secondary border border-border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          aria-label="Next page"
+        >
+          <ChevronRight size={16} />
+        </button>
       </div>
     );
   };
@@ -51,10 +119,10 @@ const BlogList = memo(function BlogList({
     return (
       <div className="text-center py-16">
         <div className="w-16 h-16 mx-auto mb-4 bg-surface-secondary rounded-full flex items-center justify-center">
-          <span className="text-muted-foreground text-2xl">📰</span>
+          <span className="text-text-muted text-2xl">📰</span>
         </div>
-        <h3 className="text-lg font-semibold text-primary mb-2">No posts found</h3>
-        <p className="text-muted-foreground">
+        <h3 className="text-lg font-semibold text-text-primary mb-2">No posts found</h3>
+        <p className="text-text-muted">
           Try adjusting your search or filter criteria.
         </p>
       </div>
@@ -95,13 +163,13 @@ const BlogList = memo(function BlogList({
         ))}
       </div>
 
-      {/* Load More Pagination */}
-      {renderLoadMore()}
+      {/* Numeric Pagination */}
+      {renderPagination()}
 
       {/* Results Summary */}
       {totalPages > 1 && (
         <div className="text-center mt-6">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-text-muted">
             Page {currentPage} of {totalPages} 
             {posts.length > 0 && (
               <span> • Showing {posts.length} posts</span>

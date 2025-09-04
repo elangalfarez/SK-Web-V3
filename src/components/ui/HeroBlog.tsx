@@ -1,11 +1,12 @@
 // src/components/ui/HeroBlog.tsx
-// Modified: Proper hero slider overlay implementation using design tokens, balanced image rounding
+// Modified: Fixed contrast issues, solid badges, proper overlay implementation, rounded images
 
 import React, { useState, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ResponsiveImage } from './ResponsiveImage';
 import { cn } from '@/lib/utils';
 import type { Post } from '../../lib/supabase';
 
@@ -64,113 +65,121 @@ export default function HeroBlog({
     return `${minutes} Min Read`;
   };
 
-  if (!featuredPosts.length) {
+  if (!featuredPosts || featuredPosts.length === 0) {
     return null;
   }
 
-  const currentHeroSlide = featuredPosts[currentSlide];
+  const currentPost = featuredPosts[currentSlide];
 
   return (
-    <div className="px-6">
-      <div className="max-w-6xl mx-auto">
-        <div 
-          className={cn('relative w-full h-[500px] overflow-hidden rounded-2xl mt-6 mb-12', className)}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${currentHeroSlide.image_url})` }}
-          >
-            <div className="absolute inset-0 bg-black/30" />
-          </div>
-
-          {/* Content Overlay - Following Good Layout Code reference exactly */}
-          <div className="relative z-10 h-full flex flex-col justify-between p-8 text-white">
-            {/* Top Section - Categories and Read Time */}
-            <div className="flex justify-between items-start ml-12">
-              <div className="flex gap-2">
-                {currentHeroSlide.category && (
-                  <Badge className="bg-white/20 text-white hover:bg-white/30 border-0 text-xs font-medium backdrop-blur-sm">
-                    {currentHeroSlide.category.name.toUpperCase()}
-                  </Badge>
-                )}
-                {currentHeroSlide.tags.slice(0, 1).map(tag => (
-                  <Badge key={tag} className="bg-white/20 text-white hover:bg-white/30 border-0 text-xs font-medium backdrop-blur-sm">
-                    {tag.toUpperCase()}
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                <Clock className="w-3 h-3" />
-                <span className="text-xs font-medium">{estimateReadTime(currentHeroSlide.body_html)}</span>
+    <section 
+      className={cn('relative h-[500px] rounded-2xl overflow-hidden group', className)}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      role="region" 
+      aria-label="Featured blog posts"
+    >
+      {/* Background Image */}
+      <ResponsiveImage
+        src={currentPost.image_url || ''}
+        alt=""
+        className="w-full h-full"
+        aspectRatio="16/9"
+        objectFit="cover"
+        fetchPriority="high"
+      />
+      
+      {/* Dark Overlay for Content Readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
+      
+      {/* Content Overlay */}
+      <div className="absolute inset-0 flex items-center">
+        <div className="w-full px-6 md:px-8 lg:px-12">
+          <div className="max-w-2xl">
+            {/* Category and Read Time Badges - Top Left */}
+            <div className="flex items-center gap-3 mb-6">
+              {currentPost.category && (
+                <Badge className="bg-accent text-text-inverse border-0 font-medium shadow-sm">
+                  {currentPost.category.name.toUpperCase()}
+                </Badge>
+              )}
+              
+              {/* Read Time - Top Right Area */}
+              <div className="ml-auto">
+                <Badge className="bg-surface/20 text-white border-0 font-medium shadow-sm">
+                  <Clock className="w-3 h-3 mr-1" />
+                  {estimateReadTime(currentPost.body_html)}
+                </Badge>
               </div>
             </div>
 
-            {/* Bottom Section - Content */}
-            <div className="max-w-2xl ml-12">
-              <div className="mb-4">
-                <span className="text-white/90 text-sm font-medium">Ethan Caldwell</span>
-                <span className="text-white/70 text-sm ml-2">
-                  on {formatDate(currentHeroSlide.publish_at || currentHeroSlide.created_at)}
-                </span>
-              </div>
-
-              <h1 className="text-4xl font-bold mb-4 text-balance leading-tight">
-                {currentHeroSlide.title}
-              </h1>
-
-              <p className="text-white/90 text-base leading-relaxed mb-6 max-w-xl">
-                {currentHeroSlide.summary || currentHeroSlide.title}
-              </p>
-
-              <Button 
-                className="bg-accent hover:bg-accent-hover text-text-inverse border-0 px-6 py-2 rounded-xl"
-                onClick={() => onSelect?.(currentHeroSlide.slug)}
-              >
-                Discover More
-              </Button>
+            {/* Author and Date */}
+            <div className="flex items-center gap-2 text-gray-200 text-sm mb-4">
+              <span>Ethan Caldwell</span>
+              <span>•</span>
+              <span>{formatDate(currentPost.publish_at || currentPost.created_at)}</span>
             </div>
+
+            {/* Title */}
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+              {currentPost.title}
+            </h2>
+
+            {/* Summary */}
+            <p className="text-lg text-gray-200 mb-8 line-clamp-2 leading-relaxed max-w-xl">
+              {currentPost.summary || currentPost.title}
+            </p>
+
+            {/* CTA Button */}
+            <Button
+              onClick={() => onSelect?.(currentPost.slug)}
+              className="bg-accent hover:bg-accent-hover text-text-inverse border-0 px-8 py-3 text-lg font-medium rounded-xl shadow-lg"
+            >
+              Discover More
+            </Button>
           </div>
-
-          {/* Navigation Arrows */}
-          {featuredPosts.length > 1 && (
-            <>
-              <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-3 transition-colors"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-6 h-6 text-white" />
-              </button>
-
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-3 transition-colors"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-6 h-6 text-white" />
-              </button>
-
-              {/* Pagination Dots */}
-              <div className="absolute bottom-6 right-8 flex gap-2 z-20">
-                {featuredPosts.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={cn(
-                      'w-2 h-2 rounded-full transition-colors',
-                      index === currentSlide ? 'bg-white' : 'bg-white/50'
-                    )}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </>
-          )}
         </div>
       </div>
-    </div>
+
+      {/* Navigation Arrows */}
+      {featuredPosts.length > 1 && (
+        <>
+          <button
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-surface/20 hover:bg-surface/30 text-white border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+            aria-label="Previous featured post"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-surface/20 hover:bg-surface/30 text-white border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+            aria-label="Next featured post"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </>
+      )}
+
+      {/* Slide Indicators */}
+      {featuredPosts.length > 1 && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+          {featuredPosts.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={cn(
+                'w-3 h-3 rounded-full border border-white/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50',
+                index === currentSlide 
+                  ? 'bg-white' 
+                  : 'bg-white/20 hover:bg-white/40'
+              )}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

@@ -1,5 +1,5 @@
 // src/components/ui/BlogListHorizontal.tsx
-// Modified: Fixed to use design tokens (purple accent) and properly balanced rounded-2xl images
+// Modified: Horizontal layout with read-time on hover, solid badges, proper contrast, rounded images
 
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -63,55 +63,66 @@ export default function BlogListHorizontal({
     <div className={cn('space-y-8', className)}>
       {posts.map((post, index) => (
         <article key={post.id} className={cn(
-          'flex gap-6 pb-8',
+          'flex gap-6 pb-8 group',
           index < posts.length - 1 && 'border-b border-border-primary'
         )}>
-          {/* Image Section - 45% width with balanced rounding */}
+          {/* Image Section - 45% width with balanced rounding and hover read-time */}
           <div className="w-[45%] relative">
-            {post.image_url ? (
-              <ResponsiveImage
-                src={post.image_url}
-                alt={post.title}
-                className="w-full h-60 object-cover rounded-2xl"
-                aspectRatio="4/3"
-                objectFit="cover"
-                loading={index === 0 ? 'eager' : 'lazy'}
-              />
-            ) : (
-              // Gradient fallback for posts without images
-              <div className={cn(
-                'w-full h-60 rounded-2xl flex items-center justify-center relative overflow-hidden',
-                generateGradientFallback(index)
-              )}>
-                <div className="w-24 h-20 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-xl transform rotate-12 shadow-lg"></div>
-                <div className="absolute top-3 right-3 w-4 h-4 bg-pink-500 rounded-full"></div>
-                <div className="absolute bottom-4 left-4 w-10 h-1.5 bg-pink-500 rounded-full"></div>
-              </div>
-            )}
+            <Link to={`/blog/${post.slug}`} className="block">
+              {post.image_url ? (
+                <ResponsiveImage
+                  src={post.image_url}
+                  alt={post.title}
+                  className="w-full h-60 object-cover rounded-2xl"
+                  aspectRatio="4/3"
+                  objectFit="cover"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              ) : (
+                // Gradient fallback for posts without images
+                <div className={cn(
+                  'w-full h-60 rounded-2xl flex items-center justify-center relative overflow-hidden',
+                  generateGradientFallback(index)
+                )}>
+                  <div className="w-24 h-20 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-xl transform rotate-12 shadow-lg"></div>
+                  <div className="absolute top-3 right-3 w-4 h-4 bg-pink-500 rounded-full"></div>
+                  <div className="absolute bottom-4 left-4 w-10 h-1.5 bg-pink-500 rounded-full"></div>
+                </div>
+              )}
+            </Link>
             
-            {/* Category badges on image */}
+            {/* Category badges on image - solid backgrounds */}
             <div className="absolute top-4 left-4 flex gap-2">
               {post.category && (
-                <Badge className="bg-white text-text-secondary hover:bg-surface-tertiary border-0 text-xs font-medium shadow-sm">
+                <Badge className="bg-surface text-text-primary border-0 text-xs font-medium shadow-sm">
                   {post.category.name.toUpperCase()}
                 </Badge>
               )}
               {post.tags.slice(0, 1).map(tag => (
-                <Badge key={tag} className="bg-white text-text-secondary hover:bg-surface-tertiary border-0 text-xs font-medium shadow-sm">
+                <Badge key={tag} className="bg-surface text-text-primary border-0 text-xs font-medium shadow-sm">
                   {tag.toUpperCase()}
                 </Badge>
               ))}
             </div>
 
-            {/* Read time badge */}
-            {post.image_url && (
-              <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1">
-                <Clock className="w-3 h-3 text-text-muted" />
-                <span className="text-xs font-medium text-text-secondary">
+            {/* Read time badge - show on small screens, hover on desktop */}
+            <div className="absolute top-4 right-4">
+              {/* Always visible on small screens */}
+              <div className="sm:hidden flex items-center gap-1 bg-surface text-text-primary rounded-full px-2 py-1 shadow-sm">
+                <Clock className="w-3 h-3" />
+                <span className="text-xs font-medium">
                   {estimateReadTime(post.body_html)}
                 </span>
               </div>
-            )}
+              
+              {/* Show on hover on desktop */}
+              <div className="hidden sm:flex items-center gap-1 bg-surface text-text-primary rounded-full px-2 py-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <Clock className="w-3 h-3" />
+                <span className="text-xs font-medium">
+                  {estimateReadTime(post.body_html)}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Content Section - 55% width */}
@@ -141,7 +152,7 @@ export default function BlogListHorizontal({
             <div className="absolute bottom-0 left-0">
               <Button 
                 asChild
-                className="bg-accent hover:bg-accent-hover text-text-inverse border-0 text-sm px-6 py-2 rounded-xl"
+                className="bg-accent hover:bg-accent-hover text-text-inverse border-0 text-sm px-6 py-2 rounded-xl shadow-sm"
               >
                 <Link to={`/blog/${post.slug}`}>
                   Discover More

@@ -1,5 +1,5 @@
 // src/components/ui/BlogCategoryPill.tsx
-// Modified: Uses only design tokens from tailwind.config.js and index.css, no hardcoded colors
+// Modified: Fixed contrast issues, solid badges with proper selected state, no backdrop-blur
 
 import React from 'react';
 import { cn } from '@/lib/utils';
@@ -28,25 +28,26 @@ export default function BlogCategoryPill({
 }: BlogCategoryPillProps) {
   
   const sizeClasses = {
-    sm: 'text-xs px-2 py-1 gap-1',
+    sm: 'text-xs px-3 py-1.5 gap-1',
     md: 'text-sm px-4 py-2 gap-2', 
-    lg: 'text-base px-4 py-2 gap-2'
+    lg: 'text-base px-6 py-3 gap-2'
   };
 
-  // Using only design tokens - no hardcoded colors
+  // Fixed contrast issues - using only design tokens, solid backgrounds
   const getVariantStyles = () => {
     if (selected) {
-      return 'bg-accent text-text-inverse border-accent shadow-md font-medium';
+      // Selected state: high contrast solid background
+      return 'bg-accent text-text-inverse border-accent shadow-sm font-medium';
     }
 
     switch (variant) {
       case 'primary':
-        return 'bg-accent text-text-inverse border-0 shadow-sm hover:bg-accent-hover font-medium';
+        return 'bg-accent text-text-inverse border-0 shadow-sm hover:bg-accent-hover font-medium transition-colors';
       case 'secondary':
-        return 'bg-surface-secondary border border-border text-text-secondary shadow-sm hover:bg-surface-tertiary font-medium transition-colors';
+        return 'bg-surface-secondary border border-border-primary text-text-secondary shadow-sm hover:bg-surface-tertiary hover:text-text-primary font-medium transition-colors';
       case 'outline':
       default:
-        return 'bg-background border border-border text-text-primary shadow-sm hover:bg-surface-secondary font-medium transition-colors';
+        return 'bg-surface border border-border-primary text-text-primary shadow-sm hover:bg-surface-secondary font-medium transition-colors';
     }
   };
 
@@ -107,7 +108,6 @@ export default function BlogCategoryPill({
         getVariantStyles(),
         className
       )}
-      role="button"
       aria-label={`Category: ${name}${count ? ` (${count} posts)` : ''}`}
     >
       {pillContent}
