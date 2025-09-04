@@ -1,13 +1,11 @@
 // src/components/ui/HeroBlog.tsx
-// Created: Hero slideshow component for featured posts with overlay content and keyboard navigation
+// Modified: Proper hero slider overlay implementation using design tokens, balanced image rounding
 
 import React, { useState, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import ImageWithFallback from './ImageWithFallback';
-import BlogCategoryPill from './BlogCategoryPill';
 import { cn } from '@/lib/utils';
 import type { Post } from '../../lib/supabase';
 
@@ -24,49 +22,33 @@ export default function HeroBlog({
   autoplayInterval = 5000,
   className = '' 
 }: HeroBlogProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
-  // Autoplay logic (disabled if reduced motion preferred)
+  // Autoplay logic
   useEffect(() => {
     if (shouldReduceMotion || featuredPosts.length <= 1 || isPaused) {
       return;
     }
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % featuredPosts.length);
+      setCurrentSlide((prev) => (prev + 1) % featuredPosts.length);
     }, autoplayInterval);
 
     return () => clearInterval(interval);
   }, [featuredPosts.length, autoplayInterval, shouldReduceMotion, isPaused]);
 
-  // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      goToPrevious();
-    } else if (e.key === 'ArrowRight') {
-      goToNext();
-    } else if (e.key === 'Enter' && featuredPosts[currentIndex]) {
-      onSelect?.(featuredPosts[currentIndex].slug);
-    }
+  // Navigation functions
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % featuredPosts.length);
   };
 
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % featuredPosts.length);
-    setIsPaused(true);
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + featuredPosts.length) % featuredPosts.length);
   };
 
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + featuredPosts.length) % featuredPosts.length);
-    setIsPaused(true);
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-    setIsPaused(true);
-  };
-
+  // Helper functions
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -76,165 +58,119 @@ export default function HeroBlog({
   };
 
   const estimateReadTime = (content: string | null) => {
-    if (!content) return '5 min read';
+    if (!content) return '5 Min Read';
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
-    const minutes = Math.ceil(wordCount / 200); // Average reading speed
-    return `${minutes} min read`;
+    const minutes = Math.ceil(wordCount / 200);
+    return `${minutes} Min Read`;
   };
 
   if (!featuredPosts.length) {
     return null;
   }
 
-  const currentPost = featuredPosts[currentIndex];
+  const currentHeroSlide = featuredPosts[currentSlide];
 
   return (
-    <section 
-      className={cn('relative h-[70vh] overflow-hidden group', className)}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      role="region"
-      aria-roledescription="carousel"
-      aria-label="Featured blog posts"
-    >
-      {/* Background Images */}
-      <div className="relative w-full h-full">
-        {featuredPosts.map((post, index) => (
-          <motion.div
-            key={post.id}
-            className="absolute inset-0"
-            initial={shouldReduceMotion ? {} : { opacity: 0 }}
-            animate={shouldReduceMotion ? {} : { 
-              opacity: index === currentIndex ? 1 : 0 
-            }}
-            transition={{ duration: 0.6, ease: 'easeInOut' }}
+    <div className="px-6">
+      <div className="max-w-6xl mx-auto">
+        <div 
+          className={cn('relative w-full h-[500px] overflow-hidden rounded-2xl mt-6 mb-12', className)}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${currentHeroSlide.image_url})` }}
           >
-            <ImageWithFallback
-              src={post.image_url || ''}
-              alt={post.title}
-              className="w-full h-full"
-              objectFit="cover"
-              objectPosition="center"
-              fetchPriority={index === 0 ? 'high' : 'low'}
-              loading={index === 0 ? 'eager' : 'lazy'}
-            />
-          </motion.div>
-        ))}
+            <div className="absolute inset-0 bg-black/30" />
+          </div>
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-      </div>
-
-      {/* Content Overlay */}
-      <div className="absolute inset-0 flex items-center">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <motion.div
-              key={currentIndex}
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 30 }}
-              animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-6"
-            >
-              {/* Category & Read Time */}
-              <div className="flex items-center gap-4">
-                {currentPost.category && (
-                  <BlogCategoryPill
-                    name={currentPost.category.name}
-                    variant="secondary"
-                    size="sm"
-                    accentColor={currentPost.category.accent_color}
-                    className="bg-white/10 border-white/20 text-white backdrop-blur-sm"
-                  />
+          {/* Content Overlay - Following Good Layout Code reference exactly */}
+          <div className="relative z-10 h-full flex flex-col justify-between p-8 text-white">
+            {/* Top Section - Categories and Read Time */}
+            <div className="flex justify-between items-start ml-12">
+              <div className="flex gap-2">
+                {currentHeroSlide.category && (
+                  <Badge className="bg-white/20 text-white hover:bg-white/30 border-0 text-xs font-medium backdrop-blur-sm">
+                    {currentHeroSlide.category.name.toUpperCase()}
+                  </Badge>
                 )}
-                
-                <Badge className="bg-white/10 border-white/20 text-white text-xs backdrop-blur-sm">
-                  <Clock size={12} className="mr-1" />
-                  {estimateReadTime(currentPost.body_html)}
-                </Badge>
+                {currentHeroSlide.tags.slice(0, 1).map(tag => (
+                  <Badge key={tag} className="bg-white/20 text-white hover:bg-white/30 border-0 text-xs font-medium backdrop-blur-sm">
+                    {tag.toUpperCase()}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+                <Clock className="w-3 h-3" />
+                <span className="text-xs font-medium">{estimateReadTime(currentHeroSlide.body_html)}</span>
+              </div>
+            </div>
+
+            {/* Bottom Section - Content */}
+            <div className="max-w-2xl ml-12">
+              <div className="mb-4">
+                <span className="text-white/90 text-sm font-medium">Ethan Caldwell</span>
+                <span className="text-white/70 text-sm ml-2">
+                  on {formatDate(currentHeroSlide.publish_at || currentHeroSlide.created_at)}
+                </span>
               </div>
 
-              {/* Title */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                {currentPost.title}
+              <h1 className="text-4xl font-bold mb-4 text-balance leading-tight">
+                {currentHeroSlide.title}
               </h1>
 
-              {/* Summary */}
-              {currentPost.summary && (
-                <p className="text-lg sm:text-xl text-gray-200 leading-relaxed max-w-xl">
-                  {currentPost.summary}
-                </p>
-              )}
+              <p className="text-white/90 text-base leading-relaxed mb-6 max-w-xl">
+                {currentHeroSlide.summary || currentHeroSlide.title}
+              </p>
 
-              {/* Meta & CTA */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex items-center gap-4 text-gray-300 text-sm">
-                  <time className="flex items-center gap-1.5">
-                    <Calendar size={16} />
-                    {formatDate(currentPost.publish_at || currentPost.created_at)}
-                  </time>
-                </div>
-
-                <Button 
-                  size="lg"
-                  onClick={() => onSelect?.(currentPost.slug)}
-                  className="bg-accent hover:bg-accent/90 text-text-inverse font-semibold"
-                >
-                  Read Article
-                </Button>
-              </div>
-            </motion.div>
+              <Button 
+                className="bg-accent hover:bg-accent-hover text-text-inverse border-0 px-6 py-2 rounded-xl"
+                onClick={() => onSelect?.(currentHeroSlide.slug)}
+              >
+                Discover More
+              </Button>
+            </div>
           </div>
+
+          {/* Navigation Arrows */}
+          {featuredPosts.length > 1 && (
+            <>
+              <button
+                onClick={prevSlide}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-3 transition-colors"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-6 h-6 text-white" />
+              </button>
+
+              <button
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-3 transition-colors"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-6 h-6 text-white" />
+              </button>
+
+              {/* Pagination Dots */}
+              <div className="absolute bottom-6 right-8 flex gap-2 z-20">
+                {featuredPosts.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={cn(
+                      'w-2 h-2 rounded-full transition-colors',
+                      index === currentSlide ? 'bg-white' : 'bg-white/50'
+                    )}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
-
-      {/* Navigation Controls */}
-      {featuredPosts.length > 1 && (
-        <>
-          {/* Previous/Next Buttons */}
-          <button
-            onClick={goToPrevious}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white rounded-full backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-            aria-label="Previous featured post"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          
-          <button
-            onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white rounded-full backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-            aria-label="Next featured post"
-          >
-            <ChevronRight size={20} />
-          </button>
-
-          {/* Slide Indicators */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-            {featuredPosts.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={cn(
-                  'w-3 h-3 rounded-full transition-all duration-300',
-                  index === currentIndex 
-                    ? 'bg-white scale-110' 
-                    : 'bg-white/40 hover:bg-white/60'
-                )}
-                aria-label={`Go to slide ${index + 1}`}
-                aria-current={index === currentIndex ? 'true' : 'false'}
-              />
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Screen Reader Content */}
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        Slide {currentIndex + 1} of {featuredPosts.length}: {currentPost.title}
-      </div>
-    </section>
+    </div>
   );
 }

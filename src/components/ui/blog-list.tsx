@@ -1,9 +1,9 @@
 // src/components/ui/blog-list.tsx
-// Modified: Consistent heights with golden-ratio BlogCard, numbered pagination support, improved grid alignment
+// Modified: Load More pagination (as requested), consistent heights, ResponsiveImage support
 
 import React, { memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BlogCard from '@/components/ui/blog-card';
 import { cn } from '@/lib/utils';
@@ -28,109 +28,22 @@ const BlogList = memo(function BlogList({
 }: BlogListProps) {
   const shouldReduceMotion = useReducedMotion();
 
-  // Numbered pagination component
-  const renderPagination = () => {
-    if (!onPageChange || totalPages <= 1) return null;
-
-    const maxVisiblePages = 7;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    // Adjust start if we're near the end
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    const pages = Array.from(
-      { length: endPage - startPage + 1 }, 
-      (_, i) => startPage + i
-    );
+  // Load More pagination (as per user request)
+  const renderLoadMore = () => {
+    if (!onPageChange || currentPage >= totalPages) return null;
 
     return (
-      <nav 
-        className="flex justify-center mt-12"
-        role="navigation"
-        aria-label="Blog pagination"
-      >
-        <div className="flex items-center gap-2">
-          {/* Previous Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
-            className="px-3"
-            aria-label="Go to previous page"
-          >
-            <ChevronLeft size={16} className="mr-1" />
-            Previous
-          </Button>
-
-          {/* First page + ellipsis */}
-          {startPage > 1 && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(1)}
-                className="px-3"
-                aria-label="Go to page 1"
-              >
-                1
-              </Button>
-              {startPage > 2 && (
-                <span className="text-muted-foreground px-2">...</span>
-              )}
-            </>
-          )}
-
-          {/* Page numbers */}
-          {pages.map(page => (
-            <Button
-              key={page}
-              variant={page === currentPage ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onPageChange(page)}
-              className="px-3"
-              aria-current={page === currentPage ? 'page' : undefined}
-              aria-label={`Go to page ${page}`}
-            >
-              {page}
-            </Button>
-          ))}
-
-          {/* Last page + ellipsis */}
-          {endPage < totalPages && (
-            <>
-              {endPage < totalPages - 1 && (
-                <span className="text-muted-foreground px-2">...</span>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(totalPages)}
-                className="px-3"
-                aria-label={`Go to page ${totalPages}`}
-              >
-                {totalPages}
-              </Button>
-            </>
-          )}
-
-          {/* Next Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-            className="px-3"
-            aria-label="Go to next page"
-          >
-            Next
-            <ChevronRight size={16} className="ml-1" />
-          </Button>
-        </div>
-      </nav>
+      <div className="text-center mt-12">
+        <Button
+          onClick={() => onPageChange(currentPage + 1)}
+          variant="outline"
+          size="lg"
+          className="px-8 py-3"
+        >
+          <Plus size={16} className="mr-2" />
+          Load More Posts
+        </Button>
+      </div>
     );
   };
 
@@ -182,8 +95,8 @@ const BlogList = memo(function BlogList({
         ))}
       </div>
 
-      {/* Pagination */}
-      {renderPagination()}
+      {/* Load More Pagination */}
+      {renderLoadMore()}
 
       {/* Results Summary */}
       {totalPages > 1 && (
