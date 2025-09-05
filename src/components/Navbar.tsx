@@ -122,7 +122,7 @@ const Navbar = () => {
       href: '#',
       submenu: [
         { name: 'Promotions', href: '/promotions' },
-        { name: 'Events', href: '/events' }
+        { name: 'Events', href: '/events' },
         { name: 'Blog', href: '/blog' }
       ]
     },
