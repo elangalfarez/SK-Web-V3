@@ -1,19 +1,19 @@
 // src/components/ui/event-card.tsx
-// Created: Reusable event card with hover animations, accessibility, and accent color support
+// Modified: Remove accent_color, tickets_url dependencies and implement summary fallback
 
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Clock } from 'lucide-react';
 import { format, isAfter, isBefore } from 'date-fns';
-import { Event } from '@/lib/supabase';
+import { Event, getEventSummary } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 interface EventCardProps {
   event: Event;
   variant?: 'default' | 'featured' | 'compact';
-  showAccentColor?: boolean;
+  showAccentColor?: boolean; // No longer used but kept for backward compatibility
   onClick?: () => void;
   className?: string;
 }
@@ -21,7 +21,7 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({
   event,
   variant = 'default',
-  showAccentColor = false,
+  showAccentColor = false, // Deprecated but kept for compatibility
   onClick,
   className = ''
 }) => {
@@ -74,6 +74,9 @@ export const EventCard: React.FC<EventCardProps> = ({
   const eventStatus = getEventStatus();
   const primaryImage = event.images && event.images.length > 0 ? event.images[0] : null;
   
+  // Get event summary with fallback to body excerpt
+  const eventSummary = getEventSummary(event);
+  
   // Check for reduced motion preference
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -89,12 +92,6 @@ export const EventCard: React.FC<EventCardProps> = ({
     featured: 'aspect-[4/3]',
     compact: 'aspect-[3/2]'
   };
-
-  // Custom CSS properties for accent color (if provided)
-  const cardStyle = showAccentColor && event.accent_color ? {
-    ['--event-accent' as any]: event.accent_color,
-    ['--event-accent-light' as any]: `${event.accent_color}20`
-  } : {};
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (onClick) {
@@ -113,7 +110,6 @@ export const EventCard: React.FC<EventCardProps> = ({
         bg-surface-secondary rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200 
         ${variantClasses[variant]} ${className}
       `}
-      style={cardStyle}
       onClick={handleCardClick}
     >
       {/* Image Section */}
@@ -157,15 +153,6 @@ export const EventCard: React.FC<EventCardProps> = ({
             </Badge>
           )}
         </div>
-
-        {/* Accent Color Indicator */}
-        {showAccentColor && event.accent_color && (
-          <div 
-            className="absolute bottom-3 right-3 w-4 h-4 rounded-full shadow-md"
-            style={{ backgroundColor: event.accent_color }}
-            aria-label={`Event color: ${event.accent_color}`}
-          />
-        )}
       </div>
 
       {/* Content Section */}
@@ -179,10 +166,10 @@ export const EventCard: React.FC<EventCardProps> = ({
           )}
         </h3>
 
-        {/* Summary */}
-        {event.summary && (
+        {/* Summary with fallback */}
+        {eventSummary && (
           <p className="text-text-secondary text-sm leading-relaxed line-clamp-2">
-            {event.summary}
+            {eventSummary}
           </p>
         )}
 
@@ -219,7 +206,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Remove tickets button, keep view details */}
         {variant === 'featured' && (
           <div className="flex gap-2 pt-2">
             <Button size="sm" className="flex-1" asChild>
@@ -227,19 +214,6 @@ export const EventCard: React.FC<EventCardProps> = ({
                 View Details
               </Link>
             </Button>
-            {event.tickets_url && (
-              <Button size="sm" variant="outline" asChild>
-                <a 
-                  href={event.tickets_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="w-3 h-3 mr-1" />
-                  Tickets
-                </a>
-              </Button>
-            )}
           </div>
         )}
       </div>
