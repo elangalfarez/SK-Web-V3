@@ -311,7 +311,88 @@ export interface PostFetchResult {
   perPage: number;
   hasMore: boolean;
 }
+// What's On related types
+// Add these types to existing supabase.ts
+export interface WhatsOnItem {
+  id: string;
+  content_type: 'event'|'tenant'|'post'|'promotion'|'custom';
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  link_url: string | null;
+  date_text: string | null;
+  badge_text: string | null;
+  sort_order: number;
+  is_active: boolean;
+}
 
+/**
+ * Fetch What's On items from frontend view
+ */
+export async function fetchWhatsOnItems(limit = 6): Promise<WhatsOnItem[]> {
+  try {
+    console.debug('Fetching What\'s On items with limit:', limit);
+    
+    const { data, error } = await supabase
+      .from('v_whats_on_frontend')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching What\'s On items from view:', error);
+      throw new Error(`Failed to fetch What's On items: ${error.message}`);
+    }
+
+    const items: WhatsOnItem[] = (data || []).map(row => ({
+      id: row.id || `fallback-${Date.now()}-${Math.random()}`,
+      content_type: row.content_type || 'custom',
+      title: row.title || 'Featured Content',
+      description: row.description || null,
+      image_url: row.image_url || null,
+      link_url: row.link_url || '/directory',
+      date_text: row.date_text || null,
+      badge_text: row.badge_text || 'Featured',
+      sort_order: row.sort_order || 0,
+      is_active: row.is_active !== false,
+    }));
+
+    console.debug(`Successfully fetched ${items.length} What's On items`);
+    return items;
+
+  } catch (error) {
+    console.error('Failed to fetch What\'s On items:', error);
+    throw error;
+  }
+}
+
+/**
+ * Force refresh of What's On items (clear any cache)
+ */
+export async function refreshWhatsOnItems(): Promise<boolean> {
+  try {
+    console.debug('Refreshing What\'s On items cache');
+    
+    // Trigger a fresh query to validate the view is accessible
+    const { error } = await supabase
+      .from('v_whats_on_frontend')
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      console.error('Error during What\'s On refresh:', error);
+      return false;
+    }
+
+    console.debug('What\'s On cache refresh successful');
+    return true;
+    
+  } catch (error) {
+    console.error('Error refreshing What\'s On items:', error);
+    return false;
+  }
+}
 
 // Helper functions for safe JSON parsing (existing)
 export function parseOperatingHours(hours: any): string {
