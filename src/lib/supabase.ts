@@ -56,7 +56,7 @@ export interface Tenant {
   lease_status?: string;
 }
 
-// Events system types - matching the SQL schema exactly
+// Updated Event interface - REPLACE the existing Event interface with this one
 export interface Event {
   id: string;
   title: string;
@@ -68,13 +68,10 @@ export interface Event {
   is_published: boolean;
   is_featured: boolean;
   venue: string | null;
-  location_lat: number | null;
-  location_lng: number | null;
+  // REMOVED: location_lat, location_lng, accent_color, tickets_url
   images: EventImage[];
   tags: string[];
-  accent_color: string | null;
-  tickets_url: string | null;
-  summary: string | null;
+  summary: string | null; // Now properly optional with fallback support
   metadata: any;
   created_by: string | null;
   created_at: string;
@@ -463,6 +460,48 @@ export function generateSlug(title: string): string {
     .replace(/[^\w\s-]/g, '') // Remove special characters
     .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
+
+// ADD this new helper function for generating excerpts from body content
+export function generateEventExcerpt(body: string | null, maxChars: number = 130): string {
+  if (!body || typeof body !== 'string') {
+    return '';
+  }
+
+  // Remove markdown headers, bold, italic, and other formatting
+  const cleanText = body
+    .replace(/^#+\s*/gm, '') // Remove markdown headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+    .replace(/\*(.*?)\*/g, '$1') // Remove italic
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links, keep text
+    .replace(/`(.*?)`/g, '$1') // Remove code formatting
+    .replace(/\n+/g, ' ') // Replace line breaks with spaces
+    .trim();
+
+  if (cleanText.length <= maxChars) {
+    return cleanText;
+  }
+
+  // Find the last complete word before maxChars limit
+  const truncated = cleanText.substring(0, maxChars);
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+  
+  if (lastSpaceIndex > maxChars * 0.8) { // Only cut at word boundary if it's not too far back
+    return truncated.substring(0, lastSpaceIndex) + '...';
+  }
+  
+  return truncated + '...';
+}
+
+// ADD this helper function to get event summary with fallback
+export function getEventSummary(event: Event, maxChars: number = 130): string {
+  // Use summary if available, otherwise generate excerpt from body
+  if (event.summary && event.summary.trim()) {
+    return event.summary.trim();
+  }
+  
+  return generateEventExcerpt(event.body, maxChars);
 }
 
 /**
@@ -1325,9 +1364,10 @@ export async function fetchEvents(params: EventFetchParams = {}): Promise<EventF
 
     // Transform data - parse JSON fields safely
     const transformedData: Event[] = (data || []).map(event => ({
-      ...event,
-      images: parseEventImages(event.images),
-      tags: parseEventTags(event.tags)
+    ...event,
+    images: parseEventImages(event.images),
+    tags: parseEventTags(event.tags)
+    // Note: summary fallback is handled in UI components using getEventSummary()
     }));
 
     const total = count || 0;
@@ -1430,7 +1470,7 @@ export async function searchEvents(query: string, limit: number = 10): Promise<E
       .from('events')
       .select('*')
       .eq('is_published', true)
-      .or(`title.ilike.%${searchTerm}%,body.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`)
+      .or(`title.ilike.%${searchTerm}%,body.ilike.%${searchTerm}%`)
       .order('start_at', { ascending: false })
       .limit(limit);
 

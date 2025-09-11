@@ -1,5 +1,5 @@
 // src/components/EventDetailPage.tsx
-// Created: Individual event detail page with full content, sharing, and structured data
+// Modified: Remove tickets_url, location coordinates, accent_color dependencies and add summary fallback
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -8,7 +8,6 @@ import {
   Calendar, 
   MapPin, 
   Clock, 
-  ExternalLink, 
   Share2, 
   Copy, 
   MessageCircle,
@@ -17,7 +16,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { fetchEventBySlug, Event } from '@/lib/supabase';
+import { fetchEventBySlug, Event, getEventSummary } from '@/lib/supabase';
 import { Hero } from '@/components/ui/Hero';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -95,120 +94,95 @@ const EventDetailPage: React.FC = () => {
     return `${formatEventDate(event.start_at)} - ${formatEventDate(event.end_at)}`;
   }, [event]);
 
+  // Get event summary with fallback to body excerpt
+  const eventSummary = useMemo(() => {
+    return event ? getEventSummary(event) : '';
+  }, [event]);
+
   // Share functionality
   const shareUrl = window.location.href;
-  const shareText = event ? `Check out "${event.title}" at Supermal Karawaci!` : '';
+  const shareText = event ? `${event.title} - ${eventSummary}` : '';
 
-  const handleShare = async (platform: string) => {
-    if (!event) return;
-
-    const urls = {
-      copy: () => {
-        navigator.clipboard.writeText(shareUrl);
-        alert('Link copied to clipboard!');
-      },
-      twitter: () => {
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-      },
-      whatsapp: () => {
-        window.open(`https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`, '_blank');
-      },
-      facebook: () => {
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-      }
-    };
-
-    urls[platform as keyof typeof urls]?.();
-    setShareMenuOpen(false);
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      // You could add a toast notification here
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
   };
 
-  // Image gallery navigation
+  const generateCalendarLink = () => {
+    if (!event) return '';
+    
+    const start = new Date(event.start_at).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const end = event.end_at 
+      ? new Date(event.end_at).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+      : start;
+    
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: event.title,
+      dates: `${start}/${end}`,
+      details: eventSummary,
+      location: event.venue || 'Supermal Karawaci'
+    });
+    
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  };
+
+  // Image navigation
   const nextImage = () => {
     if (event && event.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === event.images.length - 1 ? 0 : prev + 1
-      );
+      setCurrentImageIndex((prev) => (prev + 1) % event.images.length);
     }
   };
 
   const prevImage = () => {
     if (event && event.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? event.images.length - 1 : prev - 1
-      );
+      setCurrentImageIndex((prev) => (prev - 1 + event.images.length) % event.images.length);
     }
   };
 
-  // Render markdown-like content safely
+  // Render markdown-like content
   const renderEventBody = (body: string) => {
-    return body
-      .split('\n')
-      .map((paragraph, index) => {
-        if (paragraph.startsWith('# ')) {
-          return <h1 key={index} className="text-3xl font-bold mb-6 text-text-primary">{paragraph.slice(2)}</h1>;
-        }
-        if (paragraph.startsWith('## ')) {
-          return <h2 key={index} className="text-2xl font-semibold mb-4 text-text-primary mt-8">{paragraph.slice(3)}</h2>;
-        }
-        if (paragraph.startsWith('### ')) {
-          return <h3 key={index} className="text-xl font-semibold mb-3 text-text-primary mt-6">{paragraph.slice(4)}</h3>;
-        }
-        if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
-          return <li key={index} className="mb-2 text-text-secondary">{paragraph.slice(2)}</li>;
-        }
-        if (paragraph.trim()) {
-          return <p key={index} className="mb-4 text-text-secondary leading-relaxed">{paragraph}</p>;
-        }
-        return null;
-      })
-      .filter(Boolean);
-  };
-
-  // Calendar export link
-  const generateCalendarLink = () => {
-    if (!event) return '#';
-    
-    const startDate = new Date(event.start_at);
-    const endDate = event.end_at ? new Date(event.end_at) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // Default 2 hours
-    
-    const formatCalendarDate = (date: Date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    };
-    
-    const calendarParams = new URLSearchParams({
-      action: 'TEMPLATE',
-      text: event.title,
-      dates: `${formatCalendarDate(startDate)}/${formatCalendarDate(endDate)}`,
-      details: event.summary || event.title,
-      location: event.venue || 'Supermal Karawaci',
-      sf: 'true',
-      output: 'xml'
+    // Simple markdown rendering - you might want to use a proper markdown library
+    return body.split('\n').map((line, index) => {
+      if (line.startsWith('# ')) {
+        return <h1 key={index} className="text-3xl font-bold mb-4 text-text-primary">{line.slice(2)}</h1>;
+      }
+      if (line.startsWith('## ')) {
+        return <h2 key={index} className="text-2xl font-semibold mb-3 text-text-primary">{line.slice(3)}</h2>;
+      }
+      if (line.startsWith('### ')) {
+        return <h3 key={index} className="text-xl font-semibold mb-2 text-text-primary">{line.slice(4)}</h3>;
+      }
+      if (line.trim() === '') {
+        return <br key={index} />;
+      }
+      return <p key={index} className="mb-3 text-text-secondary leading-relaxed">{line}</p>;
     });
-    
-    return `https://calendar.google.com/calendar/render?${calendarParams.toString()}`;
   };
 
-  // Check for reduced motion
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
-        <div className="animate-pulse space-y-4 max-w-md w-full px-4">
-          <div className="h-8 bg-surface-secondary rounded"></div>
-          <div className="h-4 bg-surface-secondary rounded w-3/4"></div>
-          <div className="h-32 bg-surface-secondary rounded"></div>
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary">Loading event details...</p>
         </div>
       </div>
     );
   }
 
+  // Error state
   if (error || !event) {
     return (
       <div className="min-h-screen bg-surface">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-text-primary mb-4">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-text-primary">
               {error === 'Event not found' ? 'Event Not Found' : 'Error Loading Event'}
             </h1>
             <p className="text-text-secondary mb-8">
@@ -237,14 +211,6 @@ const EventDetailPage: React.FC = () => {
         variant="compact"
         cta={
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {event.tickets_url && (
-              <Button asChild size="lg">
-                <a href={event.tickets_url} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Get Tickets
-                </a>
-              </Button>
-            )}
             <Button
               variant="outline"
               size="lg"
@@ -269,37 +235,25 @@ const EventDetailPage: React.FC = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute top-full right-0 mt-2 w-48 bg-surface-secondary border border-border-primary rounded-lg shadow-lg z-50"
+                  className="absolute top-full mt-2 right-0 bg-surface-secondary border border-border-primary rounded-lg shadow-lg p-4 min-w-[200px] z-50"
                 >
-                  <div className="py-2">
+                  <div className="space-y-2">
                     <button
-                      onClick={() => handleShare('copy')}
-                      className="w-full text-left px-4 py-2 hover:bg-surface-tertiary transition-colors flex items-center gap-2"
+                      onClick={handleCopyLink}
+                      className="w-full flex items-center gap-2 p-2 hover:bg-surface-tertiary rounded text-left transition-colors"
                     >
                       <Copy className="w-4 h-4" />
                       Copy Link
                     </button>
-                    <button
-                      onClick={() => handleShare('whatsapp')}
-                      className="w-full text-left px-4 py-2 hover:bg-surface-tertiary transition-colors flex items-center gap-2"
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center gap-2 p-2 hover:bg-surface-tertiary rounded transition-colors"
                     >
                       <MessageCircle className="w-4 h-4" />
                       WhatsApp
-                    </button>
-                    <button
-                      onClick={() => handleShare('twitter')}
-                      className="w-full text-left px-4 py-2 hover:bg-surface-tertiary transition-colors flex items-center gap-2"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Twitter
-                    </button>
-                    <button
-                      onClick={() => handleShare('facebook')}
-                      className="w-full text-left px-4 py-2 hover:bg-surface-tertiary transition-colors flex items-center gap-2"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Facebook
-                    </button>
+                    </a>
                   </div>
                 </motion.div>
               )}
@@ -327,10 +281,7 @@ const EventDetailPage: React.FC = () => {
             {/* Image Gallery */}
             {event.images && event.images.length > 0 && (
               <div className="space-y-4">
-                <div 
-                  className="relative aspect-video rounded-lg overflow-hidden bg-surface-tertiary"
-                  style={{ ['--event-accent' as any]: event.accent_color }}
-                >
+                <div className="relative aspect-video rounded-lg overflow-hidden bg-surface-tertiary">
                   <img
                     src={event.images[currentImageIndex]?.url}
                     alt={event.images[currentImageIndex]?.alt || event.title}
@@ -357,30 +308,25 @@ const EventDetailPage: React.FC = () => {
                       </button>
                     </>
                   )}
-
-                  {/* Image Counter */}
-                  {event.images.length > 1 && (
-                    <div className="absolute bottom-4 right-4 bg-surface/90 text-text-primary px-3 py-1 rounded-full text-sm">
-                      {currentImageIndex + 1} / {event.images.length}
+                  
+                  {/* Image Caption */}
+                  {event.images[currentImageIndex]?.caption && (
+                    <div className="absolute bottom-4 left-4 right-4 bg-surface/90 backdrop-blur-sm rounded p-3">
+                      <p className="text-sm text-text-secondary">
+                        {event.images[currentImageIndex].caption}
+                      </p>
                     </div>
                   )}
                 </div>
 
-                {/* Image Caption */}
-                {event.images[currentImageIndex]?.caption && (
-                  <p className="text-sm text-text-muted italic">
-                    {event.images[currentImageIndex].caption}
-                  </p>
-                )}
-
-                {/* Image Thumbnails */}
+                {/* Thumbnail Navigation */}
                 {event.images.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
                     {event.images.map((image, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                        className={`flex-shrink-0 w-20 h-16 rounded overflow-hidden border-2 transition-colors ${
                           index === currentImageIndex 
                             ? 'border-accent' 
                             : 'border-border-secondary hover:border-border-primary'
@@ -438,17 +384,6 @@ const EventDetailPage: React.FC = () => {
                   <div>
                     <p className="font-medium text-text-primary">Venue</p>
                     <p className="text-sm text-text-secondary">{event.venue}</p>
-                    {event.location_lat && event.location_lng && (
-                      <a
-                        href={`https://maps.google.com/?q=${event.location_lat},${event.location_lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-accent hover:text-accent-hover text-sm inline-flex items-center gap-1 mt-1"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        View on Map
-                      </a>
-                    )}
                   </div>
                 </div>
               )}
@@ -466,15 +401,6 @@ const EventDetailPage: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              {event.tickets_url && (
-                <Button asChild className="w-full" size="lg">
-                  <a href={event.tickets_url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Get Tickets
-                  </a>
-                </Button>
-              )}
-              
               <Button
                 variant="outline"
                 onClick={() => window.open(generateCalendarLink(), '_blank')}
@@ -488,7 +414,7 @@ const EventDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Structured Data (JSON-LD) for SEO */}
+      {/* Structured Data (JSON-LD) for SEO - Updated without tickets/coordinates */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -496,7 +422,7 @@ const EventDetailPage: React.FC = () => {
             "@context": "https://schema.org",
             "@type": "Event",
             "name": event.title,
-            "description": event.summary || event.title,
+            "description": eventSummary || event.title,
             "startDate": event.start_at,
             "endDate": event.end_at || undefined,
             "location": {
@@ -509,14 +435,7 @@ const EventDetailPage: React.FC = () => {
                 "addressRegion": "Banten",
                 "postalCode": "15115",
                 "addressCountry": "ID"
-              },
-              ...(event.location_lat && event.location_lng && {
-                "geo": {
-                  "@type": "GeoCoordinates",
-                  "latitude": event.location_lat,
-                  "longitude": event.location_lng
-                }
-              })
+              }
             },
             "image": event.images.map(img => img.url),
             "url": window.location.href,
@@ -524,14 +443,7 @@ const EventDetailPage: React.FC = () => {
               "@type": "Organization",
               "name": "Supermal Karawaci",
               "url": "https://supermalkarawaci.com"
-            },
-            ...(event.tickets_url && {
-              "offers": {
-                "@type": "Offer",
-                "url": event.tickets_url,
-                "availability": "https://schema.org/InStock"
-              }
-            })
+            }
           })
         }}
       />

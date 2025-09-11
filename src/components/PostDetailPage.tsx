@@ -1,234 +1,393 @@
 // src/components/PostDetailPage.tsx
-// Created: Individual blog post detail page with sanitized HTML rendering and social sharing
+// Modified: Constrained reading width (~12-14 words per line), hero overlay design, proper layout with sidebar, FULL FUNCTIONALITY RESTORED
 
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeft, Calendar, Tag, Share2, Copy, Check, Download } from 'lucide-react';
+import { ArrowLeft, Calendar, Tag, Share2, Copy, Check, ChevronLeft, ChevronRight, Home, Clock, ExternalLink } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { fetchPostBySlug, fetchPosts, type Post } from '../lib/supabase';
-import { seededPosts } from '../data/seeded-posts';
-import BlogCard from './ui/blog-card';
+import { seededPosts, seededCategories } from '../data/seeded-posts';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Card, CardContent } from './ui/card';
+import BlogSidebar from './ui/BlogSidebar';
+import BlogListHorizontal from './ui/BlogListHorizontal';
+import { ResponsiveImage } from './ui/ResponsiveImage';
+import BlogCategoryPill from './ui/BlogCategoryPill';
 
 interface PostDetailState {
   post: Post | null;
   relatedPosts: Post[];
+  prevPost: Post | null;
+  nextPost: Post | null;
   isLoading: boolean;
-  isRelatedLoading: boolean;
   notFound: boolean;
   usingFallback: boolean;
 }
 
 export default function PostDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const [copySuccess, setCopySuccess] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
 
   const [state, setState] = useState<PostDetailState>({
     post: null,
     relatedPosts: [],
+    prevPost: null,
+    nextPost: null,
     isLoading: true,
-    isRelatedLoading: false,
     notFound: false,
     usingFallback: false
   });
 
-  // Fetch post by slug
-  useEffect(() => {
-    if (!slug) {
-      setState(prev => ({ ...prev, notFound: true, isLoading: false }));
-      return;
-    }
-
-    const loadPost = async () => {
-      setState(prev => ({ ...prev, isLoading: true, notFound: false }));
-
-      try {
-        const post = await fetchPostBySlug(slug);
-        if (post) {
-          setState(prev => ({ ...prev, post, isLoading: false, usingFallback: false }));
-          document.title = `${post.title} — Supermal Karawaci Blog`;
-          
-          // Load related posts
-          loadRelatedPosts(post);
-        } else {
-          setState(prev => ({ ...prev, notFound: true, isLoading: false }));
-          document.title = 'Post Not Found — Supermal Karawaci Blog';
-        }
-      } catch (error) {
-        console.warn('Failed to fetch post, checking seeded data');
-        const seededPost = seededPosts.find(p => p.slug === slug);
-        if (seededPost) {
-          setState(prev => ({ 
-            ...prev, 
-            post: seededPost, 
-            isLoading: false, 
-            usingFallback: true 
-          }));
-          document.title = `${seededPost.title} — Supermal Karawaci Blog`;
-          loadRelatedPostsFromSeeded(seededPost);
-        } else {
-          setState(prev => ({ ...prev, notFound: true, isLoading: false }));
-          document.title = 'Post Not Found — Supermal Karawaci Blog';
-        }
-      }
-    };
-
-    loadPost();
-  }, [slug]);
-
-  // Load related posts from server
-  const loadRelatedPosts = async (currentPost: Post) => {
-    setState(prev => ({ ...prev, isRelatedLoading: true }));
-
-    try {
-      // Try to find posts with shared tags or same category
-      const relatedByTags = currentPost.tags.length > 0 
-        ? await fetchPosts({ tags: currentPost.tags, perPage: 4 })
-        : { posts: [] };
-
-      let related = relatedByTags.posts.filter(p => p.id !== currentPost.id);
-
-      // If not enough related by tags, get more from same category
-      if (related.length < 3 && currentPost.category_id) {
-        const relatedByCategory = await fetchPosts({ 
-          categoryId: currentPost.category_id, 
-          perPage: 4 
-        });
-        const categoryPosts = relatedByCategory.posts.filter(p => 
-          p.id !== currentPost.id && !related.find(r => r.id === p.id)
-        );
-        related = [...related, ...categoryPosts];
-      }
-
-      setState(prev => ({ 
-        ...prev, 
-        relatedPosts: related.slice(0, 3), 
-        isRelatedLoading: false 
-      }));
-    } catch (error) {
-      console.warn('Failed to fetch related posts');
-      loadRelatedPostsFromSeeded(currentPost);
-    }
-  };
-
-  // Load related posts from seeded data
-  const loadRelatedPostsFromSeeded = (currentPost: Post) => {
-    const related = seededPosts
-      .filter(p => p.id !== currentPost.id)
-      .filter(p => {
-        // Check for shared tags
-        if (currentPost.tags.some(tag => p.tags.includes(tag))) return true;
-        // Check for same category
-        if (currentPost.category_id === p.category_id) return true;
-        return false;
-      })
-      .slice(0, 3);
-
-    setState(prev => ({ 
-      ...prev, 
-      relatedPosts: related, 
-      isRelatedLoading: false 
-    }));
-  };
-
-  // Share functionality
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (error) {
-      console.warn('Failed to copy link to clipboard');
-    }
-  };
-
-  const handleTwitterShare = () => {
-    const text = encodeURIComponent(`${state.post?.title} - ${window.location.href}`);
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(`${state.post?.title} - ${window.location.href}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
-  };
-
-  // Generate ICS download link
-  const handleDownloadICS = () => {
-    if (!state.post) return;
-
-    const startDate = new Date(state.post.publish_at || state.post.created_at);
-    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
-
-    const formatDate = (date: Date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    };
-
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Supermal Karawaci//Blog//EN',
-      'BEGIN:VEVENT',
-      `UID:${state.post.id}@supermalkarawaci.com`,
-      `DTSTART:${formatDate(startDate)}`,
-      `DTEND:${formatDate(endDate)}`,
-      `SUMMARY:${state.post.title}`,
-      `DESCRIPTION:${state.post.summary || ''}`,
-      `URL:${window.location.href}`,
-      'END:VEVENT',
-      'END:VCALENDAR'
-    ].join('\r\n');
-
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${state.post.slug}.ics`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  };
-
-  // Format date
+  // Format date helper
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
   };
 
-  // Sanitize HTML content
-  const sanitizeHTML = (html: string) => {
-    return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a'],
-      ALLOWED_ATTR: ['href', 'target', 'rel'],
-      ALLOW_DATA_ATTR: false
-    });
+  // Estimate reading time
+  const estimateReadTime = (content: string | null) => {
+    if (!content) return '5 min read';
+    const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const minutes = Math.ceil(wordCount / 200);
+    return `${minutes} min read`;
   };
 
-  // Loading skeleton
-  const LoadingSkeleton = () => (
-    <div className="animate-pulse space-y-6">
-      <div className="bg-surface-secondary rounded-lg h-64 mb-8"></div>
-      <div className="bg-surface-secondary rounded h-8 w-3/4 mb-4"></div>
-      <div className="bg-surface-secondary rounded h-6 w-1/2 mb-6"></div>
-      <div className="space-y-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-surface-secondary rounded h-4 w-full"></div>
-        ))}
-      </div>
-    </div>
-  );
+  // Reading progress tracker
+  useEffect(() => {
+    const updateReadingProgress = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = scrollTop / docHeight;
+      setReadingProgress(Math.min(scrollPercent * 100, 100));
+    };
+
+    window.addEventListener('scroll', updateReadingProgress, { passive: true });
+    return () => window.removeEventListener('scroll', updateReadingProgress);
+  }, []);
+
+  // Share functionality with enhanced error handling
+  const handleShare = async (platform?: 'twitter' | 'facebook' | 'linkedin' | 'copy') => {
+    if (!state.post) return;
+
+    const url = window.location.href;
+    const text = `Check out this post: ${state.post.title}`;
+
+    try {
+      if (platform === 'copy' || !platform) {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(url);
+          setCopySuccess(true);
+          setTimeout(() => setCopySuccess(false), 2000);
+        } else {
+          // Fallback for older browsers or non-secure contexts
+          const textArea = document.createElement('textarea');
+          textArea.value = url;
+          textArea.style.position = 'fixed';
+          textArea.style.opacity = '0';
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          setCopySuccess(true);
+          setTimeout(() => setCopySuccess(false), 2000);
+        }
+        return;
+      }
+
+      const shareUrls = {
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
+      };
+
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
+    } catch (error) {
+      console.error('Share failed:', error);
+      // Show a user-friendly error message
+      alert('Failed to share. Please copy the URL manually.');
+    }
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.ctrlKey || e.metaKey) return; // Allow browser shortcuts
+    
+    switch (e.key) {
+      case 'ArrowLeft':
+        if (state.prevPost) {
+          e.preventDefault();
+          navigate(`/blog/${state.prevPost.slug}`);
+        }
+        break;
+      case 'ArrowRight':
+        if (state.nextPost) {
+          e.preventDefault();
+          navigate(`/blog/${state.nextPost.slug}`);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        navigate('/blog');
+        break;
+    }
+  }, [state.prevPost, state.nextPost, navigate]);
+
+  // Keyboard navigation event listener
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Update document title and meta tags
+  useEffect(() => {
+    if (state.post) {
+      document.title = `${state.post.title} | Supermal Karawaci Blog`;
+      
+      // Update meta description
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', state.post.summary || state.post.title);
+      }
+      
+      // Update Open Graph tags
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      const ogDescription = document.querySelector('meta[property="og:description"]');
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      
+      if (ogTitle) ogTitle.setAttribute('content', state.post.title);
+      if (ogDescription) ogDescription.setAttribute('content', state.post.summary || state.post.title);
+      if (ogImage && state.post.image_url) ogImage.setAttribute('content', state.post.image_url);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.title = 'Supermal Karawaci';
+    };
+  }, [state.post]);
+
+  // Scroll to top when post changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: shouldReduceMotion ? 'auto' : 'smooth' });
+  }, [slug, shouldReduceMotion]);
+
+  // Fetch post data with comprehensive error handling and fallback logic
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!slug) return;
+
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: true, 
+        notFound: false, 
+        error: null 
+      }));
+
+      try {
+        console.log('Fetching post with slug:', slug);
+        
+        // Try to fetch from database first
+        const post = await fetchPostBySlug(slug);
+        
+        if (post) {
+          console.log('Post found:', post.title);
+          
+          // Fetch all posts to find prev/next navigation
+          let allPosts: Post[] = [];
+          let relatedPosts: Post[] = [];
+          
+          try {
+            const allPostsResult = await fetchPosts({ 
+              limit: 100, // Get enough posts for navigation
+              sortBy: 'publish_at',
+              sortOrder: 'desc'
+            });
+            allPosts = allPostsResult.posts;
+            
+            // Find current post index for prev/next navigation
+            const currentIndex = allPosts.findIndex(p => p.id === post.id);
+            const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
+            const nextPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
+            
+            // Get related posts (same category, excluding current)
+            relatedPosts = allPosts.filter(p => 
+              p.id !== post.id && 
+              p.category?.id === post.category?.id
+            ).slice(0, 3);
+            
+            setState(prev => ({ 
+              ...prev, 
+              post, 
+              relatedPosts,
+              prevPost,
+              nextPost,
+              usingFallback: false,
+              isLoading: false
+            }));
+          } catch (relatedError) {
+            console.warn('Failed to fetch related posts, using basic post data:', relatedError);
+            setState(prev => ({ 
+              ...prev, 
+              post, 
+              relatedPosts: [],
+              prevPost: null,
+              nextPost: null,
+              usingFallback: false,
+              isLoading: false
+            }));
+          }
+        } else {
+          throw new Error('Post not found in database');
+        }
+      } catch (error) {
+        console.warn('Failed to fetch post from database, trying fallback data:', error);
+        
+        // Try fallback seeded data
+        const safePosts = Array.isArray(seededPosts) ? seededPosts : [];
+        const fallbackPost = safePosts.find(p => p.slug === slug);
+        
+        if (fallbackPost) {
+          console.log('Using fallback post:', fallbackPost.title);
+          
+          // Find prev/next in seeded data
+          const currentIndex = safePosts.findIndex(p => p.slug === slug);
+          const prevPost = currentIndex > 0 ? safePosts[currentIndex - 1] : null;
+          const nextPost = currentIndex < safePosts.length - 1 ? safePosts[currentIndex + 1] : null;
+          
+          // Get related posts from seeded data
+          const relatedPosts = safePosts.filter(p => 
+            p.slug !== slug && 
+            p.category?.id === fallbackPost.category?.id
+          ).slice(0, 3);
+          
+          setState(prev => ({ 
+            ...prev, 
+            post: fallbackPost, 
+            relatedPosts,
+            prevPost,
+            nextPost,
+            usingFallback: true,
+            isLoading: false
+          }));
+        } else {
+          console.error('Post not found in seeded data either');
+          setState(prev => ({ 
+            ...prev, 
+            notFound: true, 
+            isLoading: false 
+          }));
+        }
+      }
+    };
+
+    fetchData();
+  }, [slug]);
+
+  // Generate sanitized HTML
+  const sanitizedContent = useMemo(() => {
+    if (!state.post?.body_html) return '';
+    return DOMPurify.sanitize(state.post.body_html);
+  }, [state.post?.body_html]);
+
+  // Generate popular tags for sidebar (robust implementation)
+  const popularTags = useMemo(() => {
+    const tagCount = new Map<string, number>();
+    const safePosts = Array.isArray(seededPosts) ? seededPosts : [];
+    
+    safePosts.forEach(post => {
+      if (Array.isArray(post.tags)) {
+        post.tags.forEach(tag => {
+          if (typeof tag === 'string' && tag.trim()) {
+            tagCount.set(tag, (tagCount.get(tag) || 0) + 1);
+          }
+        });
+      }
+    });
+    
+    return Array.from(tagCount.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, []);
+
+  // Generate structured data for SEO
+  const structuredData = useMemo(() => {
+    if (!state.post) return null;
+    
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: state.post.title,
+      description: state.post.summary || state.post.title,
+      author: {
+        '@type': 'Person',
+        name: 'Ethan Caldwell'
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Supermal Karawaci',
+        logo: {
+          '@type': 'ImageObject',
+          url: '/logo.png'
+        }
+      },
+      datePublished: state.post.publish_at || state.post.created_at,
+      dateModified: state.post.updated_at || state.post.created_at,
+      image: state.post.image_url,
+      url: window.location.href,
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': window.location.href
+      },
+      articleSection: state.post.category?.name,
+      keywords: Array.isArray(state.post.tags) ? state.post.tags.join(', ') : ''
+    };
+  }, [state.post]);
 
   if (state.isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <LoadingSkeleton />
+      <div className="min-h-screen bg-surface">
+        {/* Loading skeleton */}
+        <div className="animate-pulse">
+          {/* Hero skeleton */}
+          <div className="h-96 bg-surface-secondary" />
+          
+          <div className="px-6 mt-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid lg:grid-cols-3 gap-8">
+                {/* Content skeleton */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Share buttons skeleton */}
+                  <div className="bg-surface-secondary rounded-2xl h-16" />
+                  
+                  {/* Article content skeleton */}
+                  <div className="space-y-4 max-w-[60ch]">
+                    <div className="h-4 bg-surface-secondary rounded w-full" />
+                    <div className="h-4 bg-surface-secondary rounded w-5/6" />
+                    <div className="h-4 bg-surface-secondary rounded w-4/6" />
+                    <div className="h-8 bg-surface-secondary rounded w-full mt-8" />
+                    <div className="h-4 bg-surface-secondary rounded w-full" />
+                    <div className="h-4 bg-surface-secondary rounded w-3/4" />
+                    <div className="h-4 bg-surface-secondary rounded w-5/6" />
+                  </div>
+                </div>
+                
+                {/* Sidebar skeleton */}
+                <div className="lg:col-span-1 space-y-6">
+                  <div className="bg-surface-secondary rounded-3xl h-48" />
+                  <div className="bg-surface-secondary rounded-3xl h-32" />
+                  <div className="bg-surface-secondary rounded-3xl h-40" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -236,251 +395,264 @@ export default function PostDetailPage() {
 
   if (state.notFound || !state.post) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-primary mb-4">Post Not Found</h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              The blog post you're looking for doesn't exist or has been removed.
-            </p>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <h1 className="text-4xl font-bold text-text-primary mb-4">Post Not Found</h1>
+          <p className="text-text-secondary mb-8">
+            The blog post you're looking for doesn't exist or may have been moved.
+          </p>
+          <Button asChild>
             <Link to="/blog">
-              <Button variant="primary">
-                <ArrowLeft className="mr-2" size={20} />
-                Back to Blog
-              </Button>
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Blog
             </Link>
-          </div>
+          </Button>
         </div>
       </div>
     );
   }
 
-  const { post } = state;
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* JSON-LD Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            "headline": post.title,
-            "description": post.summary || "",
-            "image": post.image_url || "",
-            "datePublished": post.publish_at || post.created_at,
-            "dateModified": post.updated_at,
-            "author": {
-              "@type": "Organization",
-              "name": "Supermal Karawaci"
-            },
-            "publisher": {
-              "@type": "Organization",
-              "name": "Supermal Karawaci"
-            },
-            "url": window.location.href
-          })
-        }}
-      />
+    <div className="min-h-screen bg-surface">
+      {/* Reading Progress Bar */}
+      <div className="fixed top-0 left-0 w-full h-1 bg-surface-secondary z-50">
+        <motion.div
+          className="h-full bg-accent"
+          style={{ width: `${readingProgress}%` }}
+          initial={{ width: 0 }}
+          animate={{ width: `${readingProgress}%` }}
+          transition={shouldReduceMotion ? {} : { type: "spring", stiffness: 400, damping: 40 }}
+        />
+      </div>
 
-      <article className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button */}
-        <div className="mb-8">
-          <Link 
-            to="/blog" 
-            className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="mr-2" size={20} />
-            Back to Blog
-          </Link>
-        </div>
+      {/* Structured Data for SEO */}
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      )}
 
-        {/* Post Header */}
-        <header className="mb-8">
-          {/* Hero Image */}
-          {post.image_url && (
-            <motion.div
-              initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
-              animate={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}
-              className="mb-8 rounded-xl overflow-hidden"
-              style={{ 
-                ['--post-accent' as any]: post.category?.accent_color 
-              }}
-            >
-              <img
-                src={post.image_url}
-                alt={post.title}
-                className="w-full h-64 sm:h-80 object-cover"
-                loading="lazy"
-              />
-            </motion.div>
-          )}
-
-          {/* Post Meta */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-            <time 
-              dateTime={post.publish_at || post.created_at}
-              className="flex items-center gap-2"
-            >
-              <Calendar size={16} />
-              {formatDate(post.publish_at || post.created_at)}
-            </time>
-
-            {post.category && (
-              <Badge 
-                variant="secondary"
-                style={{ 
-                  ['--badge-accent' as any]: post.category.accent_color 
-                }}
-                className="text-xs"
-              >
-                {post.category.name}
-              </Badge>
-            )}
-
-            {post.is_featured && (
-              <Badge variant="primary" className="text-xs">
-                Featured
-              </Badge>
-            )}
+      {/* Warning banner for fallback data */}
+      {state.usingFallback && (
+        <motion.div
+          initial={shouldReduceMotion ? {} : { opacity: 0, y: -20 }}
+          animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
+          className="bg-warning/10 border-b border-warning/20 px-6 py-3"
+        >
+          <div className="max-w-6xl mx-auto">
+            <p className="text-sm text-text-primary">
+              ⚠️ Viewing offline content. Some features may be limited.
+            </p>
           </div>
+        </motion.div>
+      )}
 
-          {/* Title */}
-          <motion.h1
-            initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-            animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-6 leading-tight"
-          >
-            {post.title}
-          </motion.h1>
+      {/* Hero Section with Overlay */}
+      <section className="relative h-96 overflow-hidden mb-8">
+        <ResponsiveImage
+          src={state.post.image_url || ''}
+          alt=""
+          className="w-full h-full"
+          aspectRatio="16/9"
+          objectFit="cover"
+          fetchPriority="high"
+        />
+        
+        {/* Semi-opaque overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+        
+        {/* Content overlay */}
+        <div className="absolute inset-0 flex items-center">
+          <div className="max-w-6xl mx-auto px-6 w-full">
+            <div className="max-w-2xl">
+              {/* Breadcrumb */}
+              <nav className="flex items-center gap-2 text-sm text-gray-300 mb-4">
+                <Link to="/" className="hover:text-white transition-colors">
+                  <Home size={16} />
+                </Link>
+                <span>/</span>
+                <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
+                <span>/</span>
+                <span className="text-white">{state.post.category?.name || 'Post'}</span>
+              </nav>
 
-          {/* Summary */}
-          {post.summary && (
-            <motion.p
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-              animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-xl text-muted-foreground leading-relaxed mb-8"
-            >
-              {post.summary}
-            </motion.p>
-          )}
-
-          {/* Tags */}
-          {post.tags.length > 0 && (
-            <motion.div
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-              animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-2 mb-8"
-            >
-              <Tag size={16} className="text-muted-foreground" />
-              <div className="flex flex-wrap gap-2">
-                {post.tags.map(tag => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
+              {/* Category and meta */}
+              <div className="flex items-center gap-3 mb-4">
+                {state.post.category && (
+                  <Badge className="bg-accent text-text-inverse border-0 font-medium shadow-sm">
+                    {state.post.category.name.toUpperCase()}
                   </Badge>
-                ))}
+                )}
+                <div className="flex items-center gap-1 text-gray-300 text-sm">
+                  <Clock size={14} />
+                  {estimateReadTime(state.post.body_html)}
+                </div>
               </div>
-            </motion.div>
-          )}
-        </header>
 
-        {/* Post Content */}
-        <motion.div
-          initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-          animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="prose prose-lg max-w-none mb-12"
-        >
-          {post.body_html ? (
-            <div 
-              dangerouslySetInnerHTML={{ 
-                __html: sanitizeHTML(post.body_html) 
-              }}
-            />
-          ) : (
-            <p className="text-muted-foreground italic">No content available.</p>
-          )}
-        </motion.div>
+              {/* Title */}
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                {state.post.title}
+              </h1>
 
-        {/* Actions Bar */}
-        <motion.div
-          initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-          animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="flex flex-wrap items-center gap-4 p-6 bg-surface rounded-lg mb-12"
-        >
-          <div className="flex items-center gap-2">
-            <Share2 size={20} className="text-muted-foreground" />
-            <span className="text-sm font-medium">Share:</span>
-          </div>
-
-          <Button
-            onClick={handleCopyLink}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            aria-live="polite"
-          >
-            {copySuccess ? <Check size={16} /> : <Copy size={16} />}
-            {copySuccess ? 'Copied!' : 'Copy Link'}
-          </Button>
-
-          <Button
-            onClick={handleTwitterShare}
-            variant="outline"
-            size="sm"
-          >
-            Share on Twitter
-          </Button>
-
-          <Button
-            onClick={handleWhatsAppShare}
-            variant="outline"
-            size="sm"
-          >
-            Share on WhatsApp
-          </Button>
-
-          <Button
-            onClick={handleDownloadICS}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Download size={16} />
-            Add to Calendar
-          </Button>
-        </motion.div>
-
-        {/* Related Posts */}
-        {state.relatedPosts.length > 0 && (
-          <motion.section
-            initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-            animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            aria-labelledby="related-heading"
-          >
-            <h2 id="related-heading" className="text-2xl font-bold text-primary mb-6">
-              Related Posts
-            </h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {state.relatedPosts.map((relatedPost, index) => (
-                <motion.div
-                  key={relatedPost.id}
-                  initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-                  animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + index * 0.1 }}
-                >
-                  <BlogCard post={relatedPost} />
-                </motion.div>
-              ))}
+              {/* Author and Date */}
+              <div className="flex items-center gap-2 text-gray-200 text-sm">
+                <span>Ethan Caldwell</span>
+                <span>•</span>
+                <span>{formatDate(state.post.publish_at || state.post.created_at)}</span>
+              </div>
             </div>
-          </motion.section>
-        )}
-      </article>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <div className="px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Article Content - 2/3 width */}
+            <div className="lg:col-span-2">
+              <div className="max-w-none">
+                {/* Share buttons */}
+                <Card className="border-0 shadow-lg rounded-2xl mb-8">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-text-muted">Share:</span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShare('twitter')}
+                          className="text-xs"
+                        >
+                          Twitter
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShare('facebook')}
+                          className="text-xs"
+                        >
+                          Facebook
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShare('copy')}
+                          className="text-xs"
+                        >
+                          {copySuccess ? <Check size={14} /> : <Copy size={14} />}
+                          Copy Link
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Article Content - Constrained to ~12-14 words per line for readability */}
+                <div className="mx-auto">
+                  <div 
+                    className="prose prose-lg max-w-[60ch] leading-relaxed prose-headings:leading-tight prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed prose-p:text-text-primary prose-headings:text-text-primary prose-strong:text-text-primary prose-a:text-accent prose-a:hover:text-accent-hover"
+                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+                  />
+                </div>
+
+                {/* Tags */}
+                {state.post.tags && Array.isArray(state.post.tags) && state.post.tags.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-border-primary max-w-[60ch]">
+                    <h3 className="text-lg font-semibold text-text-primary mb-4">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {state.post.tags.map(tag => (
+                        <BlogCategoryPill
+                          key={tag}
+                          name={tag}
+                          variant="outline"
+                          size="sm"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Previous/Next Navigation */}
+                {(state.prevPost || state.nextPost) && (
+                  <nav className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[60ch]">
+                    {state.prevPost && (
+                      <Link 
+                        to={`/blog/${state.prevPost.slug}`}
+                        className="group flex items-center gap-4 p-6 bg-surface shadow-lg rounded-2xl hover:shadow-xl transition-shadow"
+                      >
+                        <ChevronLeft className="text-accent group-hover:text-accent-hover transition-colors" />
+                        <div className="min-w-0">
+                          <p className="text-sm text-text-muted mb-1">Previous Post</p>
+                          <h3 className="font-semibold text-text-primary group-hover:text-accent transition-colors line-clamp-2">
+                            {state.prevPost.title}
+                          </h3>
+                        </div>
+                      </Link>
+                    )}
+
+                    {state.nextPost && (
+                      <Link 
+                        to={`/blog/${state.nextPost.slug}`}
+                        className="group flex items-center gap-4 p-6 bg-surface shadow-lg rounded-2xl hover:shadow-xl transition-shadow text-right md:flex-row-reverse"
+                      >
+                        <ChevronRight className="text-accent group-hover:text-accent-hover transition-colors" />
+                        <div className="min-w-0">
+                          <p className="text-sm text-text-muted mb-1">Next Post</p>
+                          <h3 className="font-semibold text-text-primary group-hover:text-accent transition-colors line-clamp-2">
+                            {state.nextPost.title}
+                          </h3>
+                        </div>
+                      </Link>
+                    )}
+                  </nav>
+                )}
+
+                {/* Related Posts - Using horizontal layout */}
+                {state.relatedPosts.length > 0 && (
+                  <section className="mt-16">
+                    <h2 className="text-2xl font-bold text-text-primary mb-8">Related Posts</h2>
+                    <BlogListHorizontal posts={state.relatedPosts} />
+                  </section>
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar - 1/3 width */}
+            <div className="lg:col-span-1">
+              <BlogSidebar
+                featuredPosts={(() => {
+                  const safePosts = Array.isArray(seededPosts) ? seededPosts : [];
+                  return safePosts.filter(p => 
+                    p.is_featured && 
+                    p.slug !== slug
+                  ).slice(0, 3);
+                })()}
+                categories={(() => {
+                  const safeCategories = Array.isArray(seededCategories) ? seededCategories : [];
+                  return safeCategories.map(cat => ({
+                    ...cat,
+                    post_count: Array.isArray(seededPosts) 
+                      ? seededPosts.filter(p => p.category?.id === cat.id).length
+                      : 0
+                  }));
+                })()}
+                popularTags={popularTags}
+                onTagClick={(tag) => navigate(`/blog?tag=${encodeURIComponent(tag)}`)}
+                onCategoryClick={(categoryId) => navigate(`/blog?category=${categoryId}`)}
+                onSubscribe={(email) => {
+                  // Handle newsletter subscription
+                  console.log('Newsletter subscription:', email);
+                  // You can implement actual subscription logic here
+                  alert('Thank you for subscribing! (This is a demo)');
+                }}
+                showAuthor={true}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

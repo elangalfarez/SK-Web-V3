@@ -1,7 +1,8 @@
 // src/components/ui/ResponsiveImage.tsx
-// Created: Robust image loading with fallbacks for mobile, HEIC, and network issues
+// Modified: Proper className forwarding for rounded corners, robust image loading with mobile fallbacks
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 interface ResponsiveImageProps {
   src?: string | null;
@@ -11,6 +12,7 @@ interface ResponsiveImageProps {
   aspectRatio?: '4/3' | '16/9' | '3/2';
   fallbackLetter?: string;
   loading?: 'eager' | 'lazy';
+  fetchPriority?: 'high' | 'low' | 'auto';
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -23,6 +25,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   aspectRatio = '4/3',
   fallbackLetter,
   loading = 'lazy',
+  fetchPriority = 'auto',
   onLoad,
   onError
 }) => {
@@ -63,9 +66,8 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
       const response = await fetch(url, {
         method: 'HEAD',
         signal: abortControllerRef.current.signal,
-        // Add timeout
         cache: 'no-cache',
-        mode: 'cors', // Try CORS first
+        mode: 'cors'
       });
       
       if (response.ok) {
@@ -74,7 +76,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
       }
       return false;
     } catch (error) {
-      // CORS or network error - don't give up immediately, let img element try
+      // CORS or network error - let img element try loading anyway
       console.debug('HEAD probe failed for:', url, error);
       return true; // Allow img element to try loading anyway
     }
@@ -94,10 +96,6 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
     if (!originalUrl.includes('format=')) {
       variants.push(originalUrl + (originalUrl.includes('?') ? '&' : '?') + 'format=jpg');
     }
-    
-    // Last resort: try images.weserv.nl proxy (comment-only as requested)
-    // Note: Using external proxy as last resort for truly blocked images
-    // variants.push(`https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}&output=webp&h=800`);
     
     for (const variant of variants) {
       const isAccessible = await probeImage(variant);
@@ -178,10 +176,10 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
 
   return (
-    <div className={`relative ${aspectRatioClass} ${className}`}>
+    <div className={cn('relative overflow-hidden', aspectRatioClass, className)}>
       {/* Blur-up skeleton while loading */}
       {imageStatus === 'loading' && (
-        <div className="absolute inset-0 bg-surface-tertiary animate-pulse rounded-inherit" />
+        <div className="absolute inset-0 bg-surface-tertiary animate-pulse" />
       )}
       
       {/* Main image */}
@@ -191,14 +189,16 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
           src={currentSrc}
           alt={alt}
           loading={loading}
+          fetchpriority={fetchPriority}
           decoding="async"
-          crossOrigin="anonymous" // Help with some CORS issues
+          crossOrigin="anonymous"
           onLoad={handleImageLoad}
           onError={handleImageError}
-          className={`
-            w-full h-full ${objectFitClass} transition-all duration-300
-            ${imageStatus === 'loaded' ? 'opacity-100' : 'opacity-0'}
-          `}
+          className={cn(
+            'w-full h-full transition-all duration-300',
+            objectFitClass,
+            imageStatus === 'loaded' ? 'opacity-100' : 'opacity-0'
+          )}
           role="img"
           aria-label={alt || 'Image'}
         />

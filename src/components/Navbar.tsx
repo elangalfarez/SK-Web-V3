@@ -7,11 +7,8 @@ import {
   MapPin, 
   FileText, 
   Calendar, 
-  Gift, 
-  CreditCard, 
+  Gift,  
   Phone, 
-  Users,
-  Building,
   Heart
 } from 'lucide-react';
 import MegaMenu from '@/components/ui/mega-menu';
@@ -74,6 +71,12 @@ const Navbar = () => {
               icon: Calendar,
               href: '/events',
             },
+              {
+              label: 'Blog',
+              description: 'Latest articles and insights',
+              icon: FileText,
+              href: '/blog',
+            },
           ],
         },
       ],
@@ -119,7 +122,8 @@ const Navbar = () => {
       href: '#',
       submenu: [
         { name: 'Promotions', href: '/promotions' },
-        { name: 'Events', href: '/events' }
+        { name: 'Events', href: '/events' },
+        { name: 'Blog', href: '/blog' }
       ]
     },
     { name: 'VIP Card', href: '/vip-cards' },

@@ -1,5 +1,5 @@
 // src/components/ui/blog-filters.tsx
-// Created: Blog search and filter components with debounced search and accessibility
+// Modified: fixed badge styling (solid/outlined styles, no glassmorphism), improved accessibility, token-driven colors
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -50,6 +50,24 @@ export default function BlogFilters({
     setLocalSearch(searchQuery);
   }, [searchQuery]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      
+      if (categoryRef.current && !categoryRef.current.contains(target)) {
+        setShowCategoryDropdown(false);
+      }
+      
+      if (tagsRef.current && !tagsRef.current.contains(target)) {
+        setShowTagsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -97,62 +115,62 @@ export default function BlogFilters({
     });
   };
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
-        setShowCategoryDropdown(false);
-      }
-      if (tagsRef.current && !tagsRef.current.contains(event.target as Node)) {
-        setShowTagsDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   // Check if any filters are active
   const hasActiveFilters = localSearch || selectedCategory || selectedTags.length > 0 || featuredOnly;
 
-  const selectedCategoryName = seededCategories.find(c => c.id === selectedCategory)?.name || '';
+  // Get selected category name
+  const selectedCategoryName = selectedCategory 
+    ? seededCategories.find(cat => cat.id === selectedCategory)?.name || 'Category'
+    : '';
 
   return (
     <motion.div
       initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
       animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-      className={`bg-surface border border-border rounded-xl p-6 space-y-6 ${className}`}
+      className={`bg-background border border-border rounded-lg p-6 space-y-6 ${className}`}
     >
       {/* Search Bar */}
       <div className="relative">
-        <label htmlFor="blog-search" className="sr-only">
-          Search blog posts
-        </label>
-        <div className="relative">
-          <Search 
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" 
-            size={20} 
-          />
-          <input
-            id="blog-search"
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search posts by title or content..."
-            value={localSearch}
-            onChange={handleSearchChange}
-            className="w-full pl-11 pr-4 py-3 border border-border rounded-lg bg-background text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            autoComplete="off"
-          />
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search size={18} className="text-muted-foreground" />
         </div>
+        <input
+          ref={searchInputRef}
+          type="text"
+          placeholder="Search posts..."
+          value={localSearch}
+          onChange={handleSearchChange}
+          className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-lg text-primary placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-colors"
+          aria-label="Search blog posts"
+        />
+        {localSearch && (
+          <button
+            onClick={() => {
+              setLocalSearch('');
+              onFiltersChange({
+                search: '',
+                category: selectedCategory,
+                tags: selectedTags,
+                featuredOnly
+              });
+            }}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-primary transition-colors"
+            aria-label="Clear search"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* Filter Controls */}
-      <div className="flex flex-wrap items-center gap-4">
-        {/* Category Filter */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Category Dropdown */}
         <div ref={categoryRef} className="relative">
           <button
             onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-            className={`flex items-center gap-2 px-4 py-2 border border-border rounded-lg bg-background hover:bg-surface-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${selectedCategory ? 'text-accent border-accent' : 'text-muted-foreground'}`}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-lg bg-background hover:bg-surface-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+              selectedCategory ? 'border-accent text-accent' : 'border-border text-muted-foreground'
+            }`}
             aria-expanded={showCategoryDropdown}
             aria-haspopup="listbox"
             aria-label="Filter by category"
@@ -171,13 +189,13 @@ export default function BlogFilters({
             <motion.div
               initial={shouldReduceMotion ? {} : { opacity: 0, y: -10 }}
               animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-              className="absolute top-full left-0 mt-2 w-48 bg-background border border-border rounded-lg shadow-lg z-10"
+              className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-lg z-10 py-2"
               role="listbox"
               aria-label="Category options"
             >
               <button
                 onClick={() => handleCategorySelect('')}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-surface-secondary rounded-t-lg focus:outline-none focus:bg-surface-secondary"
+                className="w-full px-4 py-2 text-left hover:bg-surface-secondary transition-colors text-sm text-primary"
                 role="option"
                 aria-selected={!selectedCategory}
               >
@@ -187,29 +205,24 @@ export default function BlogFilters({
                 <button
                   key={category.id}
                   onClick={() => handleCategorySelect(category.id)}
-                  className={`w-full px-4 py-2 text-left text-sm hover:bg-surface-secondary focus:outline-none focus:bg-surface-secondary ${category === seededCategories[seededCategories.length - 1] ? 'rounded-b-lg' : ''}`}
+                  className="w-full px-4 py-2 text-left hover:bg-surface-secondary transition-colors text-sm text-primary"
                   role="option"
                   aria-selected={selectedCategory === category.id}
                 >
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: category.accent_color || '#gray' }}
-                      aria-hidden="true"
-                    />
-                    {category.name}
-                  </div>
+                  {category.name}
                 </button>
               ))}
             </motion.div>
           )}
         </div>
 
-        {/* Tags Filter */}
+        {/* Tags Dropdown */}
         <div ref={tagsRef} className="relative">
           <button
             onClick={() => setShowTagsDropdown(!showTagsDropdown)}
-            className={`flex items-center gap-2 px-4 py-2 border border-border rounded-lg bg-background hover:bg-surface-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${selectedTags.length > 0 ? 'text-accent border-accent' : 'text-muted-foreground'}`}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-lg bg-background hover:bg-surface-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+              selectedTags.length > 0 ? 'border-accent text-accent' : 'border-border text-muted-foreground'
+            }`}
             aria-expanded={showTagsDropdown}
             aria-haspopup="listbox"
             aria-label="Filter by tags"
@@ -251,10 +264,12 @@ export default function BlogFilters({
           )}
         </div>
 
-        {/* Featured Only Toggle */}
+        {/* Featured Only Toggle - solid style, no glassmorphism */}
         <button
           onClick={handleFeaturedToggle}
-          className={`flex items-center gap-2 px-4 py-2 border border-border rounded-lg bg-background hover:bg-surface-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${featuredOnly ? 'text-accent border-accent bg-accent/10' : 'text-muted-foreground'}`}
+          className={`flex items-center gap-2 px-4 py-2 border rounded-lg bg-background hover:bg-surface-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+            featuredOnly ? 'border-accent bg-accent/10 text-accent' : 'border-border text-muted-foreground'
+          }`}
           aria-pressed={featuredOnly}
           aria-label="Show only featured posts"
         >
@@ -277,20 +292,17 @@ export default function BlogFilters({
         )}
       </div>
 
-      {/* Active Filters Display */}
+      {/* Active Filters Display - solid badges, no glassmorphism */}
       {(selectedTags.length > 0 || selectedCategory || featuredOnly) && (
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border">
           <span className="text-sm text-muted-foreground">Active filters:</span>
           
           {selectedCategory && (
-            <Badge 
-              variant="secondary" 
-              className="flex items-center gap-1"
-            >
+            <Badge className="flex items-center gap-1 bg-accent/10 text-accent border border-accent/20">
               {selectedCategoryName}
               <button
                 onClick={() => handleCategorySelect('')}
-                className="ml-1 hover:bg-surface rounded-full p-0.5"
+                className="ml-1 hover:bg-accent/20 rounded-full p-0.5 transition-colors"
                 aria-label={`Remove ${selectedCategoryName} category filter`}
               >
                 <X size={12} />
@@ -301,13 +313,12 @@ export default function BlogFilters({
           {selectedTags.map(tag => (
             <Badge 
               key={tag} 
-              variant="outline" 
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 bg-background border border-border text-primary"
             >
               {tag}
               <button
                 onClick={() => handleTagToggle(tag)}
-                className="ml-1 hover:bg-surface rounded-full p-0.5"
+                className="ml-1 hover:bg-surface-secondary rounded-full p-0.5 transition-colors"
                 aria-label={`Remove ${tag} tag filter`}
               >
                 <X size={12} />
@@ -316,15 +327,12 @@ export default function BlogFilters({
           ))}
 
           {featuredOnly && (
-            <Badge 
-              variant="primary" 
-              className="flex items-center gap-1"
-            >
+            <Badge className="flex items-center gap-1 bg-accent text-text-inverse border-0">
               <Star size={12} className="fill-current" />
               Featured
               <button
                 onClick={handleFeaturedToggle}
-                className="ml-1 hover:bg-primary-foreground rounded-full p-0.5"
+                className="ml-1 hover:bg-accent/80 rounded-full p-0.5 transition-colors"
                 aria-label="Remove featured filter"
               >
                 <X size={12} />
