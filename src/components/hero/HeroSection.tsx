@@ -1,5 +1,5 @@
 // src/components/hero/HeroSection.tsx
-// Modified: Added left gradient overlay, viewport-fit calculation, max-w-8xl container
+// Fixed: Matches original Hero.tsx structure exactly
 
 import React from 'react';
 import { HeroModels } from '../ui/hero-models';
@@ -19,7 +19,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     if (onDiscover) {
       onDiscover();
     } else {
-      // Default behavior: scroll down to next section
       window.scrollTo({
         top: window.innerHeight,
         behavior: 'smooth'
@@ -29,33 +28,39 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <section 
-      className={cn('relative overflow-hidden', className)}
-      style={{ minHeight: 'calc(100vh - var(--navbar-height, 72px))' }}
+      className={cn('relative min-h-screen flex items-center overflow-hidden', className)}
+      style={{height: '100vh', minHeight: '100vh'}}
     >
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img
+        <img 
           src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/Front-Facade.jpg"
-          alt="Supermal Karawaci Main Lobby"
+          alt="Supermal Karawaci Interior"
           className="w-full h-full object-cover"
           loading="eager"
           fetchpriority="high"
         />
+        {/* Enhanced gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
+      </div>
+      
+      {/* Main Content Container */}
+      <div className="relative z-10 w-full h-full">
+        <HeroContent onDiscover={handleDiscover} />
       </div>
 
-      {/* Left-concentrated dark overlay for text contrast */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute left-0 top-0 h-full w-3/5 md:w-2/5 bg-gradient-to-r from-black/70 via-black/20 to-transparent" />
-      </div>
-
-      {/* Hero Models Overlay - Right Side */}
+      {/* RIGHT PART - Desktop: Models */}
       <HeroModels />
-
-      {/* Hero Content Overlay - Left Side (includes What's On) */}
-      <div className="relative z-20 h-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-        <HeroContent 
-          onDiscover={handleDiscover}
-        />
+      
+      {/* Scroll Indicator - Centered */}
+      <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-30">
+        <button
+          onClick={handleDiscover}
+          className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center hover:border-white/80 transition-colors focus:outline-none"
+          aria-label="Scroll down"
+        >
+          <div className="w-1 h-3 bg-white/80 rounded-full mt-2 animate-bounce"></div>
+        </button>
       </div>
     </section>
   );

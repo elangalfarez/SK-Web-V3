@@ -1,5 +1,5 @@
 // src/components/ui/whats-on-carousel.tsx
-// Modified: 3 cards desktop/2 mobile, removed arrows, fixed infinite autoplay with refs
+// Fixed: Much better UX - disabled mobile autoplay, improved touch handling, simplified interactions
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
@@ -22,225 +22,175 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
   items,
   onCardClick,
   autoplay = true,
-  autoplayDelay = 4000,
+  autoplayDelay = 8000, // Much slower - 8 seconds
   pauseOnHover = true,
   showNavigation = false,
   showDots = true,
   className,
 }) => {
-  // Calculate slides based on screen size
+  // Cards per slide configuration
   const cardsPerDesktop = 3;
   const cardsPerMobile = 2;
+
+  // Calculate max slides
   const maxDesktopSlides = Math.ceil(items.length / cardsPerDesktop);
   const maxMobileSlides = Math.ceil(items.length / cardsPerMobile);
 
+  // State
   const [currentDesktopSlide, setCurrentDesktopSlide] = useState(0);
   const [currentMobileSlide, setCurrentMobileSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
 
-  // Use refs to avoid stale closures in autoplay timer
-  const isHoveredRef = useRef(false);
-  const isDraggingRef = useRef(false);
-  const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Refs for stale closure prevention
+  const isHoveredRef = useRef(isHovered);
+  const isDraggingRef = useRef(isDragging);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const desktopSliderRef = useRef<HTMLDivElement>(null);
-  const mobileSliderRef = useRef<HTMLDivElement>(null);
+  // Touch handling - simplified
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+
+  // Container refs
   const desktopContainerRef = useRef<HTMLDivElement>(null);
   const mobileContainerRef = useRef<HTMLDivElement>(null);
 
   // Update refs when state changes
   useEffect(() => {
+    isHoveredRef.current = isHovered;
     isDraggingRef.current = isDragging;
-  }, [isDragging]);
+  }, [isHovered, isDragging]);
 
-  // Clear autoplay timer
-  const clearAutoplayTimer = useCallback(() => {
-    if (autoplayTimerRef.current) {
-      clearInterval(autoplayTimerRef.current);
-      autoplayTimerRef.current = null;
+  // Autoplay functionality - DESKTOP ONLY
+  const startAutoplay = useCallback(() => {
+    if (!autoplay || items.length <= cardsPerDesktop) return;
+
+    intervalRef.current = setInterval(() => {
+      if (!isHoveredRef.current && !isDraggingRef.current) {
+        setCurrentDesktopSlide(prev => (prev + 1) % maxDesktopSlides);
+        // NO mobile autoplay to prevent confusion
+      }
+    }, autoplayDelay);
+  }, [autoplay, autoplayDelay, maxDesktopSlides, items.length, cardsPerDesktop]);
+
+  const stopAutoplay = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
   }, []);
 
-  // Start autoplay timer with proper infinite looping using refs
-  const startAutoplayTimer = useCallback(() => {
-    if (!autoplay || items.length <= 1) return;
-
-    clearAutoplayTimer();
-    autoplayTimerRef.current = setInterval(() => {
-      // Read current values from refs to avoid stale closures
-      if (!isHoveredRef.current && !isDraggingRef.current) {
-        setCurrentDesktopSlide(prev => (prev + 1) % maxDesktopSlides);
-        setCurrentMobileSlide(prev => (prev + 1) % maxMobileSlides);
-      }
-    }, autoplayDelay);
-  }, [autoplay, autoplayDelay, items.length, maxDesktopSlides, maxMobileSlides, clearAutoplayTimer]);
-
-  // Setup autoplay
+  // Setup autoplay - DESKTOP ONLY
   useEffect(() => {
-    startAutoplayTimer();
-    return clearAutoplayTimer;
-  }, [startAutoplayTimer, clearAutoplayTimer]);
+    startAutoplay();
+    return stopAutoplay;
+  }, [startAutoplay, stopAutoplay]);
 
-  // Handle hover events
-  const handleMouseEnter = useCallback(() => {
-    isHoveredRef.current = true;
+  // Handle hover for pause on hover
+  const handleMouseEnter = () => {
     if (pauseOnHover) {
-      clearAutoplayTimer();
-    }
-  }, [pauseOnHover, clearAutoplayTimer]);
-
-  const handleMouseLeave = useCallback(() => {
-    isHoveredRef.current = false;
-    if (pauseOnHover) {
-      startAutoplayTimer();
-    }
-  }, [pauseOnHover, startAutoplayTimer]);
-
-  // Desktop navigation handlers
-  const handleDesktopPrev = useCallback(() => {
-    setCurrentDesktopSlide(prev => prev === 0 ? maxDesktopSlides - 1 : prev - 1);
-  }, [maxDesktopSlides]);
-
-  const handleDesktopNext = useCallback(() => {
-    setCurrentDesktopSlide(prev => (prev + 1) % maxDesktopSlides);
-  }, [maxDesktopSlides]);
-
-  // Mobile navigation handlers
-  const handleMobilePrev = useCallback(() => {
-    setCurrentMobileSlide(prev => prev === 0 ? maxMobileSlides - 1 : prev - 1);
-  }, [maxMobileSlides]);
-
-  const handleMobileNext = useCallback(() => {
-    setCurrentMobileSlide(prev => (prev + 1) % maxMobileSlides);
-  }, [maxMobileSlides]);
-
-  // Desktop drag handlers
-  const handleDesktopMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.clientX);
-    setDragOffset(0);
-    if (desktopSliderRef.current) {
-      desktopSliderRef.current.style.transition = 'none';
+      setIsHovered(true);
     }
   };
 
-  const handleDesktopMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !desktopContainerRef.current) return;
-    
-    const deltaX = e.clientX - startX;
-    setDragOffset(deltaX);
-    
-    if (desktopSliderRef.current) {
-      const translateX = -currentDesktopSlide * (100 / maxDesktopSlides) + (deltaX / desktopContainerRef.current.offsetWidth) * (100 / maxDesktopSlides);
-      desktopSliderRef.current.style.transform = `translateX(${translateX}%)`;
+  const handleMouseLeave = () => {
+    if (pauseOnHover) {
+      setIsHovered(false);
     }
   };
 
-  const handleDesktopMouseUp = () => {
-    if (!isDragging) return;
-    
-    setIsDragging(false);
-    
-    if (desktopSliderRef.current) {
-      desktopSliderRef.current.style.transition = 'transform 0.5s ease-out';
-    }
-    
-    const threshold = 50;
-    if (Math.abs(dragOffset) > threshold) {
-      if (dragOffset > 0) {
-        handleDesktopPrev();
+  // Simplified mobile touch handlers - no conflicts with scrolling
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStartX(touch.clientX);
+    setTouchStartY(touch.clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartX || !touchStartY) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touchStartX - touch.clientX;
+    const deltaY = touchStartY - touch.clientY;
+
+    // Only handle horizontal swipes, ignore vertical scrolling
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
+      e.preventDefault(); // Only prevent when we're handling the swipe
+      
+      if (deltaX > 0) {
+        // Swipe left - next slide
+        setCurrentMobileSlide(prev => prev < maxMobileSlides - 1 ? prev + 1 : prev);
       } else {
-        handleDesktopNext();
+        // Swipe right - prev slide
+        setCurrentMobileSlide(prev => prev > 0 ? prev - 1 : prev);
       }
     }
-    
-    setDragOffset(0);
+
+    setTouchStartX(null);
+    setTouchStartY(null);
   };
 
-  // Mobile touch handlers
-  const handleMobileTouchStart = (e: React.TouchEvent) => {
+  // Desktop drag handlers - simplified
+  const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
-    setStartX(e.touches[0].clientX);
-    setDragOffset(0);
-    if (mobileSliderRef.current) {
-      mobileSliderRef.current.style.transition = 'none';
-    }
-  };
-
-  const handleMobileTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !mobileContainerRef.current) return;
+    const startX = e.clientX;
     
-    const deltaX = e.touches[0].clientX - startX;
-    setDragOffset(deltaX);
-    
-    if (mobileSliderRef.current) {
-      const translateX = -currentMobileSlide * (100 / maxMobileSlides) + (deltaX / mobileContainerRef.current.offsetWidth) * (100 / maxMobileSlides);
-      mobileSliderRef.current.style.transform = `translateX(${translateX}%)`;
-    }
-  };
-
-  const handleMobileTouchEnd = () => {
-    if (!isDragging) return;
-    
-    setIsDragging(false);
-    
-    if (mobileSliderRef.current) {
-      mobileSliderRef.current.style.transition = 'transform 0.5s ease-out';
-    }
-    
-    const threshold = 30;
-    if (Math.abs(dragOffset) > threshold) {
-      if (dragOffset > 0) {
-        handleMobilePrev();
-      } else {
-        handleMobileNext();
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = startX - moveEvent.clientX;
+      if (Math.abs(deltaX) > 100) {
+        if (deltaX > 0) {
+          setCurrentDesktopSlide(prev => prev < maxDesktopSlides - 1 ? prev + 1 : prev);
+        } else {
+          setCurrentDesktopSlide(prev => prev > 0 ? prev - 1 : prev);
+        }
+        cleanup();
       }
-    }
-    
-    setDragOffset(0);
+    };
+
+    const handleMouseUp = () => {
+      cleanup();
+    };
+
+    const cleanup = () => {
+      setIsDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      handleDesktopPrev();
-      handleMobilePrev();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      handleDesktopNext();
-      handleMobileNext();
-    }
-  };
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        setCurrentDesktopSlide(prev => prev > 0 ? prev - 1 : maxDesktopSlides - 1);
+        setCurrentMobileSlide(prev => prev > 0 ? prev - 1 : maxMobileSlides - 1);
+      } else if (e.key === 'ArrowRight') {
+        setCurrentDesktopSlide(prev => (prev + 1) % maxDesktopSlides);
+        setCurrentMobileSlide(prev => (prev + 1) % maxMobileSlides);
+      }
+    };
 
-  if (items.length === 0) {
-    return null;
-  }
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [maxDesktopSlides, maxMobileSlides]);
+
+  if (!items.length) return null;
 
   return (
-    <div 
-      className={cn('relative w-full', className)}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      role="region"
-      aria-label="What's On carousel"
-    >
-      {/* Desktop Carousel - 3 cards per slide */}
+    <div className={cn('w-full', className)}>
+      {/* Desktop Carousel - with autoplay and drag */}
       <div className="hidden md:block">
         <div 
           ref={desktopContainerRef}
-          className="relative overflow-hidden"
-          onMouseDown={handleDesktopMouseDown}
-          onMouseMove={handleDesktopMouseMove}
-          onMouseUp={handleDesktopMouseUp}
-          onMouseLeave={handleDesktopMouseUp}
+          className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onMouseDown={handleMouseDown}
         >
           <motion.div
-            ref={desktopSliderRef}
             className="flex transition-transform duration-500 ease-out"
             style={{
               width: `${maxDesktopSlides * 100}%`,
@@ -248,12 +198,12 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
             }}
           >
             {Array.from({ length: maxDesktopSlides }).map((_, slideIndex) => (
-              <div key={slideIndex} className="w-full flex gap-6">
+              <div key={slideIndex} className="w-full flex space-x-3 px-1">
                 {items.slice(slideIndex * cardsPerDesktop, (slideIndex + 1) * cardsPerDesktop).map((item, cardIndex) => (
-                  <div key={item.id} className="flex-1 min-w-0 h-full">
+                  <div key={item.id} className="w-52">
                     <WhatsOnCard
                       item={item}
-                      onClick={() => onCardClick?.(item)}
+                      onClick={() => !isDragging && onCardClick?.(item)}
                       priority={slideIndex === 0 && cardIndex === 0}
                     />
                   </div>
@@ -265,17 +215,16 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
 
         {/* Desktop Dots */}
         {showDots && maxDesktopSlides > 1 && (
-          <div className="flex justify-center mt-6 space-x-2">
+          <div className="flex justify-center mt-2 space-x-2">
             {Array.from({ length: maxDesktopSlides }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentDesktopSlide(index)}
                 className={cn(
-                  'w-3 h-3 rounded-full transition-all duration-300',
-                  'focus:outline-none focus:ring-2 focus:ring-accent/20',
+                  'w-2 h-2 rounded-full transition-all duration-300',
                   index === currentDesktopSlide
-                    ? 'bg-white scale-110'
-                    : 'bg-white/60 hover:bg-white/80'
+                    ? 'bg-white w-6'
+                    : 'bg-white/30 hover:bg-white/50'
                 )}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -284,27 +233,25 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
         )}
       </div>
 
-      {/* Mobile Carousel - 2 cards per slide */}
+      {/* Mobile Carousel - NO autoplay, better touch handling */}
       <div className="block md:hidden">
         <div 
           ref={mobileContainerRef}
           className="relative overflow-hidden"
-          onTouchStart={handleMobileTouchStart}
-          onTouchMove={handleMobileTouchMove}
-          onTouchEnd={handleMobileTouchEnd}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <motion.div
-            ref={mobileSliderRef}
-            className="flex transition-transform duration-500 ease-out"
+            className="flex transition-transform duration-300 ease-out"
             style={{
               width: `${maxMobileSlides * 100}%`,
               transform: `translateX(-${currentMobileSlide * (100 / maxMobileSlides)}%)`,
             }}
           >
             {Array.from({ length: maxMobileSlides }).map((_, slideIndex) => (
-              <div key={slideIndex} className="w-full flex gap-4">
+              <div key={slideIndex} className="w-full flex space-x-2 px-1">
                 {items.slice(slideIndex * cardsPerMobile, (slideIndex + 1) * cardsPerMobile).map((item) => (
-                  <div key={item.id} className="flex-1 min-w-0 h-full">
+                  <div key={item.id} className="flex-1 min-w-0">
                     <WhatsOnCard
                       item={item}
                       onClick={() => onCardClick?.(item)}
@@ -319,17 +266,16 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
 
         {/* Mobile Dots */}
         {showDots && maxMobileSlides > 1 && (
-          <div className="flex justify-center mt-4 space-x-2">
+          <div className="flex justify-center mt-3 space-x-2">
             {Array.from({ length: maxMobileSlides }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentMobileSlide(index)}
                 className={cn(
                   'w-2 h-2 rounded-full transition-all duration-300',
-                  'focus:outline-none focus:ring-2 focus:ring-accent/20',
                   index === currentMobileSlide
-                    ? 'bg-white scale-110'
-                    : 'bg-white/60 hover:bg-white/80'
+                    ? 'bg-white w-4'
+                    : 'bg-white/30 hover:bg-white/50'
                 )}
                 aria-label={`Go to slide ${index + 1}`}
               />

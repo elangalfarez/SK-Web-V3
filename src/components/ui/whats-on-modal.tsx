@@ -1,5 +1,5 @@
 // src/components/ui/whats-on-modal.tsx
-// Created: Item detail modal with accessible focus trap and animations
+// Modified: Fixed modal responsiveness & close button contrast
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -104,7 +104,7 @@ export const WhatsOnModal: React.FC<WhatsOnModalProps> = ({
       scale: 1,
       y: 0,
       transition: { 
-        duration: prefersReducedMotion ? 0 : 0.3,
+        duration: prefersReducedMotion ? 0 : 0.4,
         ease: 'easeOut'
       }
     },
@@ -113,37 +113,25 @@ export const WhatsOnModal: React.FC<WhatsOnModalProps> = ({
       scale: prefersReducedMotion ? 1 : 0.95,
       y: prefersReducedMotion ? 0 : 20,
       transition: { 
-        duration: prefersReducedMotion ? 0 : 0.2,
+        duration: prefersReducedMotion ? 0 : 0.3,
         ease: 'easeIn'
       }
     },
   };
 
-  const handleVisitLink = () => {
-    if (item?.link_url) {
-      if (item.link_url.startsWith('http')) {
-        window.open(item.link_url, '_blank', 'noopener,noreferrer');
-      } else {
-        window.location.href = item.link_url;
-      }
-    }
-  };
+  if (!item) return null;
 
   return (
-    <AnimatePresence>
-      {isOpen && item && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
-          <motion.div
-            variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="absolute inset-0 bg-accent/20 backdrop-blur-sm"
-            onClick={onClose}
-          />
-
-          {/* Modal */}
+    <AnimatePresence mode="wait">
+      {isOpen && (
+        <motion.div
+          variants={backdropVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={onClose}
+        >
           <motion.div
             ref={modalRef}
             variants={modalVariants}
@@ -151,39 +139,30 @@ export const WhatsOnModal: React.FC<WhatsOnModalProps> = ({
             animate="visible"
             exit="exit"
             className={cn(
-              // Layout and sizing
-              'relative w-full max-w-2xl mx-4',
-              'max-h-[90vh] overflow-hidden',
-              // Styling
-              'bg-surface rounded-2xl shadow-2xl',
-              'border border-border-primary'
+              'relative w-full max-w-2xl bg-surface rounded-2xl shadow-2xl',
+              'max-h-[90vh] overflow-y-auto'
             )}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-            aria-describedby="modal-description"
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button */}
+            {/* Close Button with better contrast */}
             <button
               ref={closeButtonRef}
               onClick={onClose}
               className={cn(
-                'absolute top-4 right-4 z-10',
+                'absolute top-4 right-4 z-20',
                 'w-10 h-10 rounded-full',
-                'bg-surface/80 hover:bg-surface',
-                'backdrop-blur-sm border border-border-primary',
-                'flex items-center justify-center',
-                'text-text-primary hover:text-accent',
-                'transition-all duration-200',
-                'focus:outline-none focus:ring-4 focus:ring-accent/20'
+                'bg-surface-secondary/90 text-text-primary',
+                'shadow-md flex items-center justify-center',
+                'hover:bg-surface-secondary transition-colors',
+                'focus:outline-none focus:ring-2 focus:ring-accent/20'
               )}
-              aria-label="Close modal"
+              aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
 
-            {/* Image Section */}
-            <div className="relative h-64 md:h-80">
+            {/* Image */}
+            <div className="relative h-64 md:h-80 overflow-hidden rounded-t-2xl">
               <ResponsiveImage
                 src={item.image_url}
                 alt={item.title}
@@ -193,96 +172,100 @@ export const WhatsOnModal: React.FC<WhatsOnModalProps> = ({
                 loading="eager"
                 fetchPriority="high"
               />
-              
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-accent/30 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               
               {/* Badge */}
               {item.badge_text && (
-                <div className="absolute bottom-4 left-4">
+                <div className="absolute top-4 left-4">
                   <span className={cn(
-                    'inline-flex items-center gap-2 px-3 py-2',
+                    'inline-flex items-center px-3 py-1',
                     'text-sm font-semibold',
                     'bg-accent text-text-inverse',
                     'rounded-full shadow-lg'
                   )}>
-                    <Tag className="w-4 h-4" />
+                    <Tag className="w-3 h-3 mr-1" />
                     {item.badge_text}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Content Section */}
-            <div className="p-6 md:p-8 space-y-4">
-              {/* Title */}
-              <h2 
-                id="modal-title"
-                className={cn(
-                  'text-2xl md:text-3xl font-bold',
-                  'text-text-primary leading-tight'
-                )}
-              >
+            {/* Content */}
+            <div className="p-6 md:p-8">
+              {/* Title - responsive with break-words */}
+              <h2 className={cn(
+                'text-2xl md:text-3xl lg:text-4xl font-bold',
+                'text-text-primary mb-4',
+                'break-words leading-tight'
+              )}>
                 {item.title}
               </h2>
 
               {/* Date */}
               {item.date_text && (
-                <div className="flex items-center gap-2 text-text-muted">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm font-medium">{item.date_text}</span>
+                <div className="flex items-center text-text-secondary mb-6">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span className="text-sm md:text-base">{item.date_text}</span>
                 </div>
               )}
 
               {/* Description */}
               {item.description && (
-                <p 
-                  id="modal-description"
-                  className={cn(
-                    'text-base md:text-lg leading-relaxed',
-                    'text-text-secondary'
-                  )}
-                >
-                  {item.description}
-                </p>
+                <div className="prose prose-sm md:prose-base max-w-none mb-6">
+                  <p className="text-text-secondary leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
               )}
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                {item.link_url && (
-                  <button
-                    onClick={handleVisitLink}
+              {/* Location */}
+              {item.location && (
+                <div className="bg-surface-tertiary rounded-lg p-4 mb-6">
+                  <h3 className="font-semibold text-text-primary mb-2">Location</h3>
+                  <p className="text-text-secondary text-sm md:text-base">{item.location}</p>
+                </div>
+              )}
+
+              {/* Learn More Button */}
+              {item.learn_more_url && (
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <a
+                    href={item.learn_more_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={cn(
-                      'flex items-center justify-center gap-2',
+                      'inline-flex items-center justify-center',
                       'px-6 py-3 rounded-xl',
                       'bg-accent text-text-inverse font-semibold',
-                      'hover:bg-accent-hover',
-                      'transition-colors duration-200',
-                      'focus:outline-none focus:ring-4 focus:ring-accent/20'
+                      'hover:bg-accent-hover transition-colors',
+                      'focus:outline-none focus:ring-2 focus:ring-accent/20'
                     )}
                   >
                     Learn More
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
-                )}
-                
-                <button
-                  onClick={onClose}
-                  className={cn(
-                    'flex items-center justify-center gap-2',
-                    'px-6 py-3 rounded-xl',
-                    'bg-surface-secondary text-text-primary font-semibold',
-                    'hover:bg-surface-tertiary border border-border-primary',
-                    'transition-colors duration-200',
-                    'focus:outline-none focus:ring-4 focus:ring-accent/20'
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </a>
+                  
+                  {item.directions_url && (
+                    <a
+                      href={item.directions_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        'inline-flex items-center justify-center',
+                        'px-6 py-3 rounded-xl',
+                        'bg-surface-secondary text-text-primary font-semibold border border-border-primary',
+                        'hover:bg-surface-tertiary transition-colors',
+                        'focus:outline-none focus:ring-2 focus:ring-accent/20'
+                      )}
+                    >
+                      Get Directions
+                    </a>
                   )}
-                >
-                  Close
-                </button>
-              </div>
+                </div>
+              )}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
