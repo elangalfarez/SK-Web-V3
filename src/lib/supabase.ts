@@ -322,7 +322,127 @@ export interface WhatsOnItem {
   sort_order: number;
   is_active: boolean;
 }
+// Added: fetchNewTenants function for homepage featured section
 
+// New type for featured tenants with required fields
+export type FeaturedTenant = {
+  id: string;
+  tenant_code: string;
+  name: string;
+  description?: string;
+  logo_url?: string | null;
+  banner_url?: string | null;
+  category?: string | null;
+  category_display?: string | null;
+  category_icon?: string | null;
+  category_color?: string | null;
+  main_floor?: string | null;
+  is_new_tenant?: boolean;
+  created_at?: string;
+};
+
+/**
+ * Fetch new tenants from tenant_directory view
+ * Uses the same successful patterns as fetchTenants function
+ * Falls back to tenants table if view is unavailable
+ */
+export async function fetchNewTenants({ limit = 8 } = {}): Promise<FeaturedTenant[]> {
+  // Enforce maximum limit for performance
+  const safeLimit = Math.min(limit, 10);
+  
+  try {
+    // Try tenant_directory view first (matching successful fetchTenants pattern)
+    const { data, error } = await supabase
+      .from('tenant_directory')
+      .select('*')
+      .eq('is_new_tenant', true)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(safeLimit);
+
+    if (error) {
+      throw error;
+    }
+
+    if (data && data.length > 0) {
+      const tenants: FeaturedTenant[] = data.map(tenant => ({
+        id: tenant.id,
+        tenant_code: tenant.tenant_code,
+        name: tenant.name,
+        description: tenant.description || undefined,
+        logo_url: tenant.logo_url,
+        banner_url: tenant.banner_url,
+        category: tenant.category,
+        category_display: tenant.category_display,
+        category_icon: tenant.category_icon,
+        category_color: tenant.category_color,
+        main_floor: tenant.main_floor,
+        is_new_tenant: tenant.is_new_tenant,
+        created_at: tenant.created_at,
+      }));
+
+      return tenants;
+    }
+
+  } catch (error) {
+    // Fallback to tenants table with join
+    try {
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('tenants')
+        .select(`
+          id,
+          tenant_code,
+          name,
+          description,
+          logo_url,
+          banner_url,
+          main_floor,
+          is_new_tenant,
+          is_active,
+          created_at,
+          tenant_categories:category_id (
+            name,
+            display_name,
+            icon,
+            color
+          )
+        `)
+        .eq('is_new_tenant', true)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(safeLimit);
+
+      if (fallbackError) {
+        throw fallbackError;
+      }
+
+      if (fallbackData && fallbackData.length > 0) {
+        const fallbackTenants: FeaturedTenant[] = fallbackData.map(tenant => ({
+          id: tenant.id,
+          tenant_code: tenant.tenant_code,
+          name: tenant.name,
+          description: tenant.description || undefined,
+          logo_url: tenant.logo_url,
+          banner_url: tenant.banner_url,
+          category: tenant.tenant_categories?.name,
+          category_display: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
+          category_icon: tenant.tenant_categories?.icon,
+          category_color: tenant.tenant_categories?.color,
+          main_floor: tenant.main_floor,
+          is_new_tenant: tenant.is_new_tenant,
+          created_at: tenant.created_at,
+        }));
+
+        return fallbackTenants;
+      }
+    } catch (fallbackError) {
+      throw new Error(`Failed to fetch new tenants: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown database error'}`);
+    }
+  }
+
+  // No tenants found
+  return [];
+}
 /**
  * Fetch What's On items from frontend view
  */

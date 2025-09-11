@@ -156,16 +156,27 @@
   .text-balance {
     text-wrap: balance;
   }
-  
-  /* Scroll utilities */
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
+
+  /* Hide scrollbar for carousel while maintaining scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Ensure smooth scrolling behavior for featured tenants carousel */
+.scrollbar-hide {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
   .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    scroll-behavior: auto;
   }
+}
   
   /* Animation utilities */
   .animate-on-scroll {
@@ -178,6 +189,155 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Revolutionary Animation Keyframes */
+
+/* Floating badge animation with physics-based motion */
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% { 
+    transform: translateY(-8px) rotate(1deg);
+  }
+  50% { 
+    transform: translateY(-4px) rotate(-0.5deg);
+  }
+  75% { 
+    transform: translateY(-12px) rotate(0.5deg);
+  }
+}
+
+/* Fade in with scale for dramatic entrance */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Staggered slide up with bounce */
+@keyframes slideUpStagger {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) scale(0.9);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-10px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Slide in from right for carousel items */
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(80px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Smooth color transition for hover states */
+@keyframes colorShift {
+  0% { filter: hue-rotate(0deg) saturate(1); }
+  50% { filter: hue-rotate(10deg) saturate(1.1); }
+  100% { filter: hue-rotate(0deg) saturate(1); }
+}
+
+/* Advanced pulse for loading states */
+@keyframes advancedPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* Respects reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations for accessibility */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+  }
+  
+  @keyframes fadeInScale {
+    0%, 100% { 
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  @keyframes slideUpStagger {
+    0%, 100% { 
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  @keyframes slideInFromRight {
+    0%, 100% { 
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+  
+  /* Reduce motion for hover effects */
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Enhanced focus states without blue borders */
+.focus-custom {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent), 0.15);
+  border-color: var(--color-accent);
+}
+
+/* GPU acceleration for smooth animations */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Advanced backdrop blur effects */
+.backdrop-blur-ultra {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Gradient text animation */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-gradient-animated {
+  background: linear-gradient(-45deg, var(--color-accent), var(--color-accent-light), var(--color-accent-hover), var(--color-accent));
+  background-size: 400% 400%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s ease infinite;
 }
 
 /* ====== COMPONENT STYLES ====== */
