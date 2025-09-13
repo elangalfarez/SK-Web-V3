@@ -139,7 +139,7 @@ function App() {
 
         {/* Events Page */}
         <Route 
-          path="/events" 
+          path="/event" 
           element={
             <Layout>
               <EventsPage />

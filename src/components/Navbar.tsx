@@ -69,7 +69,7 @@ const Navbar = () => {
               label: 'Events',
               description: 'Upcoming activities and entertainment',
               icon: Calendar,
-              href: '/events',
+              href: '/event',
             },
               {
               label: 'Blog',
@@ -122,7 +122,7 @@ const Navbar = () => {
       href: '#',
       submenu: [
         { name: 'Promotions', href: '/promotions' },
-        { name: 'Events', href: '/events' },
+        { name: 'Events', href: '/event' },
         { name: 'Blog', href: '/blog' }
       ]
     },
