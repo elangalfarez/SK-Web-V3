@@ -1,108 +1,190 @@
+// src/components/Events.tsx
+// Complete rewrite: Clean integration with new responsive carousel
+
 import React from 'react';
 import { CardCarousel } from '@/components/ui/card-carousel';
+import { useFeaturedEvents } from '@/lib/hooks/useFeaturedEvents';
+import { Event } from '@/lib/supabase';
+
+// Helper functions for data formatting
+const formatDateRange = (startAt: string, endAt: string | null): string => {
+  const start = new Date(startAt);
+  const end = endAt ? new Date(endAt) : null;
+  
+  const options: Intl.DateTimeFormatOptions = {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Jakarta'
+  };
+  
+  if (!end) {
+    return start.toLocaleDateString('en-GB', options);
+  }
+  
+  const isSameDay = start.toDateString() === end.toDateString();
+  
+  if (isSameDay) {
+    return start.toLocaleDateString('en-GB', options);
+  }
+  
+  const startStr = start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const endStr = end.toLocaleDateString('en-GB', options);
+  
+  return `${startStr} – ${endStr}`;
+};
+
+const formatTimeRange = (startAt: string, endAt: string | null): string => {
+  const start = new Date(startAt);
+  const end = endAt ? new Date(endAt) : null;
+  
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Jakarta'
+  };
+  
+  if (!end) {
+    return start.toLocaleTimeString('en-GB', timeOptions);
+  }
+  
+  const startTime = start.toLocaleTimeString('en-GB', timeOptions);
+  const endTime = end.toLocaleTimeString('en-GB', timeOptions);
+  
+  if (startTime === endTime) {
+    return startTime;
+  }
+  
+  return `${startTime} – ${endTime}`;
+};
+
+const extractSummaryFromBody = (body: string | null): string => {
+  if (!body) return '';
+  
+  const cleaned = body
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+  
+  if (cleaned.length <= 150) return cleaned;
+  
+  const truncated = cleaned.substring(0, 150);
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  return lastSpace > 100 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+};
+
+// Transform DB Event to Carousel format
+const mapEventForCarousel = (e: Event) => {
+  const img = (e.images && e.images.length && e.images[0].url) 
+    ? e.images[0].url 
+    : '/img/placeholder-event.jpg';
+  
+  const date = formatDateRange(e.start_at, e.end_at);
+  const time = formatTimeRange(e.start_at, e.end_at);
+  const description = e.summary || extractSummaryFromBody(e.body);
+  const category = Array.isArray(e.tags) && e.tags.length ? e.tags[0] : 'Event';
+  
+  return {
+    id: typeof e.id === 'string' ? parseInt(e.id.substring(0, 8), 16) || Math.floor(Math.random() * 10000) : e.id,
+    title: e.title,
+    image: img,
+    date,
+    time,
+    location: e.venue || '',
+    description,
+    category,
+    slug: e.slug
+  };
+};
 
 const Events = () => {
-  const events = [
-    {
-      id: 1,
-      title: "Baba Lili Tata Beach Party",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/WhatsApp-Image-2025-06-28-at-15.10.14_4261ce1f-scaled.jpg",
-      date: "12 June - 13 Jul 2025",
-      time: "10:00 AM - 10:00 PM",
-      location: "Ground Floor, Grand Atrium",
-      description: "Baba Lili Tata 1st Live Show in Jabodetabek. Join us for an exciting beach-themed party with live performances, games, and entertainment for the whole family.",
-      category: "Kids Entertainment"
-    },
-    {
-      id: 2,
-      title: "Gramedia Back to School",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/WhatsApp-Image-2025-06-17-at-16.11.23_8471f426-scaled.jpg",
-      date: "17 June - 13 July 2025",
-      time: "10:00 AM - 10:00 PM",
-      location: "Upper Ground, Kids Atrium",
-      description: "Get ready for the new school year with our comprehensive back-to-school collection. Find everything from stationeries, books, and school supplies for your kids.",
-      category: "Shopping"
-    },
-    {
-      id: 3,
-      title: "Gramedia Big Sale",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/WhatsApp-Image-2025-07-02-at-14.42.40_d70e7702-scaled.jpg",
-      date: "1 - 27 July 2025",
-      time: "10:00 AM - 10:00 PM",
-      location: "First Floor, East Dome",
-      description: "Don't miss our biggest sale of the year! Get up to 70% discount on stationery and book supplies. Perfect time to stock up on your favorite items.",
-      category: "Sale"
-    },
-    {
-      id: 4,
-      title: "Pets Nation Festival Vol. 2",
-      image: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      date: "15 - 20 August 2025",
-      time: "2:00 PM - 9:00 PM",
-      location: "Upper Ground, Kids Atrium",
-      description: "Pets Nation Fest Vol 2.",
-      category: "Fashion"
-    },
-    {
-      id: 5,
-      title: "Food Festival Extravaganza",
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      date: "25 - 30 August 2025",
-      time: "11:00 AM - 11:00 PM",
-      location: "Ground Floor, Central Court",
-      description: "Taste the best of Indonesian and international cuisine. Food trucks, cooking demonstrations, and special discounts from our restaurant partners.",
-      category: "Food & Beverage"
-    },
-    {
-      id: 6,
-      title: "Tech Innovation Expo",
-      image: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      date: "5 - 10 September 2025",
-      time: "10:00 AM - 8:00 PM",
-      location: "Third Floor, Tech Hub",
-      description: "Explore the latest technology trends, gadgets, and innovations. Interactive demos, workshops, and exclusive product launches.",
-      category: "Technology"
-    },
-    {
-      id: 7,
-      title: "Art & Culture Festival",
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      date: "15 - 22 September 2025",
-      time: "9:00 AM - 9:00 PM",
-      location: "First Floor, Cultural Wing",
-      description: "Celebrate Indonesian art and culture with exhibitions, performances, and workshops. Local artists showcase their talents in various mediums.",
-      category: "Culture"
-    },
-    {
-      id: 8,
-      title: "Holiday Shopping Carnival",
-      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      date: "1 - 31 December 2025",
-      time: "10:00 AM - 10:00 PM",
-      location: "All Floors",
-      description: "Get ready for the holiday season with amazing discounts, gift wrapping services, and special holiday decorations throughout the mall.",
-      category: "Holiday Special"
-    }
-  ];
+  const { items, isLoading, error, refetch } = useFeaturedEvents({ limit: 8 });
+
+  // Defensive: items may be undefined during loading
+  const events = (items || []).map(mapEventForCarousel);
 
   return (
-    <section className="py-12 md:py-20 bg-primary overflow-hidden">
+    <section className="py-12 md:py-20 bg-surface overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            <span className="text-black">Current</span> <span className="text-gold">Events</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mb-4">
+            <span className="text-text-primary">Current</span>{' '}
+            <span className="text-accent">Events</span>
           </h2>
-          <p className="text-lg md:text-xl text-white-600 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto">
             Don't miss out on our exciting events and exclusive promotions
           </p>
         </div>
         
-        <CardCarousel
-          events={events}
-          autoplayDelay={3000}
-          showPagination={true}
-          showNavigation={true}
-        />
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="bg-surface-secondary border border-border-primary rounded-2xl overflow-hidden animate-pulse h-[480px]">
+                  <div className="h-48 bg-surface-tertiary"></div>
+                  <div className="p-6 space-y-4">
+                    <div className="h-6 bg-surface-tertiary rounded w-3/4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-surface-tertiary rounded w-1/2"></div>
+                      <div className="h-4 bg-surface-tertiary rounded w-2/3"></div>
+                      <div className="h-4 bg-surface-tertiary rounded w-1/2"></div>
+                    </div>
+                    <div className="h-16 bg-surface-tertiary rounded w-full"></div>
+                    <div className="h-10 bg-surface-tertiary rounded w-full"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <div 
+            className="text-center py-12" 
+            aria-live="assertive"
+            role="alert"
+          >
+            <div className="max-w-md mx-auto">
+              <p className="text-text-secondary mb-4">
+                Unable to load events at the moment. Please try again.
+              </p>
+              <button
+                onClick={refetch}
+                className="inline-flex items-center px-6 py-3 bg-accent text-text-inverse rounded-lg font-semibold hover:bg-accent-hover transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                aria-label="Retry loading events"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && events.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-lg text-text-secondary max-w-md mx-auto">
+              No featured events available at the moment. Check back soon for exciting upcoming events!
+            </p>
+          </div>
+        )}
+
+        {/* Events Carousel */}
+        {!isLoading && !error && events.length > 0 && (
+          <CardCarousel
+            events={events}
+            autoplayDelay={5000}
+            showPagination={true}
+            showNavigation={true}
+          />
+        )}
       </div>
     </section>
   );
