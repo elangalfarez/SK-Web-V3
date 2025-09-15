@@ -1,107 +1,131 @@
 // src/components/FoodDining.tsx
+// Purpose: World-class responsive grid layout with proper contrast and spacing
+// Files scanned: existing FoodDining.tsx, useFeaturedRestaurants hook, FeaturedRestaurantCard
+
 import React from 'react';
-import { Utensils, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { FeaturedRestaurantCard } from './ui/FeaturedRestaurantCard';
+import { useFeaturedRestaurants } from '@/lib/hooks/useFeaturedRestaurants';
 
 const FoodDining = () => {
-  const restaurants = [
-    {
-      name: "Sate Khas Senayan",
-      category: "Indonesian Traditional",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2021/04/SKS.png?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      rating: 4.8,
-      priceRange: "$$"
-    },
-    {
-      name: "Yoshinoya",
-      category: "Japanese Quick Serve",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2021/04/YOSHINOYA.jpg?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      rating: 4.6,
-      priceRange: "$$"
-    },
-    {
-      name: "Pizza Hut",
-      category: "Italian Family Dining",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2021/04/PIZZA-H-scaled.jpg?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      rating: 4.5,
-      priceRange: "$$"
-    },
-    {
-      name: "Burger King",
-      category: "American Fast Food",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2021/04/BURGER-KING.jpg?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      rating: 4.3,
-      priceRange: "$$"
-    },
-    {
-      name: "Bakmi GM",
-      category: "Indonesian Noodles",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2021/04/BAKMI-GM.jpg?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      rating: 4.7,
-      priceRange: "$"
-    },
-    {
-      name: "Chatime",
-      category: "Bubble Tea & Beverages",
-      image: "https://supermalkarawaci.co.id/core/wp-content/uploads/2021/04/CHATIME-1-scaled.jpg?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      rating: 4.4,
-      priceRange: "$"
-    }
-  ];
+  const { items, isLoading, error } = useFeaturedRestaurants({ limit: 6 });
+
+  // World-class loading skeleton
+  const renderLoadingSkeleton = () => (
+    <div 
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+      aria-live="polite"
+      aria-label="Loading featured restaurants"
+    >
+      {[...Array(6)].map((_, index) => (
+        <div
+          key={index}
+          className="bg-surface-secondary rounded-2xl shadow-lg overflow-hidden border border-border-primary"
+        >
+          <div className="h-40 md:h-48 bg-surface-tertiary animate-pulse" />
+          <div className="p-4 md:p-6">
+            <div className="mb-3">
+              <div className="h-6 bg-surface-tertiary rounded animate-pulse" />
+            </div>
+            <div className="flex items-center mb-4">
+              <div className="w-4 h-4 bg-surface-tertiary rounded animate-pulse mr-2" />
+              <div className="h-4 bg-surface-tertiary rounded animate-pulse flex-1" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-surface-tertiary rounded animate-pulse" />
+              <div className="h-4 bg-surface-tertiary rounded animate-pulse w-3/4" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Elegant error state
+  const renderError = () => (
+    <div className="text-center py-16">
+      <div className="bg-surface-secondary rounded-2xl p-8 max-w-md mx-auto border border-border-primary shadow-lg">
+        <div className="w-16 h-16 bg-accent-subtle rounded-full flex items-center justify-center mx-auto mb-6">
+          <span className="text-2xl font-bold text-accent">!</span>
+        </div>
+        <h3 className="text-xl font-semibold text-text-primary mb-4">
+          Temporarily Unavailable
+        </h3>
+        <p className="text-text-secondary mb-6 leading-relaxed">
+          Our featured restaurants are currently being updated. Please check back shortly.
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="btn-primary py-3 px-6 rounded-lg font-semibold focus:ring-2 focus:ring-accent/20"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
+
+  // Premium empty state
+  const renderEmptyState = () => (
+    <div className="text-center py-16">
+      <div className="bg-surface-secondary rounded-2xl p-12 max-w-lg mx-auto border border-border-primary shadow-lg">
+        <div className="w-20 h-20 bg-accent-subtle rounded-full flex items-center justify-center mx-auto mb-8">
+          <span className="text-3xl font-bold text-accent">F</span>
+        </div>
+        <h3 className="text-2xl font-semibold text-text-primary mb-6">
+          Featured Restaurants Coming Soon
+        </h3>
+        <p className="text-text-secondary leading-relaxed text-lg">
+          We're carefully selecting the finest dining experiences to showcase here. 
+          Check back soon for our curated restaurant collection.
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <section className="py-12 md:py-20 bg-surface-tertiary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Premium Typography */}
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold heading-primary mb-4">
-            Culinary <span className="heading-accent">Experiences</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mb-4 tracking-tight">
+            Culinary <span className="text-accent">Experiences</span>
           </h2>
-          <p className="text-lg md:text-xl body-text max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto leading-relaxed">
             From street snacks to fine dining - savor the best flavors all in one place
           </p>
         </div>
         
-        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {restaurants.map((restaurant, index) => (
-            <div
-              key={index}
-              className="card card-hover group"
-            >
-              <div className="relative">
-                <img 
-                  src={restaurant.image}
-                  alt={restaurant.name}
-                  className="w-full h-40 md:h-48 object-cover"
+        {/* Content States */}
+        {isLoading && renderLoadingSkeleton()}
+
+        {error && !isLoading && renderError()}
+
+        {!isLoading && !error && items.length === 0 && renderEmptyState()}
+
+        {/* World-Class Responsive Grid */}
+        {!isLoading && !error && items.length > 0 && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {items.map((item, index) => (
+                <FeaturedRestaurantCard
+                  key={item.id}
+                  item={item}
+                  className="h-full"
                 />
-                <div className="absolute top-4 right-4 bg-surface-secondary/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center border border-border-primary">
-                  <Star className="w-4 h-4 text-warning mr-1" />
-                  <span className="text-sm font-semibold text-text-primary">{restaurant.rating}</span>
-                </div>
-              </div>
-              
-              <div className="p-4 md:p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg md:text-xl font-bold heading-primary">{restaurant.name}</h3>
-                  <span className="text-success font-semibold">{restaurant.priceRange}</span>
-                </div>
-                
-                <div className="flex items-center body-text-muted mb-4">
-                  <Utensils className="w-4 h-4 mr-2 text-accent" />
-                  <span className="text-sm">{restaurant.category}</span>
-                </div>
-                
-                <button className="w-full btn-primary py-3 rounded-lg font-semibold transition-all duration-300">
-                  View Menu
-                </button>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-        
-        <div className="text-center mt-12">
-          <button className="px-6 md:px-8 py-3 md:py-4 btn-primary font-semibold rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg text-sm md:text-base">
-            Explore All Restaurants
-          </button>
-        </div>
+            
+            {/* Premium CTA with Link to Directory */}
+            <div className="text-center">
+              <Link 
+                to="/directory"
+                className="inline-block px-6 md:px-8 py-3 md:py-4 btn-primary font-semibold rounded-full text-sm md:text-base focus:ring-2 focus:ring-accent/20 transition-all duration-300 hover:shadow-lg transform hover:scale-105"
+              >
+                Explore All Restaurants
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

@@ -341,6 +341,128 @@ export type FeaturedTenant = {
   created_at?: string;
 };
 
+// Purpose: Single new export function for fetching featured restaurants with tenant data
+// Files scanned: lib/supabase.ts existing structure, featured_restaurants + tenants SQL schemas
+
+/**
+ * Fetch featured restaurants with enriched tenant data
+ * Caps limit to maximum of 6 items as enforced by UI requirements
+ * 
+ * @param limit Maximum number of items to fetch (capped at 6)
+ * @returns Array of enriched featured restaurant objects
+ */
+export async function fetchFeaturedRestaurants(limit = 6): Promise<any[]> {
+  // Enforce DB limit cap - never request more than 6 items
+  const cappedLimit = Math.min(limit, 6);
+  
+  try {
+    // First attempt: use tenant_directory view if available (preferred approach)
+    const { data, error } = await supabase
+      .from('featured_restaurants')
+      .select(`
+        id,
+        tenant_id,
+        featured_image_url,
+        featured_description,
+        highlight_text,
+        sort_order,
+        start_date,
+        end_date,
+        is_active,
+        tenant_directory:tenant_id (
+          name,
+          category_display,
+          logo_url,
+          banner_url,
+          description,
+          main_floor
+        )
+      `)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .limit(cappedLimit);
+
+    if (error) {
+      console.debug('tenant_directory join failed, trying direct tenants join:', error);
+    }
+
+    if (data && data.length > 0) {
+      // Transform and normalize the results from tenant_directory join
+      return data.map(row => ({
+        id: row.id,
+        tenant_id: row.tenant_id,
+        tenant_name: row.tenant_directory?.name || 'Restaurant',
+        tenant_logo_url: row.tenant_directory?.logo_url,
+        tenant_banner_url: row.tenant_directory?.banner_url,
+        tenant_description: row.tenant_directory?.description,
+        category_display: row.tenant_directory?.category_display,
+        main_floor: row.tenant_directory?.main_floor,
+        featured_image_url: row.featured_image_url,
+        featured_description: row.featured_description,
+        highlight_text: row.highlight_text,
+        sort_order: row.sort_order,
+        start_date: row.start_date,
+        end_date: row.end_date,
+        is_active: row.is_active,
+      }));
+    }
+
+    // Fallback: Direct join with tenants table and tenant_categories
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('featured_restaurants')
+      .select(`
+        id,
+        tenant_id,
+        featured_image_url,
+        featured_description,
+        highlight_text,
+        sort_order,
+        start_date,
+        end_date,
+        is_active,
+        tenants:tenant_id (
+          name,
+          description,
+          logo_url,
+          banner_url,
+          main_floor,
+          tenant_categories:category_id (
+            display_name
+          )
+        )
+      `)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .limit(cappedLimit);
+
+    if (fallbackError) {
+      throw new Error(`Failed to fetch featured restaurants: ${fallbackError.message}`);
+    }
+
+    // Transform fallback results to consistent format
+    return (fallbackData || []).map(row => ({
+      id: row.id,
+      tenant_id: row.tenant_id,
+      tenant_name: row.tenants?.name || 'Restaurant',
+      tenant_logo_url: row.tenants?.logo_url,
+      tenant_banner_url: row.tenants?.banner_url,
+      tenant_description: row.tenants?.description,
+      category_display: row.tenants?.tenant_categories?.display_name || 'Food & Dining',
+      main_floor: row.tenants?.main_floor,
+      featured_image_url: row.featured_image_url,
+      featured_description: row.featured_description,
+      highlight_text: row.highlight_text,
+      sort_order: row.sort_order,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      is_active: row.is_active,
+    }));
+
+  } catch (error) {
+    console.error('Error fetching featured restaurants:', error);
+    throw new Error(`Failed to fetch featured restaurants: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
 /**
  * Fetch new tenants from tenant_directory view
  * Uses the same successful patterns as fetchTenants function
