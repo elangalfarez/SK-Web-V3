@@ -1,4 +1,6 @@
 // src/components/Facilities.tsx
+// Fixed: Removed nested max-w-6xl container to align with navbar width
+
 import React from 'react';
 import { 
   Store, 
@@ -151,13 +153,12 @@ const Facilities = () => {
           </p>
         </div>
         
-        <div className="max-w-6xl mx-auto">
-          <BentoGrid className="lg:grid-rows-3">
-            {facilities.map((facility) => (
-              <BentoCard key={facility.name} {...facility} />
-            ))}
-          </BentoGrid>
-        </div>
+        {/* Removed the nested max-w-6xl container to use full width */}
+        <BentoGrid className="lg:grid-rows-3">
+          {facilities.map((facility) => (
+            <BentoCard key={facility.name} {...facility} />
+          ))}
+        </BentoGrid>
       </div>
     </section>
   );

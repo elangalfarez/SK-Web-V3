@@ -1,5 +1,5 @@
 // src/components/hero/HeroSection.tsx
-// Fixed: Matches original Hero.tsx structure exactly
+// Fixed: Exact viewport height (no extra scrolling) and consistent badge text colors
 
 import React from 'react';
 import { HeroModels } from '../ui/hero-models';
@@ -28,8 +28,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <section 
-      className={cn('relative min-h-screen flex items-center overflow-hidden', className)}
-      style={{height: '100vh', minHeight: '100vh'}}
+      className={cn('relative h-screen flex items-center overflow-hidden', className)}
     >
       {/* Background Image */}
       <div className="absolute inset-0">
@@ -38,7 +37,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           alt="Supermal Karawaci Interior"
           className="w-full h-full object-cover"
           loading="eager"
-          fetchpriority="high"
+          fetchPriority="high"
         />
         {/* Enhanced gradient overlay for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>

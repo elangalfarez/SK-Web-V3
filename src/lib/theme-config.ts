@@ -1,4 +1,7 @@
 // src/lib/theme-config.ts
+// Modified: Enhanced gold colors, default to dark theme, improved black/gold contrast
+
+import { useState, useEffect, useCallback } from 'react';
 
 export type ThemeName = 'light' | 'dark';
 
@@ -50,7 +53,7 @@ export const themes: Record<ThemeName, ThemeColors> = {
     textMuted: '#6B7280',
     textInverse: '#FFFFFF',
     
-    // Accent (Purple)
+    // Accent (Purple - legacy support)
     accent: '#5A2E8A',
     accentHover: '#4A256F',
     accentLight: '#8B5FBF',
@@ -73,36 +76,36 @@ export const themes: Record<ThemeName, ThemeColors> = {
     info: '#2563EB',
   },
   dark: {
-    // Surfaces
-    surface: '#1F2937',
-    surfaceSecondary: '#374151',
-    surfaceTertiary: '#4B5563',
+    // Surfaces - Rich blacks with subtle variations
+    surface: '#0A0A0A',              // Deep black background
+    surfaceSecondary: '#1A1A1A',     // Cards and panels
+    surfaceTertiary: '#2A2A2A',      // Elevated surfaces
     
-    // Text
-    textPrimary: '#F9FAFB',
-    textSecondary: '#D1D5DB',
-    textMuted: '#9CA3AF',
-    textInverse: '#1F2937',
+    // Text - High contrast whites with gold tints
+    textPrimary: '#FFFFFF',          // Pure white for main text
+    textSecondary: '#E5E5E5',        // Light gray for secondary
+    textMuted: '#A1A1A1',            // Muted gray
+    textInverse: '#0A0A0A',          // Black text on gold backgrounds
     
-    // Accent (Gold)
-    accent: '#F59E0B',
-    accentHover: '#D97706',
-    accentLight: '#FCD34D',
-    accentSubtle: '#451A03',
+    // Accent - Premium gold palette
+    accent: '#FFD700',               // Bright gold primary
+    accentHover: '#FFC107',          // Richer gold on hover
+    accentLight: '#FFECB3',          // Light gold for backgrounds
+    accentSubtle: '#2A2317',         // Dark gold for subtle backgrounds
     
-    // Interactive
-    interactive: '#F59E0B',
-    interactiveHover: '#D97706',
-    interactiveMuted: '#92400E',
+    // Interactive - Gold-based interactions
+    interactive: '#FFD700',
+    interactiveHover: '#FFC107',
+    interactiveMuted: '#B8860B',     // Darker gold for muted states
     
-    // Borders
-    borderPrimary: '#4B5563',
-    borderSecondary: '#374151',
-    borderMuted: '#1F2937',
+    // Borders - Subtle grays that work with black
+    borderPrimary: '#404040',        // Visible but subtle borders
+    borderSecondary: '#2A2A2A',      // Secondary borders
+    borderMuted: '#1A1A1A',          // Very subtle borders
     
-    // Status
+    // Status - Adjusted for dark backgrounds
     success: '#10B981',
-    warning: '#F59E0B',
+    warning: '#FFD700',              // Use gold for warnings
     error: '#EF4444',
     info: '#3B82F6',
   },
@@ -129,16 +132,16 @@ export function applyTheme(themeName: ThemeName): void {
 }
 
 /**
- * Get user's theme preference
+ * Get user's theme preference - DEFAULT TO DARK
  */
 export function getThemePreference(): ThemeName {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') return 'dark'; // Default to dark
   
   const stored = localStorage.getItem('theme-preference') as ThemeName;
   if (stored && themes[stored]) return stored;
   
-  // Default to light theme
-  return 'light';
+  // Default to dark theme instead of light
+  return 'dark';
 }
 
 /**
@@ -164,7 +167,7 @@ export function toggleTheme(): ThemeName {
  * React hook for theme management
  */
 export function useTheme() {
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>('light');
+  const [currentTheme, setCurrentTheme] = useState<ThemeName>('dark'); // Default to dark
   
   useEffect(() => {
     setCurrentTheme(initializeTheme());
@@ -187,6 +190,3 @@ export function useTheme() {
     themes: Object.keys(themes) as ThemeName[],
   };
 }
-
-// Import React hooks for the useTheme hook
-import { useState, useEffect, useCallback } from 'react';

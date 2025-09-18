@@ -1,68 +1,70 @@
 // src/components/Navbar.tsx
-// Modified: Added proper href for Contact menu items to link to /contact page
+// Updated: More suitable icons for each submenu and removed CSR menu
+
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { 
   Store, 
-  MapPin, 
-  FileText, 
+  Map, 
+  Tag, 
   Calendar, 
-  Gift,  
+  BookOpen,
   Phone, 
-  Heart
+  MessageCircle
 } from 'lucide-react';
-import MegaMenu from '@/components/ui/mega-menu';
-import type { MegaMenuItem } from '@/components/ui/mega-menu';
+import MegaMenu from './ui/mega-menu';
 
-const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const Navbar: React.FC = () => {
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 10);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const megaMenuItems: MegaMenuItem[] = [
-    { id: 1, label: 'Home', link: '/' },
+  const megaMenuItems = [
     {
-      id: 2,
+      label: 'Home',
+      link: '/',
+    },
+    {
       label: 'Directory',
       subMenus: [
         {
-          title: 'Browse',
+          title: 'Explore Our Mall',
           items: [
             {
               label: 'Mall Directory',
-              description: 'Complete list of all stores and services',
+              description: 'Find all stores, restaurants, and services',
               icon: Store,
               href: '/directory',
             },
             {
               label: 'Floor Plan',
               description: 'Interactive mall map and navigation',
-              icon: MapPin,
+              icon: Map,
+              href: '#',
             },
           ],
         },
       ],
     },
     {
-      id: 3,
       label: "What's On",
       subMenus: [
         {
-          title: 'Current',
+          title: 'Current Happenings',
           items: [
             {
               label: 'Promotions',
               description: 'Latest deals and special offers',
-              icon: Gift,
+              icon: Tag,
               href: '/promotions',
             },
             {
@@ -71,19 +73,21 @@ const Navbar = () => {
               icon: Calendar,
               href: '/event',
             },
-              {
+            {
               label: 'Blog',
               description: 'Latest articles and insights',
-              icon: FileText,
+              icon: BookOpen,
               href: '/blog',
             },
           ],
         },
       ],
     },
-    { id: 4, label: 'VIP Card', link: '/vip-cards' },
     {
-      id: 6,
+      label: 'VIP Card',
+      link: '/vip-cards',
+    },
+    {
       label: 'Contact',
       subMenus: [
         {
@@ -98,7 +102,7 @@ const Navbar = () => {
             {
               label: 'Feedback',
               description: 'Share your experience with us',
-              icon: Heart,
+              icon: MessageCircle,
               href: '/contact',
             },
           ],
@@ -144,8 +148,8 @@ const Navbar = () => {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-white/90 backdrop-blur-md shadow-lg border-b border-border-primary'
-            : 'bg-white/95 shadow-sm border-b border-border-secondary'
+            ? 'bg-surface shadow-lg border-b border-border-primary'
+            : 'bg-surface shadow-sm border-b border-border-secondary'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -156,7 +160,7 @@ const Navbar = () => {
                 <img
                   src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/LOGO-SK-Tulisan-Putih-scaled.png"
                   alt="Supermal Karawaci"
-                  className="h-16 w-auto filter brightness-0"
+                  className="h-16 w-auto"
                 />
               </a>
             </div>

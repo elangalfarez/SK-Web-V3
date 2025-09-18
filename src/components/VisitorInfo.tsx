@@ -1,4 +1,6 @@
 // src/components/VisitorInfo.tsx
+// Fixed: Replaced all hardcoded colors with theme-aware CSS variables and semantic tokens
+
 import React from 'react';
 import { MapPin, Clock, Phone, Mail, Car, Info as InfoIcon, Accessibility, Wifi } from 'lucide-react';
 
@@ -65,13 +67,13 @@ const VisitorInfo = () => {
   ];
 
   return (
-    <section className="py-12 md:py-20 bg-gray-50">
+    <section className="py-12 md:py-20 bg-surface-tertiary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Visitor <span className="text-royal-purple">Information</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            <span className="heading-primary">Visitor</span> <span className="heading-accent">Information</span>
           </h2>
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl body-text max-w-2xl mx-auto">
             Everything you need to know for your perfect visit
           </p>
         </div>
@@ -79,23 +81,23 @@ const VisitorInfo = () => {
         {/* Info Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12">
           {infoCards.map((item, index) => (
-            <div key={index} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+            <div key={index} className="card card-hover p-6">
               <div className="flex items-center mb-4">
-                <div className="p-3 bg-purple-50 rounded-xl">
-                  <item.icon className="w-6 h-6 text-royal-purple" />
+                <div className="p-3 bg-accent-subtle rounded-xl">
+                  <item.icon className="w-6 h-6 text-accent" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+                  <h3 className="text-lg font-semibold text-text-primary">{item.title}</h3>
                 </div>
               </div>
               
               <div className="mb-4">
-                <p className="text-gray-900 font-medium mb-2">{item.content}</p>
-                <p className="text-gray-500 text-sm">{item.description}</p>
+                <p className="text-text-primary font-medium mb-2">{item.content}</p>
+                <p className="text-text-muted text-sm">{item.description}</p>
               </div>
               
               {item.action && (
-                <button className="text-royal-purple hover:text-dark-purple hover:bg-purple-50 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-300 hover:shadow-lg">
+                <button className="text-accent hover:text-accent-hover hover:bg-accent-subtle py-2 px-4 rounded-lg font-medium text-sm transition-all duration-300 hover:shadow-lg">
                   {item.action}
                 </button>
               )}
@@ -104,21 +106,21 @@ const VisitorInfo = () => {
         </div>
         
         {/* Contact Information */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 text-center">Contact Information</h3>
+        <div className="card p-6 md:p-8">
+          <h3 className="text-xl md:text-2xl font-bold text-text-primary mb-6 text-center">Contact Information</h3>
           <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {contactInfo.map((contact, index) => (
               <a
                 key={index}
                 href={contact.href}
-                className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-purple-50 hover:shadow-md transition-all duration-300 group"
+                className="flex items-center p-4 bg-surface-tertiary rounded-lg hover:bg-accent-subtle hover:shadow-md transition-all duration-300 group"
               >
-                <div className="p-2 bg-purple-100 rounded-full group-hover:bg-royal-purple group-hover:text-white transition-colors">
-                  <contact.icon className="w-5 h-5 text-royal-purple group-hover:text-white" />
+                <div className="p-2 bg-accent-subtle rounded-full group-hover:bg-accent group-hover:text-text-inverse transition-colors">
+                  <contact.icon className="w-5 h-5 text-accent group-hover:text-text-inverse" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-semibold text-gray-900">{contact.label}</p>
-                  <p className="text-sm text-gray-600">{contact.value}</p>
+                  <p className="text-sm font-semibold text-text-primary">{contact.label}</p>
+                  <p className="text-sm text-text-secondary">{contact.value}</p>
                 </div>
               </a>
             ))}

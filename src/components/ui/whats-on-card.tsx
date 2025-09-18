@@ -1,5 +1,5 @@
 // src/components/ui/whats-on-card.tsx
-// Fixed: Exact styling from original Hero.tsx - compact, no borders, proper contrast
+// Fixed: Consistent badge text colors regardless of theme - always dark text on accent background
 
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -44,9 +44,9 @@ export const WhatsOnCard: React.FC<WhatsOnCardProps> = ({
         />
         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors"></div>
         
-        {/* Badge */}
+        {/* Badge - Fixed: Consistent dark text on accent background regardless of theme */}
         {item.badge_text && (
-          <div className="absolute top-2 left-2 bg-accent text-white px-2 py-1 rounded-full text-xs font-bold">
+          <div className="absolute top-2 left-2 bg-accent text-text-inverse px-2 py-1 rounded-full text-xs font-bold">
             {item.badge_text}
           </div>
         )}
