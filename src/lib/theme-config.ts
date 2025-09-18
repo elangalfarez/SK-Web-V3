@@ -1,5 +1,5 @@
 // src/lib/theme-config.ts
-// Modified: Enhanced gold colors, default to dark theme, improved black/gold contrast
+// Modified: Simplified theme management that actually works reliably
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -42,18 +42,18 @@ export interface ThemeColors {
 
 export const themes: Record<ThemeName, ThemeColors> = {
   light: {
-    // Surfaces
+    // Surfaces - Clean whites
     surface: '#FFFFFF',
     surfaceSecondary: '#FFFFFF',
     surfaceTertiary: '#F8FAFC',
     
-    // Text
+    // Text - Elegant grays
     textPrimary: '#1F2937',
     textSecondary: '#4B5563',
     textMuted: '#6B7280',
     textInverse: '#FFFFFF',
     
-    // Accent (Purple - legacy support)
+    // Accent - Royal purple palette
     accent: '#5A2E8A',
     accentHover: '#4A256F',
     accentLight: '#8B5FBF',
@@ -76,49 +76,49 @@ export const themes: Record<ThemeName, ThemeColors> = {
     info: '#2563EB',
   },
   dark: {
-    // Surfaces - Rich blacks with subtle variations
-    surface: '#0A0A0A',              // Deep black background
-    surfaceSecondary: '#1A1A1A',     // Cards and panels
-    surfaceTertiary: '#2A2A2A',      // Elevated surfaces
+    // Surfaces - Rich blacks
+    surface: '#0A0A0A',
+    surfaceSecondary: '#1A1A1A',
+    surfaceTertiary: '#2A2A2A',
     
-    // Text - High contrast whites with gold tints
-    textPrimary: '#FFFFFF',          // Pure white for main text
-    textSecondary: '#E5E5E5',        // Light gray for secondary
-    textMuted: '#A1A1A1',            // Muted gray
-    textInverse: '#0A0A0A',          // Black text on gold backgrounds
+    // Text - High contrast whites
+    textPrimary: '#FFFFFF',
+    textSecondary: '#E5E5E5',
+    textMuted: '#A1A1A1',
+    textInverse: '#0A0A0A',
     
     // Accent - Premium gold palette
-    accent: '#FFD700',               // Bright gold primary
-    accentHover: '#FFC107',          // Richer gold on hover
-    accentLight: '#FFECB3',          // Light gold for backgrounds
-    accentSubtle: '#2A2317',         // Dark gold for subtle backgrounds
+    accent: '#FFD700',
+    accentHover: '#FFC107',
+    accentLight: '#FFECB3',
+    accentSubtle: '#2A2317',
     
-    // Interactive - Gold-based interactions
+    // Interactive
     interactive: '#FFD700',
     interactiveHover: '#FFC107',
-    interactiveMuted: '#B8860B',     // Darker gold for muted states
+    interactiveMuted: '#B8860B',
     
-    // Borders - Subtle grays that work with black
-    borderPrimary: '#404040',        // Visible but subtle borders
-    borderSecondary: '#2A2A2A',      // Secondary borders
-    borderMuted: '#1A1A1A',          // Very subtle borders
+    // Borders
+    borderPrimary: '#404040',
+    borderSecondary: '#2A2A2A',
+    borderMuted: '#1A1A1A',
     
-    // Status - Adjusted for dark backgrounds
+    // Status
     success: '#10B981',
-    warning: '#FFD700',              // Use gold for warnings
+    warning: '#FFD700',
     error: '#EF4444',
     info: '#3B82F6',
   },
 };
 
 /**
- * Apply theme to the document
+ * Apply theme to document - Simple and reliable
  */
 export function applyTheme(themeName: ThemeName): void {
   const theme = themes[themeName];
   const root = document.documentElement;
   
-  // Set theme attribute for CSS selector
+  // Set theme attribute
   root.setAttribute('data-theme', themeName);
   
   // Apply CSS custom properties
@@ -128,20 +128,27 @@ export function applyTheme(themeName: ThemeName): void {
   });
   
   // Store preference
-  localStorage.setItem('theme-preference', themeName);
+  try {
+    localStorage.setItem('theme-preference', themeName);
+  } catch (error) {
+    console.warn('Cannot save theme preference:', error);
+  }
 }
 
 /**
- * Get user's theme preference - DEFAULT TO DARK
+ * Get theme preference - Defaults to light
  */
 export function getThemePreference(): ThemeName {
-  if (typeof window === 'undefined') return 'dark'; // Default to dark
+  if (typeof window === 'undefined') return 'light';
   
-  const stored = localStorage.getItem('theme-preference') as ThemeName;
-  if (stored && themes[stored]) return stored;
+  try {
+    const stored = localStorage.getItem('theme-preference') as ThemeName;
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch (error) {
+    console.warn('Cannot read theme preference:', error);
+  }
   
-  // Default to dark theme instead of light
-  return 'dark';
+  return 'light'; // Always default to light
 }
 
 /**
@@ -154,7 +161,7 @@ export function initializeTheme(): ThemeName {
 }
 
 /**
- * Toggle between light and dark themes
+ * Toggle theme
  */
 export function toggleTheme(): ThemeName {
   const current = getThemePreference();
@@ -164,13 +171,14 @@ export function toggleTheme(): ThemeName {
 }
 
 /**
- * React hook for theme management
+ * Simplified React hook for theme
  */
 export function useTheme() {
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>('dark'); // Default to dark
+  const [currentTheme, setCurrentTheme] = useState<ThemeName>('light');
   
   useEffect(() => {
-    setCurrentTheme(initializeTheme());
+    const theme = initializeTheme();
+    setCurrentTheme(theme);
   }, []);
   
   const switchTheme = useCallback((theme: ThemeName) => {
@@ -187,6 +195,6 @@ export function useTheme() {
     currentTheme,
     switchTheme,
     toggleTheme: toggleThemeMode,
-    themes: Object.keys(themes) as ThemeName[],
+    themes: ['light', 'dark'] as ThemeName[],
   };
 }

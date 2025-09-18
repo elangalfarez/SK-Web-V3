@@ -1,70 +1,70 @@
 // src/components/Navbar.tsx
-// Updated: More suitable icons for each submenu and removed CSR menu
+// Modified: Fixed mobile menu functionality and simplified theme toggle integration
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { 
   Store, 
-  Map, 
-  Tag, 
+  MapPin, 
+  FileText, 
   Calendar, 
-  BookOpen,
+  Gift,  
   Phone, 
-  MessageCircle
+  Heart
 } from 'lucide-react';
-import MegaMenu from './ui/mega-menu';
+import MegaMenu from '@/components/ui/mega-menu';
+import ThemeToggle from '@/components/ui/theme-toggle';
+import type { MegaMenuItem } from '@/components/ui/mega-menu';
 
-const Navbar: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const megaMenuItems = [
+  const megaMenuItems: MegaMenuItem[] = [
+    { id: 1, label: 'Home', link: '/' },
     {
-      label: 'Home',
-      link: '/',
-    },
-    {
+      id: 2,
       label: 'Directory',
       subMenus: [
         {
-          title: 'Explore Our Mall',
+          title: 'Browse',
           items: [
             {
               label: 'Mall Directory',
-              description: 'Find all stores, restaurants, and services',
+              description: 'Complete list of all stores and services',
               icon: Store,
               href: '/directory',
             },
             {
               label: 'Floor Plan',
               description: 'Interactive mall map and navigation',
-              icon: Map,
-              href: '#',
+              icon: MapPin,
             },
           ],
         },
       ],
     },
     {
+      id: 3,
       label: "What's On",
       subMenus: [
         {
-          title: 'Current Happenings',
+          title: 'Current',
           items: [
             {
               label: 'Promotions',
               description: 'Latest deals and special offers',
-              icon: Tag,
+              icon: Gift,
               href: '/promotions',
             },
             {
@@ -76,18 +76,16 @@ const Navbar: React.FC = () => {
             {
               label: 'Blog',
               description: 'Latest articles and insights',
-              icon: BookOpen,
+              icon: FileText,
               href: '/blog',
             },
           ],
         },
       ],
     },
+    { id: 4, label: 'VIP Card', link: '/vip-cards' },
     {
-      label: 'VIP Card',
-      link: '/vip-cards',
-    },
-    {
+      id: 6,
       label: 'Contact',
       subMenus: [
         {
@@ -102,7 +100,7 @@ const Navbar: React.FC = () => {
             {
               label: 'Feedback',
               description: 'Share your experience with us',
-              icon: MessageCircle,
+              icon: Heart,
               href: '/contact',
             },
           ],
@@ -143,39 +141,64 @@ const Navbar: React.FC = () => {
     setActiveDropdown(null);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setActiveDropdown(null);
+  };
+
   return (
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-surface shadow-lg border-b border-border-primary'
-            : 'bg-surface shadow-sm border-b border-border-secondary'
+            ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-200'
+            : 'bg-white/90 shadow-lg border-b border-gray-100'
         }`}
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderBottomColor: 'var(--color-border-primary)',
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <a href="/" className="flex items-center">
+              <a href="/" className="flex items-center group">
                 <img
                   src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/LOGO-SK-Tulisan-Putih-scaled.png"
                   alt="Supermal Karawaci"
-                  className="h-16 w-auto"
+                  className="h-16 w-auto transition-all duration-300 group-hover:scale-105"
+                  style={{
+                    filter: 'brightness(0) invert(1)',
+                    // Theme-aware logo coloring will be handled by CSS
+                  }}
                 />
               </a>
             </div>
 
-            {/* Desktop Mega Menu */}
+            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center justify-center flex-1">
               <MegaMenu items={megaMenuItems} className="font-medium" />
             </div>
 
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden flex justify-end">
+            {/* Desktop Actions */}
+            <div className="flex items-center space-x-4">
+              {/* Desktop Theme Toggle */}
+              <div className="hidden lg:block">
+                <ThemeToggle variant="default" />
+              </div>
+
+              {/* Mobile Menu Button */}
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="nav-link"
+                className="lg:hidden p-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                onClick={toggleMobileMenu}
                 aria-label="Toggle mobile menu"
+                style={{
+                  backgroundColor: 'var(--color-surface-secondary)',
+                  color: 'var(--color-text-primary)',
+                  borderColor: 'var(--color-border-primary)',
+                  border: '1px solid',
+                }}
               >
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -192,20 +215,47 @@ const Navbar: React.FC = () => {
               isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
             }`}
           >
-            <div className="py-4 space-y-2 border-t border-border-primary">
+            <div 
+              className="py-4 space-y-2 border-t mx-4 mb-4 rounded-b-xl"
+              style={{
+                borderTopColor: 'var(--color-border-primary)',
+                backgroundColor: 'var(--color-surface-secondary)',
+              }}
+            >
+              {/* Mobile Theme Toggle - At the top */}
+              <div 
+                className="flex items-center justify-between px-4 pb-4 mb-4 border-b"
+                style={{ borderBottomColor: 'var(--color-border-secondary)' }}
+              >
+                <span 
+                  className="text-sm font-medium"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  Theme
+                </span>
+                <ThemeToggle variant="mobile" />
+              </div>
+
+              {/* Mobile Menu Items */}
               {mobileMenuItems.map((item) => (
                 <div key={item.name}>
                   {item.submenu ? (
                     <div>
                       <button
                         onClick={() => handleDropdownToggle(item.name)}
-                        className="flex items-center justify-between w-full text-left px-4 py-2 nav-link rounded-lg"
+                        className="flex items-center justify-between w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium"
+                        style={{
+                          color: 'var(--color-text-primary)',
+                        }}
                       >
-                        {item.name}
+                        <span>{item.name}</span>
                         <ChevronDown
                           className={`h-4 w-4 transition-transform duration-200 ${
                             activeDropdown === item.name ? 'rotate-180' : ''
                           }`}
+                          style={{
+                            color: activeDropdown === item.name ? 'var(--color-accent)' : 'currentColor'
+                          }}
                         />
                       </button>
                       
@@ -222,7 +272,18 @@ const Navbar: React.FC = () => {
                             key={subItem.name}
                             href={subItem.href}
                             onClick={handleMobileMenuClose}
-                            className="block px-4 py-2 text-sm body-text-muted hover:bg-accent-subtle hover:text-accent transition-colors duration-200 rounded-lg"
+                            className="block px-4 py-2 text-sm rounded-lg transition-colors duration-200"
+                            style={{
+                              color: 'var(--color-text-muted)',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--color-accent-subtle)';
+                              e.currentTarget.style.color = 'var(--color-accent)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.color = 'var(--color-text-muted)';
+                            }}
                           >
                             {subItem.name}
                           </a>
@@ -233,7 +294,16 @@ const Navbar: React.FC = () => {
                     <a
                       href={item.href}
                       onClick={handleMobileMenuClose}
-                      className="block px-4 py-2 nav-link rounded-lg"
+                      className="block px-4 py-3 rounded-lg transition-all duration-200 font-medium"
+                      style={{
+                        color: 'var(--color-text-primary)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-surface-tertiary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
                     >
                       {item.name}
                     </a>
@@ -245,10 +315,21 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Accent decorative lines under navbar */}
+      {/* Accent decorative lines */}
       <div className="fixed top-20 left-0 right-0 z-40">
-        <div className="h-1 bg-gradient-to-r from-accent via-accent to-accent"></div>
-        <div className="h-0.5 bg-accent/60"></div>
+        <div 
+          className="h-1 shadow-sm"
+          style={{
+            background: 'linear-gradient(to right, var(--color-accent), var(--color-accent), var(--color-accent))',
+          }}
+        ></div>
+        <div 
+          className="h-0.5"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            opacity: '0.6',
+          }}
+        ></div>
       </div>
     </>
   );

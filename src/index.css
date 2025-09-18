@@ -479,3 +479,103 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Logo theme-aware styling */
+.navbar-logo {
+  transition: filter 0.3s ease;
+}
+
+[data-theme="light"] .navbar-logo {
+  filter: brightness(0) invert(1); /* Black logo on light theme */
+}
+
+[data-theme="dark"] .navbar-logo {
+  filter: brightness(1) invert(0); /* White logo on dark theme */
+}
+
+/* Mobile menu improvements */
+.mobile-menu-item:hover {
+  background-color: var(--color-surface-tertiary);
+  transform: translateX(4px);
+}
+
+.mobile-submenu-item:hover {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+/* Theme toggle improvements */
+.theme-toggle-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.theme-toggle-button:hover::before {
+  opacity: 0.1;
+}
+
+/* Smooth theme transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}
+
+/* Prevent flash of unstyled content */
+html {
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-text-primary, #1f2937);
+}
+
+/* Navigation hover effects */
+.nav-link:hover {
+  color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+/* Mobile menu animation */
+.mobile-menu-enter {
+  animation: slideDown 0.3s ease-out;
+}
+
+.mobile-menu-exit {
+  animation: slideUp 0.3s ease-in;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 400px;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    max-height: 400px;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+}
