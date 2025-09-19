@@ -1,5 +1,5 @@
 // src/lib/theme-config.ts
-// Modified: Simplified theme management that actually works reliably
+// Modified: Global theme state management with instant updates across all components
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -111,8 +111,32 @@ export const themes: Record<ThemeName, ThemeColors> = {
   },
 };
 
+// Global theme change listeners
+const themeChangeListeners = new Set<(theme: ThemeName) => void>();
+
 /**
- * Apply theme to document - Simple and reliable
+ * Subscribe to global theme changes
+ */
+export function subscribeToThemeChanges(listener: (theme: ThemeName) => void) {
+  themeChangeListeners.add(listener);
+  return () => themeChangeListeners.delete(listener);
+}
+
+/**
+ * Notify all listeners about theme change
+ */
+function notifyThemeChange(theme: ThemeName) {
+  themeChangeListeners.forEach(listener => {
+    try {
+      listener(theme);
+    } catch (error) {
+      console.warn('Theme change listener error:', error);
+    }
+  });
+}
+
+/**
+ * Apply theme to document with global state sync
  */
 export function applyTheme(themeName: ThemeName): void {
   const theme = themes[themeName];
@@ -133,6 +157,9 @@ export function applyTheme(themeName: ThemeName): void {
   } catch (error) {
     console.warn('Cannot save theme preference:', error);
   }
+  
+  // Notify all components about the theme change
+  notifyThemeChange(themeName);
 }
 
 /**
@@ -161,7 +188,7 @@ export function initializeTheme(): ThemeName {
 }
 
 /**
- * Toggle theme
+ * Toggle theme with global state sync
  */
 export function toggleTheme(): ThemeName {
   const current = getThemePreference();
@@ -171,24 +198,32 @@ export function toggleTheme(): ThemeName {
 }
 
 /**
- * Simplified React hook for theme
+ * Enhanced React hook with global theme sync
  */
 export function useTheme() {
   const [currentTheme, setCurrentTheme] = useState<ThemeName>('light');
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
+    // Initialize theme
     const theme = initializeTheme();
     setCurrentTheme(theme);
+    setIsLoading(false);
+    
+    // Subscribe to global theme changes
+    const unsubscribe = subscribeToThemeChanges((newTheme) => {
+      setCurrentTheme(newTheme);
+    });
+    
+    return unsubscribe;
   }, []);
   
   const switchTheme = useCallback((theme: ThemeName) => {
     applyTheme(theme);
-    setCurrentTheme(theme);
   }, []);
   
   const toggleThemeMode = useCallback(() => {
-    const newTheme = toggleTheme();
-    setCurrentTheme(newTheme);
+    toggleTheme();
   }, []);
   
   return {
@@ -196,5 +231,6 @@ export function useTheme() {
     switchTheme,
     toggleTheme: toggleThemeMode,
     themes: ['light', 'dark'] as ThemeName[],
+    isLoading,
   };
 }

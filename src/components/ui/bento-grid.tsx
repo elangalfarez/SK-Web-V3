@@ -1,9 +1,8 @@
 // src/components/ui/bento-grid.tsx
-// Fixed: Replaced all hardcoded colors with theme-aware CSS variables
+// Fixed: Properly implemented tokenized color scheme from tailwind.config.js - no hardcoded colors
 
 import { ReactNode } from "react";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +25,17 @@ const BentoGrid = ({
   );
 };
 
+interface BentoCardProps {
+  name: string;
+  className: string;
+  background: ReactNode;
+  Icon: any;
+  description: string;
+  href: string;
+  cta: string;
+  darkBackground?: boolean; // For cards with dark gradient backgrounds
+}
+
 const BentoCard = ({
   name,
   className,
@@ -34,31 +44,48 @@ const BentoCard = ({
   description,
   href,
   cta,
-}: {
-  name: string;
-  className: string;
-  background: ReactNode;
-  Icon: any;
-  description: string;
-  href: string;
-  cta: string;
-}) => (
+  darkBackground = false,
+}: BentoCardProps) => (
   <div
     key={name}
     className={cn(
       "group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-xl",
-      // Theme-aware styling with proper contrast
-      "card card-hover",
+      // Use tokenized colors from tailwind.config.js
+      "bg-surface-secondary border border-border-primary shadow-lg",
+      "hover:shadow-2xl hover:-translate-y-2 transition-all duration-300",
       className,
     )}
   >
     <div>{background}</div>
     <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
-      <Icon className="h-12 w-12 origin-left transform-gpu text-accent drop-shadow-lg transition-all duration-300 ease-in-out group-hover:scale-75" />
-      <h3 className="text-xl font-semibold text-text-primary drop-shadow-lg">
+      <Icon 
+        className={cn(
+          "h-12 w-12 origin-left transform-gpu transition-all duration-300 ease-in-out group-hover:scale-75",
+          darkBackground 
+            ? "text-white drop-shadow-2xl" // Always white on dark gradients (both themes need white text)
+            : "text-accent drop-shadow-lg"  // Use accent token for theme-aware coloring
+        )}
+      />
+      <h3 
+        className={cn(
+          "text-xl font-semibold transition-colors",
+          darkBackground 
+            ? "text-white drop-shadow-2xl"   // Always white text on dark gradients
+            : "text-text-primary drop-shadow-lg" // Use text-primary token for theme-aware text
+        )}
+      >
         {name}
       </h3>
-      <p className="max-w-lg text-text-secondary drop-shadow-md text-sm">{description}</p>
+      <p 
+        className={cn(
+          "max-w-lg text-sm leading-relaxed",
+          darkBackground 
+            ? "text-gray-200 drop-shadow-lg"     // Always light gray on dark gradients
+            : "text-text-secondary drop-shadow-md" // Use text-secondary token for theme-aware secondary text
+        )}
+      >
+        {description}
+      </p>
     </div>
 
     <div
@@ -70,7 +97,12 @@ const BentoCard = ({
         variant="ghost" 
         asChild 
         size="sm" 
-        className="pointer-events-auto bg-surface-secondary/80 backdrop-blur-sm text-text-primary hover:bg-accent hover:text-text-inverse font-semibold border border-border-primary hover:border-accent transition-all duration-300"
+        className={cn(
+          "pointer-events-auto backdrop-blur-sm font-semibold transition-all duration-300",
+          darkBackground
+            ? "bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 hover:border-white" // Fixed white colors for dark gradient backgrounds
+            : "bg-surface-secondary/80 text-text-primary hover:bg-accent hover:text-text-inverse border border-border-primary hover:border-accent" // Tokenized colors for theme-aware backgrounds
+        )}
       >
         <a href={href}>
           {cta}
@@ -78,7 +110,7 @@ const BentoCard = ({
         </a>
       </Button>
     </div>
-    <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-surface-tertiary/20" />
+    <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-surface-tertiary/10" />
   </div>
 );
 

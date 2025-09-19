@@ -424,7 +424,7 @@ const VIPCardsPage: React.FC = () => {
           >
             <div className="relative inline-block">
               <img
-                src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/kartu-VIP-berlima-1-768x197.png"
+                src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/VIP%20Card/kartu-VIP-berlima-1-768x197.png"
                 alt="All VIP Cards Collection"
                 className="w-full max-w-4xl h-auto rounded-2xl shadow-2xl"
                 loading="lazy"

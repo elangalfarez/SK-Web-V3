@@ -1,5 +1,5 @@
 // src/components/Navbar.tsx
-// Modified: Fixed mobile menu functionality and simplified theme toggle integration
+// Modified: Fixed theme toggle placement - now beside hamburger menu, not inside mobile menu
 
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
@@ -14,12 +14,28 @@ import {
 } from 'lucide-react';
 import MegaMenu from '@/components/ui/mega-menu';
 import ThemeToggle from '@/components/ui/theme-toggle';
+import { useTheme } from '@/lib/theme-config';
 import type { MegaMenuItem } from '@/components/ui/mega-menu';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const { currentTheme, isLoading } = useTheme();
+
+  // Theme-specific logo URLs with lazy loading
+  const logoConfig = {
+    light: {
+      src: 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Logo/Logo%20SK%20Hitam-Compress.png',
+      alt: 'Supermal Karawaci - Black Logo'
+    },
+    dark: {
+      src: 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Logo/Logo%20SK%20Putih-Compress.png', 
+      alt: 'Supermal Karawaci - White Logo'
+    }
+  };
+
+  const currentLogo = logoConfig[currentTheme] || logoConfig.light;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +43,17 @@ const Navbar = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
+    
+    // Preload both logo images for instant switching
+    const preloadLogos = () => {
+      Object.values(logoConfig).forEach(logo => {
+        const img = new Image();
+        img.src = logo.src;
+      });
+    };
+    
+    preloadLogos();
+    
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -151,12 +178,12 @@ const Navbar = () => {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-200'
-            : 'bg-white/90 shadow-lg border-b border-gray-100'
+            ? 'backdrop-blur-md shadow-xl'
+            : 'shadow-lg'
         }`}
         style={{
           backgroundColor: 'var(--color-surface)',
-          borderBottomColor: 'var(--color-border-primary)',
+          borderBottom: '1px solid var(--color-border-primary)',
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -165,12 +192,17 @@ const Navbar = () => {
             <div className="flex-shrink-0 flex items-center">
               <a href="/" className="flex items-center group">
                 <img
-                  src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/LOGO-SK-Tulisan-Putih-scaled.png"
-                  alt="Supermal Karawaci"
-                  className="h-16 w-auto transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    filter: 'brightness(0) invert(1)',
-                    // Theme-aware logo coloring will be handled by CSS
+                  key={`logo-${currentTheme}`} // Force re-render on theme change
+                  src={currentLogo.src}
+                  alt={currentLogo.alt}
+                  className="h-16 w-auto transition-all duration-500 group-hover:scale-105"
+                  loading="lazy"
+                  onError={(e) => {
+                    // Fallback to light theme logo if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== logoConfig.light.src) {
+                      target.src = logoConfig.light.src;
+                    }
                   }}
                 />
               </a>
@@ -181,35 +213,40 @@ const Navbar = () => {
               <MegaMenu items={megaMenuItems} className="font-medium" />
             </div>
 
-            {/* Desktop Actions */}
-            <div className="flex items-center space-x-4">
+            {/* Actions - Desktop and Mobile */}
+            <div className="flex items-center space-x-3">
               {/* Desktop Theme Toggle */}
               <div className="hidden lg:block">
                 <ThemeToggle variant="default" />
               </div>
 
-              {/* Mobile Menu Button */}
-              <button
-                className="lg:hidden p-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                onClick={toggleMobileMenu}
-                aria-label="Toggle mobile menu"
-                style={{
-                  backgroundColor: 'var(--color-surface-secondary)',
-                  color: 'var(--color-text-primary)',
-                  borderColor: 'var(--color-border-primary)',
-                  border: '1px solid',
-                }}
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
+              {/* Mobile Actions - Theme Toggle + Hamburger Menu */}
+              <div className="lg:hidden flex items-center space-x-3">
+                {/* Mobile Theme Toggle - Beside hamburger menu */}
+                <ThemeToggle variant="compact" />
+                
+                {/* Mobile Hamburger Menu Button */}
+                <button
+                  className="p-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  onClick={toggleMobileMenu}
+                  aria-label="Toggle mobile menu"
+                  style={{
+                    backgroundColor: 'var(--color-surface-secondary)',
+                    color: 'var(--color-text-primary)',
+                    border: '1px solid var(--color-border-primary)',
+                  }}
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="h-6 w-6" />
+                  ) : (
+                    <Menu className="h-6 w-6" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu - NO theme toggle inside */}
           <div
             className={`lg:hidden transition-all duration-300 overflow-hidden ${
               isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
@@ -222,21 +259,7 @@ const Navbar = () => {
                 backgroundColor: 'var(--color-surface-secondary)',
               }}
             >
-              {/* Mobile Theme Toggle - At the top */}
-              <div 
-                className="flex items-center justify-between px-4 pb-4 mb-4 border-b"
-                style={{ borderBottomColor: 'var(--color-border-secondary)' }}
-              >
-                <span 
-                  className="text-sm font-medium"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  Theme
-                </span>
-                <ThemeToggle variant="mobile" />
-              </div>
-
-              {/* Mobile Menu Items */}
+              {/* Mobile Menu Items - Theme toggle removed from here */}
               {mobileMenuItems.map((item) => (
                 <div key={item.name}>
                   {item.submenu ? (

@@ -29,10 +29,10 @@ interface VipCardProps {
 // Get card image URL based on tier name
 const getCardImageUrl = (tierName: string): string => {
   const imageMap: Record<string, string> = {
-    'Super VIP Flazz': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Kartu-BCA-FLAZZ-1024x647.png',
-    'Super VIP': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/NEWsuper-vip.png',
-    'VIP Platinum': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/NEWvipplatinum.png',
-    'Shopping Card': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/NEWshopping-card.png'
+    'Super VIP Flazz': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/VIP%20Card/Kartu-BCA-FLAZZ-1024x647.png',
+    'Super VIP': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/VIP%20Card/NEWsuper-vip.png',
+    'VIP Platinum': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/VIP%20Card/NEWvipplatinum.png',
+    'Shopping Card': 'https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/VIP%20Card/NEWshopping-card.png'
   };
   
   return imageMap[tierName] || imageMap['Shopping Card'];

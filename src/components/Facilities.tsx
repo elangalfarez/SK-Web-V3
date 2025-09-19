@@ -1,5 +1,5 @@
 // src/components/Facilities.tsx
-// Fixed: Removed nested max-w-6xl container to align with navbar width
+// Modified: Added darkBackground prop to all facility cards for better text contrast
 
 import React from 'react';
 import { 
@@ -153,10 +153,13 @@ const Facilities = () => {
           </p>
         </div>
         
-        {/* Removed the nested max-w-6xl container to use full width */}
         <BentoGrid className="lg:grid-rows-3">
           {facilities.map((facility) => (
-            <BentoCard key={facility.name} {...facility} />
+            <BentoCard 
+              key={facility.name} 
+              {...facility} 
+              darkBackground={true} // All facility cards have dark gradient backgrounds
+            />
           ))}
         </BentoGrid>
       </div>
