@@ -2,7 +2,7 @@
 // Fixed: Replaced all hardcoded colors with theme-aware CSS variables and semantic tokens
 
 import React, { useState } from 'react';
-import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin, Clock, Car, Wifi, Shield, User, Gift, CreditCard } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Youtube, MessageCircleHeart, Mail, Phone, MapPin, Clock, Car, Wifi, Shield, User, Gift, CreditCard } from 'lucide-react';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -20,12 +20,10 @@ const Footer = () => {
   };
 
   const quickLinks = [
-    { name: "Store Directory", href: "#" },
-    { name: "Dining Guide", href: "#" },
-    { name: "Events Calendar", href: "#" },
-    { name: "Promotions", href: "#" },
-    { name: "Gift Cards", href: "#" },
-    { name: "Career Opportunities", href: "#" }
+    { name: "Store Directory", href: "/directory" },
+    { name: "Events Calendar", href: "/event" },
+    { name: "Promotions", href: "/promotions" },
+    { name: "Career", href: "https://id.jobstreet.com/id/companies/supermal-karawaci-168555177482351" }
   ];
 
   const services = [
@@ -62,10 +60,8 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { name: "Instagram", icon: Instagram, href: "#" },
-    { name: "Facebook", icon: Facebook, href: "#" },
-    { name: "Twitter", icon: Twitter, href: "#" },
-    { name: "YouTube", icon: Youtube, href: "#" }
+    { name: "Instagram", icon: Instagram, href: "https://www.instagram.com/supermalkarawaci/" },
+    { name: "TikTok", icon: MessageCircleHeart, href: "https://www.tiktok.com/@supermalkarawaci" },
   ];
 
   return (
@@ -85,7 +81,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row items-center justify-between mb-12 md:mb-16 text-center md:text-left">
           <div className="mb-6 md:mb-0">
             <img
-              src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/LOGO-SK-Tulisan-Putih-scaled.png"
+              src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Logo/Logo%20SK%20Putih-Compress.png"
               alt="Supermal Karawaci"
               className="h-16 md:h-20 w-auto mx-auto md:mx-0"
             />
@@ -198,8 +194,6 @@ const Footer = () => {
               <a href="#" className="text-text-secondary hover:text-accent transition-colors">Privacy Policy</a>
               <span className="text-text-muted">•</span>
               <a href="#" className="text-text-secondary hover:text-accent transition-colors">Terms of Service</a>
-              <span className="text-text-muted">•</span>
-              <a href="#" className="text-text-secondary hover:text-accent transition-colors">Cookie Policy</a>
             </div>
           </div>
           
