@@ -201,7 +201,7 @@ export function toggleTheme(): ThemeName {
  * Enhanced React hook with global theme sync
  */
 export function useTheme() {
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>('light');
+  const [currentTheme, setCurrentTheme] = useState<ThemeName>('dark');
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
