@@ -1,9 +1,8 @@
 /* src/index.css */
 /* Modified: Enhanced dark theme as default, improved gold contrast, better black/gold balance */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Commissioner:wght,FLAR,VOLM@700,37,100&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -253,29 +252,28 @@
 
 /* ====== BASE STYLES ====== */
 @layer base {
-  .league-spartan {
-    font-family: 'League Spartan', sans-serif;
+ /* Commissioner font class for hero title */
+  .commissioner-hero-title {
+    font-family: "Commissioner", sans-serif;
     font-optical-sizing: auto;
-    font-weight: 800;
+    font-weight: 700;
     font-style: normal;
+    font-variation-settings: "slnt" 0, "FLAR" 37, "VOLM" 100;
   }
-  
-  .outfit-title {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 800;
-    font-style: normal;
-  }
+
   
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
   
-  /* Base body styles - Dark theme optimized */
+   /* Base body styling with Signika font */
   body {
-    background-color: var(--color-surface);
-    color: var(--color-text-primary);
-    line-height: 1.6;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   /* Enhanced selection colors for dark theme */

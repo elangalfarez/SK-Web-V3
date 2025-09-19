@@ -1,5 +1,5 @@
 // src/components/hero/HeroContent.tsx
-// Fixed: Based on original Hero.tsx structure, no scroll indicator, proper contrast
+// Modified: Applied Commissioner font to H1 hero title elements
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -46,7 +46,7 @@ export const HeroContent: React.FC<HeroContentProps> = ({
         {/* Title and Subtitle - Higher Position */}
         <div className="absolute top-1/3 left-4 sm:left-6 lg:left-8 xl:left-12 transform -translate-y-1/2 max-w-2xl z-20">
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight">
+            <h1 className="commissioner-hero-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight">
               {title}
             </h1>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white leading-relaxed opacity-90">
@@ -81,7 +81,7 @@ export const HeroContent: React.FC<HeroContentProps> = ({
           <div className="space-y-4 sm:space-y-6">
             {/* Title and Subtitle */}
             <div className="space-y-3">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              <h1 className="commissioner-hero-title text-2xl sm:text-3xl font-bold text-white leading-tight">
                 Welcome to <br/> 
                 <span className="text-white">Supermal Karawaci</span>
               </h1>

@@ -1,4 +1,6 @@
 // tailwind.config.js
+// Modified: Updated fontFamily to use  for all text elements
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
@@ -50,7 +52,8 @@ export default {
         'gold': 'var(--color-accent)',
       },
       fontFamily: {
-        sans: ['Figtree', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'sans-serif'],
+         'commissioner': ['Commissioner', 'sans-serif'],
       },
       flex: {
         '2': '2 2 0%',
