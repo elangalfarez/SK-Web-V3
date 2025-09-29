@@ -33,7 +33,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Background Image */}
       <div className="absolute inset-0">
         <img 
-          src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/Front-Facade.jpg"
+          src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/Best%20Facade%20Final.jpg"
           alt="Supermal Karawaci Interior"
           className="w-full h-full object-cover"
           loading="eager"
