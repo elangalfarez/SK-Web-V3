@@ -217,13 +217,13 @@ const Navbar = () => {
             <div className="flex items-center space-x-3">
               {/* Desktop Theme Toggle */}
               <div className="hidden lg:block">
-                <ThemeToggle variant="default" />
+                {/* <ThemeToggle variant="default" />*/}
               </div>
 
               {/* Mobile Actions - Theme Toggle + Hamburger Menu */}
               <div className="lg:hidden flex items-center space-x-3">
                 {/* Mobile Theme Toggle - Beside hamburger menu */}
-                <ThemeToggle variant="compact" />
+                 {/* <ThemeToggle variant="compact" />*/}
                 
                 {/* Mobile Hamburger Menu Button */}
                 <button
