@@ -27,6 +27,13 @@
   --color-accent-hover: #FFC107;
   --color-accent-light: #FFECB3;
   --color-accent-subtle: #2A2317;
+
+   /* NEW: Purple brand accents for hero and badges */
+  --color-purple-accent: #8B5FBF;
+  --color-purple-accent-hover: #A47FD5;
+  --color-purple-accent-dark: #5A2E8A;
+  --color-purple-subtle: rgba(139, 95, 191, 0.15);
+  --color-purple-glow: rgba(139, 95, 191, 0.25);
   
   /* Interactive - Gold-based interactions */
   --color-interactive: #FFD700;
@@ -57,12 +64,20 @@
   --color-text-secondary: #4B5563;
   --color-text-muted: #6B7280;
   --color-text-inverse: #FFFFFF;
+  --color-on-colored-surface: #FFFFFF;
   
   /* Accent */
   --color-accent: #5A2E8A;
   --color-accent-hover: #4A256F;
   --color-accent-light: #8B5FBF;
   --color-accent-subtle: #F3F0FF;
+
+  /* Purple variants (same as accent in light theme) */
+  --color-purple-accent: #5A2E8A;
+  --color-purple-accent-hover: #4A256F;
+  --color-purple-accent-dark: #4A256F;
+  --color-purple-subtle: rgba(90, 46, 138, 0.08);
+  --color-purple-glow: rgba(90, 46, 138, 0.15);
   
   /* Interactive */
   --color-interactive: #5A2E8A;
@@ -84,6 +99,9 @@
 /* ====== UTILITY CLASSES ====== */
 @layer utilities {
   /* Theme-aware gradients - Enhanced for black/gold */
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-purple-accent) 100%);
+  }
   .gradient-surface {
     background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-tertiary) 100%);
   }
@@ -119,6 +137,30 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent-hover);
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+  }
+  
+  /* NEW: Purple overlay for hero sections */
+  .purple-overlay {
+    background: linear-gradient(
+      135deg, 
+      rgba(0, 0, 0, 0.6) 0%, 
+      rgba(139, 95, 191, 0.2) 50%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
+  }
+  
+  /* NEW: Purple glow effect for badges */
+  .purple-glow {
+    box-shadow: 
+      0 0 20px var(--color-purple-glow),
+      0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-purple-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
   /* Button variants - Enhanced for gold accents */

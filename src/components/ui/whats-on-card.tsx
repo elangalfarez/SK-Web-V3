@@ -44,9 +44,15 @@ export const WhatsOnCard: React.FC<WhatsOnCardProps> = ({
         />
         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors"></div>
         
-        {/* Badge - Fixed: Consistent dark text on accent background regardless of theme */}
+        {/* Badge - Purple brand color with elegant glow */}
         {item.badge_text && (
-          <div className="absolute top-2 left-2 bg-accent text-text-inverse px-2 py-1 rounded-full text-xs font-bold">
+          <div 
+            className="absolute top-2 left-2 px-3 py-1.5 rounded-full text-xs font-bold text-on-colored-surface purple-glow transition-all duration-300 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-purple-accent-dark) 0%, var(--color-purple-accent) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}
+          >
             {item.badge_text}
           </div>
         )}

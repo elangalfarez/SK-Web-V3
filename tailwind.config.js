@@ -20,12 +20,20 @@ export default {
         'text-secondary': 'var(--color-text-secondary)',     // Secondary text
         'text-muted': 'var(--color-text-muted)',             // Muted text
         'text-inverse': 'var(--color-text-inverse)',         // Text on dark backgrounds
+        'on-colored-surface': 'var(--color-on-colored-surface)',
         
         // Accent Colors
         'accent': 'var(--color-accent)',                     // Primary accent
         'accent-hover': 'var(--color-accent-hover)',         // Accent hover state
         'accent-light': 'var(--color-accent-light)',         // Light accent variant
         'accent-subtle': 'var(--color-accent-subtle)',       // Very subtle accent
+
+        // NEW: Purple Brand Colors
+        'purple-accent': 'var(--color-purple-accent)',
+        'purple-accent-hover': 'var(--color-purple-accent-hover)',
+        'purple-accent-dark': 'var(--color-purple-accent-dark)',
+        'purple-subtle': 'var(--color-purple-subtle)',
+        'purple-glow': 'var(--color-purple-glow)',
         
         // Interactive States
         'interactive': 'var(--color-interactive)',           // Buttons, links
