@@ -1,5 +1,5 @@
 // src/components/hero/HeroSection.tsx
-// Fixed: Exact viewport height (no extra scrolling) and consistent badge text colors
+// Fixed: Exact viewport fit accounting for navbar height (pt-20 = 80px)
 
 import React from 'react';
 import { HeroModels } from '../ui/hero-models';
@@ -28,7 +28,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <section 
-      className={cn('relative h-screen flex items-center overflow-hidden', className)}
+      className={cn(
+        'relative flex items-center overflow-hidden',
+        // Subtract navbar height (5rem = 80px from pt-20 wrapper)
+        // Use dvh for mobile browser compatibility, fallback to vh
+        'h-[calc(100dvh-5rem)] md:h-[calc(100vh-5rem)]',
+        className
+      )}
     >
       {/* Background Image */}
       <div className="absolute inset-0">
@@ -55,8 +61,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-30">
         <button
           onClick={handleDiscover}
-          className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center hover:border-white/80 transition-colors focus:outline-none"
-          aria-label="Scroll down"
+          className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center hover:border-white/80 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent"
+          aria-label="Scroll down to discover more"
         >
           <div className="w-1 h-3 bg-white/80 rounded-full mt-2 animate-bounce"></div>
         </button>

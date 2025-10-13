@@ -464,7 +464,6 @@ const carouselStyles = `
     opacity: 0;
     transition: opacity 0.3s ease;
     border-radius: inherit;
-    filter: blur(8px);
     z-index: -1;
   }
   
