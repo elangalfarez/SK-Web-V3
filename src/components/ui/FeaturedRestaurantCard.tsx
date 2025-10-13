@@ -68,16 +68,23 @@ export const FeaturedRestaurantCard: React.FC<FeaturedRestaurantCardProps> = ({
           loading="lazy"
           fallbackLetter={fallbackLetter}
         />
-        
-        {/* Feature Badge - Top Left Only */}
-        {item.highlight && (
-          <div className="absolute top-4 left-4">
-            <span className="inline-flex items-center px-3 py-1 bg-accent text-text-inverse text-xs font-semibold rounded-full shadow-lg">
-              {item.highlight}
-            </span>
-            <span className="sr-only">Featured badge: {item.highlight}</span>
-          </div>
-        )}
+      {/* Feature Badge - Top Left Only */}
+      {item.highlight && (
+        <div className="absolute top-4 left-4">
+          <span 
+            className="inline-flex items-center px-3 py-1 text-xs font-bold rounded-full backdrop-blur-sm transition-all duration-300 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-purple-accent-dark) 0%, var(--color-purple-accent) 100%)',
+              color: '#FFFFFF',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 0 20px var(--color-purple-glow), 0 4px 12px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            {item.highlight}
+          </span>
+          <span className="sr-only">Featured badge: {item.highlight}</span>
+        </div>
+      )}
       </div>
       
       {/* Content - High Contrast with Proper Spacing */}

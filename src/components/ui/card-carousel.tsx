@@ -362,20 +362,22 @@ const carouselStyles = `
     transform: scale(1.05);
   }
   
-  .event-card-badge {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    background: var(--color-accent);
-    color: var(--color-text-inverse);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
+.event-card-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: linear-gradient(135deg, var(--color-purple-accent-dark) 0%, var(--color-purple-accent) 100%);
+  color: #FFFFFF;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 20px var(--color-purple-glow), 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 300ms ease;
+}
   
   .event-card-content {
     padding: 24px;

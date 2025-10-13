@@ -1,5 +1,5 @@
 // src/components/ui/featured-tenant-card.tsx
-// Created: Ultra-modern card component with cutting-edge animations
+// Modified: Applied purple gradient badge matching whats-on-card.tsx style
 
 import React from 'react';
 import { Star } from 'lucide-react';
@@ -25,11 +25,11 @@ export const FeaturedTenantCard: React.FC<FeaturedTenantCardProps> = ({
   // Size-based configurations - optimized for viewport fitting
   const sizeConfig = {
     small: {
-      card: 'w-full max-w-[280px] h-[380px]', // Taller cards
-      image: 'h-48', // Increased height
+      card: 'w-full max-w-[280px] h-[380px]',
+      image: 'h-48',
       aspectRatio: '4/3' as const,
-      padding: 'p-5', // More padding
-      title: 'text-lg font-bold', // Larger text
+      padding: 'p-5',
+      title: 'text-lg font-bold',
       category: 'text-sm',
       badge: 'px-3 py-1.5 text-xs'
     },
@@ -95,71 +95,57 @@ export const FeaturedTenantCard: React.FC<FeaturedTenantCardProps> = ({
         className
       )}
       role="article"
-      aria-label={`New opening: ${tenant.name}${categoryText ? ` in ${categoryText}` : ''}`}
+      aria-label={`New opening: ${tenant.name}${categoryText ? ` - ${categoryText}` : ''}`}
     >
-      {/* Image Container with Advanced Effects */}
-      <div className={cn(
-        'relative overflow-hidden rounded-t-2xl',
-        'transition-all duration-700 ease-out',
-        'group-hover:scale-105',
-        config.image
-      )}>
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent-light/10 opacity-0 transition-opacity duration-700 hover:opacity-100" />
-        
+      {/* Image Container with Layered Effects */}
+      <div className={cn('relative overflow-hidden bg-surface-tertiary', config.image)}>
         {imageUrl ? (
-          <div className="relative w-full h-full overflow-hidden">
-            <ResponsiveImage
-              src={imageUrl}
-              alt={`${tenant.name} logo`}
-              className={cn(
-                'w-full h-full object-cover',
-                'transition-all duration-700 ease-out',
-                'hover:scale-110 hover:rotate-1',
-                'filter hover:brightness-110 hover:saturate-110'
-              )}
-              aspectRatio={config.aspectRatio}
-              objectFit="cover"
-              loading="lazy"
-              fallbackLetter={getFallbackLetter()}
-            />
-            
-            {/* Animated overlay for depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100" />
-          </div>
+          <ResponsiveImage
+            src={imageUrl}
+            alt={tenant.name}
+            className={cn(
+              'w-full h-full object-cover',
+              'transition-all duration-1000 ease-out',
+              'hover:scale-110 hover:brightness-110'
+            )}
+            aspectRatio={config.aspectRatio}
+            objectFit="cover"
+            fallbackLetter={getFallbackLetter()}
+          />
         ) : (
-          // Enhanced fallback avatar with animations
+          <div className="w-full h-full flex items-center justify-center bg-surface-tertiary">
+            <div className="text-6xl font-bold text-accent/40">{getFallbackLetter()}</div>
+          </div>
+        )}
+
+        {/* Gradient Overlay with Depth */}
+        {imageUrl && (
           <div className={cn(
-            'w-full h-full flex items-center justify-center',
-            'bg-gradient-to-br from-accent-subtle via-accent-light/20 to-accent-subtle',
-            'transition-all duration-700 ease-out',
-            'hover:from-accent-light/30 hover:via-accent/20 hover:to-accent-subtle'
+            'absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent',
+            'opacity-50 transition-opacity duration-700',
+            'hover:opacity-30'
           )}>
-            <div className={cn(
-              'w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent-hover',
-              'flex items-center justify-center shadow-lg',
-              'transition-all duration-500 ease-out',
-              'hover:scale-110 hover:rotate-12 hover:shadow-xl'
-            )}>
-              <span className="text-3xl font-bold text-text-inverse drop-shadow-lg">
-                {getFallbackLetter()}
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              <span className={cn(
+                'text-white font-bold text-sm tracking-wider drop-shadow-2xl',
+                'transition-all duration-500 ease-out',
+                'hover:tracking-widest hover:scale-110'
+              )}>
+                NOW OPEN
               </span>
             </div>
           </div>
         )}
 
-        {/* Floating New Badge with Advanced Animation */}
+        {/* Floating New Badge with Purple Gradient */}
         <div 
           className={cn(
             'absolute top-4 right-4 inline-flex items-center gap-2 rounded-full',
-            'bg-gradient-to-r from-accent via-accent-hover to-accent',
-            'text-text-inverse font-bold shadow-lg backdrop-blur-sm',
-            'border border-white/20',
+            'text-on-colored-surface font-bold purple-glow backdrop-blur-sm',
             
             // Revolutionary badge animations
             'transition-all duration-500 ease-out',
-            'hover:scale-110 hover:-rotate-3 hover:shadow-xl',
-            'hover:from-accent-hover hover:via-accent hover:to-accent-light',
+            'hover:scale-110 hover:-rotate-3',
             
             // Floating animation
             'animate-[float_3s_ease-in-out_infinite]',
@@ -167,6 +153,8 @@ export const FeaturedTenantCard: React.FC<FeaturedTenantCardProps> = ({
             config.badge
           )}
           style={{
+            background: 'linear-gradient(135deg, var(--color-purple-accent-dark) 0%, var(--color-purple-accent) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             animation: 'float 3s ease-in-out infinite'
           }}
         >

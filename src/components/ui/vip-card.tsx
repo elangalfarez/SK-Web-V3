@@ -193,10 +193,18 @@ export const VipCard: React.FC<VipCardProps> = ({
         {/* Tier badge */}
         {badgeInfo && (
           <div className="absolute top-4 left-4 z-10">
-            <Badge variant={badgeInfo.variant} className="px-2 py-1 text-xs shadow-lg">
-              <badgeInfo.icon className="w-3 h-3 mr-1" />
+            <span 
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full backdrop-blur-sm transition-all duration-300 hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, var(--color-purple-accent-dark) 0%, var(--color-purple-accent) 100%)',
+                color: '#FFFFFF',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 0 20px var(--color-purple-glow), 0 4px 12px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              <badgeInfo.icon className="w-3 h-3" />
               {badgeInfo.label}
-            </Badge>
+            </span>
           </div>
         )}
 
