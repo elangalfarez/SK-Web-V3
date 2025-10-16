@@ -1,5 +1,5 @@
 // src/components/ui/whats-on-carousel.tsx
-// Created: Perfect mobile carousel with proper spacing, tiny dots, zero bleeding, and buttery snap points
+// Created: Zero-bleeding carousel with proper card sizing override and perfect alignment
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useMotionValue, useAnimation, PanInfo } from 'framer-motion';
@@ -60,17 +60,23 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
     isDraggingRef.current = isDragging;
   }, [isHovered, isDragging]);
 
-  // Measure container width for mobile
+  // Measure container width precisely
   useEffect(() => {
     const updateWidth = () => {
       if (mobileContainerRef.current) {
-        setContainerWidth(mobileContainerRef.current.offsetWidth);
+        const rect = mobileContainerRef.current.getBoundingClientRect();
+        setContainerWidth(Math.round(rect.width));
       }
     };
 
+    const timer = setTimeout(updateWidth, 100);
     updateWidth();
+
     window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateWidth);
+    };
   }, []);
 
   // Check for reduced motion preference
@@ -156,10 +162,10 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
       x: targetX,
       transition: {
         type: prefersReducedMotion ? 'tween' : 'spring',
-        stiffness: prefersReducedMotion ? undefined : 350,
-        damping: prefersReducedMotion ? undefined : 35,
+        stiffness: prefersReducedMotion ? undefined : 400,
+        damping: prefersReducedMotion ? undefined : 40,
         mass: prefersReducedMotion ? undefined : 0.5,
-        duration: prefersReducedMotion ? 0.3 : undefined,
+        duration: prefersReducedMotion ? 0.25 : undefined,
       }
     });
   }, [mobileControls, containerWidth, prefersReducedMotion]);
@@ -173,16 +179,23 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
     
     let targetSlide = currentMobileSlide;
     
-    // Strong velocity - immediate snap
-    if (Math.abs(velocity) > 400) {
+    // Velocity-based snap
+    if (Math.abs(velocity) > 500) {
       if (velocity < 0 && currentMobileSlide < maxMobileSlides - 1) {
         targetSlide = currentMobileSlide + 1;
       } else if (velocity > 0 && currentMobileSlide > 0) {
         targetSlide = currentMobileSlide - 1;
       }
     } 
-    // Gentle drag - 30% threshold for snap
-    else if (Math.abs(offset) > containerWidth * 0.3) {
+    else if (Math.abs(velocity) > 300) {
+      if (velocity < 0 && currentMobileSlide < maxMobileSlides - 1 && offset < -50) {
+        targetSlide = currentMobileSlide + 1;
+      } else if (velocity > 0 && currentMobileSlide > 0 && offset > 50) {
+        targetSlide = currentMobileSlide - 1;
+      }
+    }
+    // Position-based snap (25% threshold)
+    else if (Math.abs(offset) > containerWidth * 0.25) {
       if (offset < 0 && currentMobileSlide < maxMobileSlides - 1) {
         targetSlide = currentMobileSlide + 1;
       } else if (offset > 0 && currentMobileSlide > 0) {
@@ -218,6 +231,13 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
   }, [maxDesktopSlides, maxMobileSlides]);
 
   if (!items.length) return null;
+
+  // MOBILE: Calculate dimensions - simpler approach
+  // Gap between cards only (no padding on slides)
+  const MOBILE_GAP = 12; // 12px gap between cards
+  const mobileCardWidth = containerWidth 
+    ? Math.floor((containerWidth - MOBILE_GAP) / 2)
+    : 0;
 
   return (
     <div className={cn('w-full', className)}>
@@ -273,7 +293,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
         )}
       </div>
 
-      {/* Mobile Carousel - Perfect spacing and snap points */}
+      {/* Mobile Carousel - Zero bleeding, proper spacing */}
       <div className="block md:hidden">
         <div 
           ref={mobileContainerRef}
@@ -289,7 +309,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
               left: -(maxMobileSlides - 1) * containerWidth,
               right: 0,
             }}
-            dragElastic={0.05}
+            dragElastic={0.02}
             dragMomentum={false}
             onDragEnd={handleDragEnd}
             animate={mobileControls}
@@ -302,27 +322,31 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
           >
             {Array.from({ length: maxMobileSlides }).map((_, slideIndex) => (
               <div 
-                key={slideIndex} 
-                className="flex gap-3 px-2"
+                key={slideIndex}
                 style={{
                   width: `${containerWidth}px`,
                   flexShrink: 0,
+                  display: 'flex',
+                  gap: `${MOBILE_GAP}px`,
                 }}
               >
                 {items.slice(slideIndex * cardsPerMobile, (slideIndex + 1) * cardsPerMobile).map((item) => (
                   <div 
-                    key={item.id} 
-                    className="flex-1"
-                    style={{ 
-                      minWidth: 0,
-                      maxWidth: `calc((100% - 12px) / 2)`,
+                    key={item.id}
+                    style={{
+                      width: `${mobileCardWidth}px`,
+                      flexShrink: 0,
+                      overflow: 'hidden',
                     }}
                   >
-                    <WhatsOnCard
-                      item={item}
-                      onClick={() => onCardClick?.(item)}
-                      priority={slideIndex === 0}
-                    />
+                    <div className="w-full h-full">
+                      <WhatsOnCard
+                        item={item}
+                        onClick={() => onCardClick?.(item)}
+                        priority={slideIndex === 0}
+                        className="!w-full !h-full"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -330,22 +354,22 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
           </motion.div>
         </div>
 
-        {/* Mobile Dots - Accessible but visually small */}
+        {/* Mobile Dots - Small and accessible */}
         {showDots && maxMobileSlides > 1 && (
-          <div className="flex justify-center mt-3 gap-2">
+          <div className="flex justify-center mt-4 gap-1">
             {Array.from({ length: maxMobileSlides }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentMobileSlide(index)}
-                className="p-2 touch-manipulation"
+                className="p-2.5 touch-manipulation"
                 aria-label={`Go to slide ${index + 1}`}
               >
                 <div 
                   className={cn(
                     'rounded-full transition-all duration-300',
                     index === currentMobileSlide
-                      ? 'bg-white w-4 h-2'
-                      : 'bg-white/30 w-2 h-2 hover:bg-white/50'
+                      ? 'bg-white w-5 h-2'
+                      : 'bg-white/40 w-2 h-2 hover:bg-white/60'
                   )}
                 />
               </button>
