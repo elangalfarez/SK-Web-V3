@@ -1,5 +1,5 @@
 // src/components/Navbar.tsx
-// Modified: Fixed theme toggle placement - now beside hamburger menu, not inside mobile menu
+// Modified: Fixed mobile menu overflow, scrollable container, polished close button, world-class UX
 
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
@@ -56,6 +56,18 @@ const Navbar = () => {
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   const megaMenuItems: MegaMenuItem[] = [
     { id: 1, label: 'Home', link: '/' },
@@ -192,13 +204,12 @@ const Navbar = () => {
             <div className="flex-shrink-0 flex items-center">
               <a href="/" className="flex items-center group">
                 <img
-                  key={`logo-${currentTheme}`} // Force re-render on theme change
+                  key={`logo-${currentTheme}`}
                   src={currentLogo.src}
                   alt={currentLogo.alt}
                   className="h-16 w-auto transition-all duration-500 group-hover:scale-105"
                   loading="lazy"
                   onError={(e) => {
-                    // Fallback to light theme logo if image fails to load
                     const target = e.target as HTMLImageElement;
                     if (target.src !== logoConfig.light.src) {
                       target.src = logoConfig.light.src;
@@ -223,17 +234,19 @@ const Navbar = () => {
               {/* Mobile Actions - Theme Toggle + Hamburger Menu */}
               <div className="lg:hidden flex items-center space-x-3">
                 {/* Mobile Theme Toggle - Beside hamburger menu */}
-                 {/* <ThemeToggle variant="compact" />*/}
+                {/* <ThemeToggle variant="compact" />*/}
                 
                 {/* Mobile Hamburger Menu Button */}
                 <button
-                  className="p-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  className="p-2.5 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
                   onClick={toggleMobileMenu}
                   aria-label="Toggle mobile menu"
+                  aria-expanded={isMobileMenuOpen}
                   style={{
                     backgroundColor: 'var(--color-surface-secondary)',
                     color: 'var(--color-text-primary)',
                     border: '1px solid var(--color-border-primary)',
+                    focusRingColor: 'var(--color-accent)',
                   }}
                 >
                   {isMobileMenuOpen ? (
@@ -246,34 +259,47 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Menu - NO theme toggle inside */}
+          {/* Mobile Menu - FIXED: Scrollable with proper height management */}
           <div
-            className={`lg:hidden transition-all duration-300 overflow-hidden ${
-              isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            className={`lg:hidden fixed left-0 right-0 transition-all duration-300 ease-in-out ${
+              isMobileMenuOpen 
+                ? 'opacity-100 pointer-events-auto' 
+                : 'opacity-0 pointer-events-none'
             }`}
+            style={{
+              top: '80px', // Below navbar (h-20 = 80px)
+              maxHeight: 'calc(100vh - 80px)', // Full viewport minus navbar
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              backgroundColor: 'var(--color-surface)',
+              borderTop: '1px solid var(--color-border-primary)',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              WebkitOverflowScrolling: 'touch', // Smooth iOS scrolling
+            }}
           >
             <div 
-              className="py-4 space-y-2 border-t mx-4 mb-4 rounded-b-xl"
+              className="py-4 px-4 space-y-1"
               style={{
-                borderTopColor: 'var(--color-border-primary)',
                 backgroundColor: 'var(--color-surface-secondary)',
               }}
             >
-              {/* Mobile Menu Items - Theme toggle removed from here */}
+              {/* Mobile Menu Items */}
               {mobileMenuItems.map((item) => (
                 <div key={item.name}>
                   {item.submenu ? (
                     <div>
                       <button
                         onClick={() => handleDropdownToggle(item.name)}
-                        className="flex items-center justify-between w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium"
+                        className="flex items-center justify-between w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 font-medium"
                         style={{
                           color: 'var(--color-text-primary)',
+                          minHeight: '44px', // Touch-friendly
                         }}
+                        aria-expanded={activeDropdown === item.name}
                       >
-                        <span>{item.name}</span>
+                        <span className="text-base">{item.name}</span>
                         <ChevronDown
-                          className={`h-4 w-4 transition-transform duration-200 ${
+                          className={`h-5 w-5 transition-transform duration-200 ${
                             activeDropdown === item.name ? 'rotate-180' : ''
                           }`}
                           style={{
@@ -282,12 +308,12 @@ const Navbar = () => {
                         />
                       </button>
                       
-                      {/* Mobile Submenu */}
+                      {/* Mobile Submenu - Smooth expand/collapse */}
                       <div
-                        className={`ml-4 mt-1 space-y-1 transition-all duration-200 ${
+                        className={`ml-4 space-y-1 transition-all duration-200 overflow-hidden ${
                           activeDropdown === item.name
-                            ? 'max-h-32 opacity-100'
-                            : 'max-h-0 opacity-0 overflow-hidden'
+                            ? 'mt-1 max-h-96 opacity-100'
+                            : 'max-h-0 opacity-0'
                         }`}
                       >
                         {item.submenu.map((subItem) => (
@@ -295,9 +321,10 @@ const Navbar = () => {
                             key={subItem.name}
                             href={subItem.href}
                             onClick={handleMobileMenuClose}
-                            className="block px-4 py-2 text-sm rounded-lg transition-colors duration-200"
+                            className="block px-4 py-2.5 text-sm rounded-lg transition-all duration-200"
                             style={{
                               color: 'var(--color-text-muted)',
+                              minHeight: '44px', // Touch-friendly
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = 'var(--color-accent-subtle)';
@@ -317,9 +344,10 @@ const Navbar = () => {
                     <a
                       href={item.href}
                       onClick={handleMobileMenuClose}
-                      className="block px-4 py-3 rounded-lg transition-all duration-200 font-medium"
+                      className="block px-4 py-3.5 rounded-xl transition-all duration-200 font-medium"
                       style={{
                         color: 'var(--color-text-primary)',
+                        minHeight: '44px', // Touch-friendly
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'var(--color-surface-tertiary)';
@@ -328,7 +356,7 @@ const Navbar = () => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                      {item.name}
+                      <span className="text-base">{item.name}</span>
                     </a>
                   )}
                 </div>
