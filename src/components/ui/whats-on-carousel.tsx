@@ -1,5 +1,5 @@
 // src/components/ui/whats-on-carousel.tsx
-// Created: World-class mobile carousel with buttery-smooth 60fps animations, spring physics, and perfect touch handling
+// Created: Perfect mobile carousel with proper spacing, tiny dots, zero bleeding, and buttery snap points
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useMotionValue, useAnimation, PanInfo } from 'framer-motion';
@@ -41,13 +41,12 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
   const [currentMobileSlide, setCurrentMobileSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  // Refs for stale closure prevention
+  // Refs
   const isHoveredRef = useRef(isHovered);
   const isDraggingRef = useRef(isDragging);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Container refs
   const desktopContainerRef = useRef<HTMLDivElement>(null);
   const mobileContainerRef = useRef<HTMLDivElement>(null);
 
@@ -60,6 +59,19 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
     isHoveredRef.current = isHovered;
     isDraggingRef.current = isDragging;
   }, [isHovered, isDragging]);
+
+  // Measure container width for mobile
+  useEffect(() => {
+    const updateWidth = () => {
+      if (mobileContainerRef.current) {
+        setContainerWidth(mobileContainerRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   // Check for reduced motion preference
   const prefersReducedMotion = typeof window !== 'undefined' 
@@ -136,40 +148,41 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
 
   // MOBILE: Smooth spring animation to target slide
   const animateToSlide = useCallback((slideIndex: number) => {
-    const containerWidth = mobileContainerRef.current?.offsetWidth || 0;
+    if (!containerWidth) return;
+    
     const targetX = -slideIndex * containerWidth;
     
     mobileControls.start({
       x: targetX,
       transition: {
         type: prefersReducedMotion ? 'tween' : 'spring',
-        stiffness: prefersReducedMotion ? undefined : 300,
-        damping: prefersReducedMotion ? undefined : 30,
-        mass: prefersReducedMotion ? undefined : 0.8,
+        stiffness: prefersReducedMotion ? undefined : 350,
+        damping: prefersReducedMotion ? undefined : 35,
+        mass: prefersReducedMotion ? undefined : 0.5,
         duration: prefersReducedMotion ? 0.3 : undefined,
       }
     });
-  }, [mobileControls, prefersReducedMotion]);
+  }, [mobileControls, containerWidth, prefersReducedMotion]);
 
-  // MOBILE: Handle drag end with momentum and snap
+  // MOBILE: Handle drag end with intelligent snap
   const handleDragEnd = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const containerWidth = mobileContainerRef.current?.offsetWidth || 0;
+    if (!containerWidth) return;
+    
     const velocity = info.velocity.x;
     const offset = info.offset.x;
     
-    // Determine which slide to snap to based on velocity and offset
     let targetSlide = currentMobileSlide;
     
-    // Strong swipe (high velocity) - immediate snap
-    if (Math.abs(velocity) > 500) {
+    // Strong velocity - immediate snap
+    if (Math.abs(velocity) > 400) {
       if (velocity < 0 && currentMobileSlide < maxMobileSlides - 1) {
         targetSlide = currentMobileSlide + 1;
       } else if (velocity > 0 && currentMobileSlide > 0) {
         targetSlide = currentMobileSlide - 1;
       }
     } 
-    // Gentle drag - snap based on threshold (40% of container width)
-    else if (Math.abs(offset) > containerWidth * 0.4) {
+    // Gentle drag - 30% threshold for snap
+    else if (Math.abs(offset) > containerWidth * 0.3) {
       if (offset < 0 && currentMobileSlide < maxMobileSlides - 1) {
         targetSlide = currentMobileSlide + 1;
       } else if (offset > 0 && currentMobileSlide > 0) {
@@ -179,12 +192,14 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
     
     setCurrentMobileSlide(targetSlide);
     animateToSlide(targetSlide);
-  }, [currentMobileSlide, maxMobileSlides, animateToSlide]);
+  }, [currentMobileSlide, maxMobileSlides, containerWidth, animateToSlide]);
 
   // Update mobile position when slide changes
   useEffect(() => {
-    animateToSlide(currentMobileSlide);
-  }, [currentMobileSlide, animateToSlide]);
+    if (containerWidth) {
+      animateToSlide(currentMobileSlide);
+    }
+  }, [currentMobileSlide, containerWidth, animateToSlide]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -258,7 +273,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
         )}
       </div>
 
-      {/* Mobile Carousel - Hardware-accelerated with spring physics */}
+      {/* Mobile Carousel - Perfect spacing and snap points */}
       <div className="block md:hidden">
         <div 
           ref={mobileContainerRef}
@@ -271,17 +286,16 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
           <motion.div
             drag="x"
             dragConstraints={{
-              left: -(maxMobileSlides - 1) * (mobileContainerRef.current?.offsetWidth || 0),
+              left: -(maxMobileSlides - 1) * containerWidth,
               right: 0,
             }}
-            dragElastic={0.1}
-            dragMomentum={true}
+            dragElastic={0.05}
+            dragMomentum={false}
             onDragEnd={handleDragEnd}
             animate={mobileControls}
             style={{ 
               x: mobileX,
               display: 'flex',
-              width: `${maxMobileSlides * 100}%`,
               willChange: 'transform',
             }}
             className="cursor-grab active:cursor-grabbing"
@@ -289,9 +303,9 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
             {Array.from({ length: maxMobileSlides }).map((_, slideIndex) => (
               <div 
                 key={slideIndex} 
-                className="flex gap-2 px-1"
+                className="flex gap-3 px-2"
                 style={{
-                  width: `${100 / maxMobileSlides}%`,
+                  width: `${containerWidth}px`,
                   flexShrink: 0,
                 }}
               >
@@ -299,7 +313,10 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
                   <div 
                     key={item.id} 
                     className="flex-1"
-                    style={{ minWidth: 0 }}
+                    style={{ 
+                      minWidth: 0,
+                      maxWidth: `calc((100% - 12px) / 2)`,
+                    }}
                   >
                     <WhatsOnCard
                       item={item}
@@ -313,22 +330,25 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
           </motion.div>
         </div>
 
-        {/* Mobile Dots */}
+        {/* Mobile Dots - Accessible but visually small */}
         {showDots && maxMobileSlides > 1 && (
-          <div className="flex justify-center mt-3 space-x-2">
+          <div className="flex justify-center mt-3 gap-2">
             {Array.from({ length: maxMobileSlides }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentMobileSlide(index)}
-                className={cn(
-                  'w-2 h-2 rounded-full transition-all duration-300 touch-manipulation',
-                  index === currentMobileSlide
-                    ? 'bg-white w-4'
-                    : 'bg-white/30 hover:bg-white/50'
-                )}
-                style={{ minWidth: '44px', minHeight: '44px' }}
+                className="p-2 touch-manipulation"
                 aria-label={`Go to slide ${index + 1}`}
-              />
+              >
+                <div 
+                  className={cn(
+                    'rounded-full transition-all duration-300',
+                    index === currentMobileSlide
+                      ? 'bg-white w-4 h-2'
+                      : 'bg-white/30 w-2 h-2 hover:bg-white/50'
+                  )}
+                />
+              </button>
             ))}
           </div>
         )}
