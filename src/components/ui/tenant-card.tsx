@@ -145,7 +145,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
                 initial={!shouldReduceMotion ? { scale: 0, rotate: -180 } : { scale: 1, rotate: 0 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={!shouldReduceMotion ? { type: "spring", delay: 0.3 } : { duration: 0 }}
-                className="bg-warning text-text-inverse px-2 py-1 rounded-full text-xs font-semibold
+                className="bg-primary text-text-inverse px-2 py-1 rounded-full text-xs font-semibold
                   flex items-center gap-1 shadow-lg"
               >
                 <Star className="h-3 w-3 fill-current" />

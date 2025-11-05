@@ -62,7 +62,7 @@ const BentoCard = ({
         className={cn(
           "h-12 w-12 origin-left transform-gpu transition-all duration-300 ease-in-out group-hover:scale-75",
           darkBackground 
-            ? "text-white drop-shadow-2xl" // Always white on dark gradients (both themes need white text)
+            ? "text-accent drop-shadow-2xl" // Always white on dark gradients (both themes need white text)
             : "text-accent drop-shadow-lg"  // Use accent token for theme-aware coloring
         )}
       />

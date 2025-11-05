@@ -2,7 +2,7 @@
 // Modified: Replaced hardcoded hero section with reusable Hero component
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, Clock, MessageCircle, Building, Shield, Car, HeadphonesIcon, Briefcase, Scale } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, MessageCircle, Building, Car, HeadphonesIcon, Briefcase, Scale } from 'lucide-react';
 import { ContactForm } from './ui/contact-form';
 import { Hero } from './ui/Hero';
 

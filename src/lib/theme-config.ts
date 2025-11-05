@@ -85,18 +85,18 @@ export const themes: Record<ThemeName, ThemeColors> = {
     textPrimary: '#FFFFFF',
     textSecondary: '#E5E5E5',
     textMuted: '#A1A1A1',
-    textInverse: '#0A0A0A',
+    textInverse: '#FFFFFF',
     
     // Accent - Premium gold palette
-    accent: '#FFD700',
-    accentHover: '#FFC107',
-    accentLight: '#FFECB3',
+    accent: '#9E61FF',
+    accentHover: '#A47FD5',
+    accentLight: '#761dbe',
     accentSubtle: '#2A2317',
     
     // Interactive
-    interactive: '#FFD700',
-    interactiveHover: '#FFC107',
-    interactiveMuted: '#B8860B',
+    interactive: '#9E61FF',
+    interactiveHover: '#A47FD5',
+    interactiveMuted: '#2A2317',
     
     // Borders
     borderPrimary: '#404040',

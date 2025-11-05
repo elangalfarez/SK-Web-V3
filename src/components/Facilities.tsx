@@ -20,7 +20,7 @@ const Facilities = () => {
       Icon: Store,
       name: "Shopping Area",
       description: "Wide variety of retail stores and boutiques",
-      href: "#",
+      href: "/directory",
       cta: "Explore Stores",
       background: (
         <div className="absolute inset-0">
@@ -29,7 +29,7 @@ const Facilities = () => {
             alt="Shopping Area"
             className="w-full h-full object-cover opacity-70" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/40 to-transparent"></div>
         </div>
       ),
       className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
@@ -47,7 +47,7 @@ const Facilities = () => {
             alt="Parking"
             className="w-full h-full object-cover opacity-70" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/40 to-transparent"></div>
         </div>
       ),
       className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
@@ -57,7 +57,6 @@ const Facilities = () => {
       name: "d'FoodCourt",
       description: "Various dining options and cuisines",
       href: "#",
-      cta: "See Restaurants",
       background: (
         <div className="absolute inset-0">
           <img 
@@ -75,7 +74,6 @@ const Facilities = () => {
       name: "Kids Area",
       description: "Safe and fun playground for children",
       href: "#",
-      cta: "Learn More",
       background: (
         <div className="absolute inset-0">
           <img 

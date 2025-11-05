@@ -371,13 +371,13 @@ const Navbar = () => {
         <div 
           className="h-1 shadow-sm"
           style={{
-            background: 'linear-gradient(to right, var(--color-accent), var(--color-accent), var(--color-accent))',
+            background: 'linear-gradient(to right, var(--color-purple-accent), var(--color-purple-accent), var(--color-purple-accent))',
           }}
         ></div>
         <div 
           className="h-0.5"
           style={{
-            backgroundColor: 'var(--color-accent)',
+            backgroundColor: 'var(--color-purple-accent)',
             opacity: '0.6',
           }}
         ></div>

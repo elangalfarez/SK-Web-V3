@@ -57,7 +57,6 @@ export default {
         'royal-purple': 'var(--color-accent)',
         'dark-purple': 'var(--color-accent-hover)',
         'light-purple': 'var(--color-accent-light)',
-        'gold': 'var(--color-accent)',
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'sans-serif'],
