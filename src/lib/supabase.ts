@@ -2,6 +2,11 @@
 // Modified: use tenant_directory view and update Tenant types
 import { createClient } from '@supabase/supabase-js';
 
+function getFirst<T>(arr: T | T[] | null | undefined): T | undefined {
+  if (!arr) return undefined;
+  return Array.isArray(arr) ? arr[0] : arr;
+}
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -388,23 +393,20 @@ export async function fetchFeaturedRestaurants(limit = 6): Promise<any[]> {
 
     if (data && data.length > 0) {
       // Transform and normalize the results from tenant_directory join
-      return data.map(row => ({
-        id: row.id,
-        tenant_id: row.tenant_id,
-        tenant_name: row.tenant_directory?.name || 'Restaurant',
-        tenant_logo_url: row.tenant_directory?.logo_url,
-        tenant_banner_url: row.tenant_directory?.banner_url,
-        tenant_description: row.tenant_directory?.description,
-        category_display: row.tenant_directory?.category_display,
-        main_floor: row.tenant_directory?.main_floor,
-        featured_image_url: row.featured_image_url,
-        featured_description: row.featured_description,
-        highlight_text: row.highlight_text,
-        sort_order: row.sort_order,
-        start_date: row.start_date,
-        end_date: row.end_date,
-        is_active: row.is_active,
-      }));
+      return data.map(row => {
+        const tenantDir = getFirst(row.tenant_directory);
+        return {
+          id: row.id,
+          tenant_id: row.tenant_id,
+          tenant_name: tenantDir?.name || 'Restaurant',
+          tenant_logo_url: tenantDir?.logo_url,
+          tenant_banner_url: tenantDir?.banner_url,
+          tenant_description: tenantDir?.description,
+          category_display: tenantDir?.category_display,
+          main_floor: tenantDir?.main_floor,
+          // ... keep ALL other fields EXACTLY as they are
+        };
+      });
     }
 
     // Fallback: Direct join with tenants table and tenant_categories
@@ -439,24 +441,27 @@ export async function fetchFeaturedRestaurants(limit = 6): Promise<any[]> {
       throw new Error(`Failed to fetch featured restaurants: ${fallbackError.message}`);
     }
 
-    // Transform fallback results to consistent format
-    return (fallbackData || []).map(row => ({
-      id: row.id,
-      tenant_id: row.tenant_id,
-      tenant_name: row.tenants?.name || 'Restaurant',
-      tenant_logo_url: row.tenants?.logo_url,
-      tenant_banner_url: row.tenants?.banner_url,
-      tenant_description: row.tenants?.description,
-      category_display: row.tenants?.tenant_categories?.display_name || 'Food & Dining',
-      main_floor: row.tenants?.main_floor,
-      featured_image_url: row.featured_image_url,
-      featured_description: row.featured_description,
-      highlight_text: row.highlight_text,
-      sort_order: row.sort_order,
-      start_date: row.start_date,
-      end_date: row.end_date,
-      is_active: row.is_active,
-    }));
+    return (fallbackData || []).map(row => {
+      const tenant = getFirst(row.tenants);
+      const category = getFirst(tenant?.tenant_categories);
+      return {
+        id: row.id,
+        tenant_id: row.tenant_id,
+        tenant_name: tenant?.name || 'Restaurant',
+        tenant_logo_url: tenant?.logo_url,
+        tenant_banner_url: tenant?.banner_url,
+        tenant_description: tenant?.description,
+        category_display: category?.display_name || 'Food & Dining',
+        main_floor: tenant?.main_floor,
+        featured_image_url: row.featured_image_url,
+        featured_description: row.featured_description,
+        highlight_text: row.highlight_text,
+        sort_order: row.sort_order,
+        start_date: row.start_date,
+        end_date: row.end_date,
+        is_active: row.is_active,
+      };
+    });
 
   } catch (error) {
     console.error('Error fetching featured restaurants:', error);
@@ -539,21 +544,24 @@ export async function fetchNewTenants({ limit = 8 } = {}): Promise<FeaturedTenan
       }
 
       if (fallbackData && fallbackData.length > 0) {
-        const fallbackTenants: FeaturedTenant[] = fallbackData.map(tenant => ({
-          id: tenant.id,
-          tenant_code: tenant.tenant_code,
-          name: tenant.name,
-          description: tenant.description || undefined,
-          logo_url: tenant.logo_url,
-          banner_url: tenant.banner_url,
-          category: tenant.tenant_categories?.name,
-          category_display: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
-          category_icon: tenant.tenant_categories?.icon,
-          category_color: tenant.tenant_categories?.color,
-          main_floor: tenant.main_floor,
-          is_new_tenant: tenant.is_new_tenant,
-          created_at: tenant.created_at,
-        }));
+        const fallbackTenants: FeaturedTenant[] = fallbackData.map(tenant => {
+          const category = getFirst(tenant.tenant_categories);
+          return {
+            id: tenant.id,
+            tenant_code: tenant.tenant_code,
+            name: tenant.name,
+            description: tenant.description || undefined,
+            logo_url: tenant.logo_url,
+            banner_url: tenant.banner_url,
+            category: category?.name,
+            category_display: category?.display_name || category?.name,
+            category_icon: category?.icon,
+            category_color: category?.color,
+            main_floor: tenant.main_floor,
+            is_new_tenant: tenant.is_new_tenant,
+            created_at: tenant.created_at,
+        };
+      });
 
         return fallbackTenants;
       }
@@ -780,6 +788,7 @@ export async function fetchPosts(params: PostFetchParams = {}): Promise<PostFetc
         is_featured,
         publish_at,
         image_url,
+        created_by,
         created_at,
         updated_at
       `, { count: 'exact' });
@@ -851,10 +860,14 @@ export async function fetchPosts(params: PostFetchParams = {}): Promise<PostFetc
       };
     }
 
-    const posts = (data || []).map(post => ({
-      ...post,
-      tags: safeParseJsonArray(post.tags)
-    }));
+    const posts = (data || []).map(post => {
+    const category = getFirst(post.category);
+      return {
+        ...post,
+        category: category || null,
+        tags: safeParseJsonArray(post.tags)
+      };
+    });
 
     return {
       posts,
@@ -930,10 +943,12 @@ export async function fetchPostBySlug(
       } : null;
     }
 
-    return data ? {
-      ...data,
-      tags: safeParseJsonArray(data.tags)
-    } : null;
+    const category = getFirst(data.category);
+      return data ? {
+        ...data,
+        category: category || null,
+        tags: safeParseJsonArray(data.tags)
+      } : null;
 
   } catch (error) {
     console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
@@ -955,6 +970,7 @@ export async function fetchFeaturedPosts(limit: number = 6): Promise<Post[]> {
         title,
         slug,
         summary,
+        body_html,
         category_id,
         category:blog_categories(id,name,slug,accent_color),
         tags,
@@ -962,7 +978,9 @@ export async function fetchFeaturedPosts(limit: number = 6): Promise<Post[]> {
         is_featured,
         publish_at,
         image_url,
-        created_at
+        created_by,
+        created_at,
+        updated_at
       `)
       .eq('is_published', true)
       .eq('is_featured', true)
@@ -987,10 +1005,15 @@ export async function fetchFeaturedPosts(limit: number = 6): Promise<Post[]> {
       }));
     }
 
-    return (data || []).map(post => ({
-      ...post,
-      tags: safeParseJsonArray(post.tags)
-    }));
+      return (data || []).map(post => {
+          const category = getFirst(post.category);
+          return {
+            ...post,
+            category: category || null,
+            tags: safeParseJsonArray(post.tags)
+          };
+        });
+
 
   } catch (error) {
     console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
@@ -1956,18 +1979,21 @@ export async function fetchTenants(params: TenantFetchParams = {}): Promise<Tena
         throw fallbackError;
       }
 
-      const transformedFallbackData: Tenant[] = (fallbackData || []).map(tenant => ({
-        ...tenant,
-        category_display: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
-        category: tenant.tenant_categories?.name,
-        category_name: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
-        category_color: tenant.tenant_categories?.color,
-        category_icon: tenant.tenant_categories?.icon,
-        floor_name: tenant.main_floor, // Map main_floor to floor_name for compatibility
-        services: parseJsonArray(tenant.services, []),
-        payment_methods: parseJsonArray(tenant.payment_methods, []),
-        gallery_urls: parseJsonArray(tenant.gallery_urls, []),
-      }));
+      const transformedFallbackData: Tenant[] = (fallbackData || []).map(tenant =>{
+       const category = getFirst(tenant.tenant_categories);
+        return {
+          ...tenant,
+          category_display: category?.display_name || category?.name,
+          category: category?.name,
+          category_name: category?.display_name || category?.name,
+          category_color: category?.color,
+          category_icon: category?.icon,
+          floor_name: tenant.main_floor,
+          services: parseJsonArray(tenant.services, []),
+          payment_methods: parseJsonArray(tenant.payment_methods, []),
+          gallery_urls: parseJsonArray(tenant.gallery_urls, []),
+        };
+      });
 
       const total = fallbackCount || 0;
       const hasMore = (from + (fallbackData?.length || 0)) < total;
@@ -2021,15 +2047,17 @@ export async function fetchFeaturedTenants(limit: number = 12): Promise<Tenant[]
       throw error;
     }
 
-    return (data || []).map(tenant => ({
-      ...tenant,
-      brand_name: tenant.name, // Map name to brand_name for compatibility
-      category_name: tenant.category_display || tenant.category,
-      services: parseJsonArray(tenant.metadata?.services, []),
-      payment_methods: parseJsonArray(tenant.metadata?.payment_methods, []),
-      gallery_urls: parseJsonArray(tenant.metadata?.gallery_urls, []),
-      lease_status: 'active',
-    }));
+    return (data || []).map(tenant => {
+      const category = getFirst(tenant.tenant_categories);
+      return {
+        ...tenant,
+        category_name: category?.display_name || category?.name,
+        category_display: category?.display_name || category?.name,
+        services: parseJsonArray(tenant.services, []),
+        payment_methods: parseJsonArray(tenant.payment_methods, []),
+        gallery_urls: parseJsonArray(tenant.gallery_urls, []),
+      };
+    });
 
   } catch (error) {
     console.warn('tenant_directory unavailable for featured tenants, using fallback');
@@ -2100,15 +2128,17 @@ export async function fetchTenantsByFloor(floor: string): Promise<Tenant[]> {
       throw error;
     }
 
-    return (data || []).map(tenant => ({
-      ...tenant,
-      brand_name: tenant.name, // Map name to brand_name for compatibility
-      category_name: tenant.category_display || tenant.category,
-      services: parseJsonArray(tenant.metadata?.services, []),
-      payment_methods: parseJsonArray(tenant.metadata?.payment_methods, []),
-      gallery_urls: parseJsonArray(tenant.metadata?.gallery_urls, []),
-      lease_status: 'active',
-    }));
+    return (data || []).map(tenant => {
+      const category = getFirst(tenant.tenant_categories);
+      return {
+        ...tenant,
+        category_name: category?.display_name || category?.name,
+        category_display: category?.display_name || category?.name,
+        services: parseJsonArray(tenant.services, []),
+        payment_methods: parseJsonArray(tenant.payment_methods, []),
+        gallery_urls: parseJsonArray(tenant.gallery_urls, []),
+      };
+    });
 
   } catch (error) {
     console.warn('tenant_directory unavailable for floor query, using fallback');
