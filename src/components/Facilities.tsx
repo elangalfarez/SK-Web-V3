@@ -1,7 +1,6 @@
 // src/components/Facilities.tsx
 // Modified: Added darkBackground prop to all facility cards for better text contrast
 
-import React from 'react';
 import { 
   Store, 
   Car, 
@@ -39,7 +38,7 @@ const Facilities = () => {
       name: "Parking Space",
       description: "Spacious and secure parking areas",
       href: "#",
-      cta: "View Rates",
+      cta: "",
       background: (
         <div className="absolute inset-0">
           <img 
@@ -57,12 +56,13 @@ const Facilities = () => {
       name: "d'FoodCourt",
       description: "Various dining options and cuisines",
       href: "#",
+      cta: "",
       background: (
         <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1567521464027-f127ff144326?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          <img
+            src="https://images.unsplash.com/photo-1567521464027-f127ff144326?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
             alt="Food Court"
-            className="w-full h-full object-cover opacity-70" 
+            className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
         </div>
@@ -74,12 +74,13 @@ const Facilities = () => {
       name: "Kids Area",
       description: "Safe and fun playground for children",
       href: "#",
+      cta: "",
       background: (
         <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          <img
+            src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
             alt="Kids Area"
-            className="w-full h-full object-cover opacity-70" 
+            className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
         </div>
@@ -91,11 +92,11 @@ const Facilities = () => {
       name: "Cinema",
       description: "Modern movie theaters",
       href: "#",
-      cta: "View Showtimes",
+      cta: "",
       background: (
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1489599904593-130265f2085b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/Tenants%20Photo/XXI%20Cinema.jpg" 
             alt="Cinema"
             className="w-full h-full object-cover opacity-70" 
           />
@@ -109,7 +110,7 @@ const Facilities = () => {
       name: "Free WiFi",
       description: "High-speed internet access",
       href: "#",
-      cta: "Connect Now",
+      cta: "",
       background: (
         <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800" />
       ),
@@ -120,7 +121,7 @@ const Facilities = () => {
       name: "ATM Center",
       description: "Multiple ATMs and money changers",
       href: "#",
-      cta: "Find Location",
+      cta: "",
       background: (
         <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-600 to-gray-800" />
       ),
@@ -131,7 +132,7 @@ const Facilities = () => {
       name: "Information Center",
       description: "Customer service and mall information",
       href: "#",
-      cta: "Get Help",
+      cta: "",
       background: (
         <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-gray-700 to-slate-800" />
       ),

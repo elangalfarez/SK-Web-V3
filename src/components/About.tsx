@@ -1,9 +1,6 @@
 // src/components/About.tsx
 // Fixed: Replaced all hardcoded colors with theme-aware CSS variables and semantic tokens
 
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
-
 const About = () => {
   return (
     <section className="py-12 md:py-20 bg-surface">

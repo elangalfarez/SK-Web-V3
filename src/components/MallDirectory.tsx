@@ -1,7 +1,7 @@
 // src/components/MallDirectory.tsx  
 // Modified: Complete rewrite to use Hero/SearchInput components and fix category logic
 
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Filter, X } from 'lucide-react';
 import { useTenants } from '@/lib/hooks/useTenants';
@@ -103,7 +103,7 @@ export default function MallDirectory() {
       transition: {
         delay: index * 0.05,
         duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: [0.25, 0.46, 0.45, 0.94] as const
       }
     })
   };

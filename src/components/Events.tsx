@@ -1,7 +1,6 @@
 // src/components/Events.tsx
 // Complete rewrite: Clean integration with new responsive carousel
 
-import React from 'react';
 import { CardCarousel } from '@/components/ui/card-carousel';
 import { useFeaturedEvents } from '@/lib/hooks/useFeaturedEvents';
 import { Event } from '@/lib/supabase';
@@ -182,7 +181,6 @@ const Events = () => {
             events={events}
             autoplayDelay={5000}
             showPagination={true}
-            showNavigation={true}
           />
         )}
       </div>

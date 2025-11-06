@@ -23,14 +23,14 @@ export interface Tenant {
   tenant_code: string;
   name: string;
   description?: string | null;
-  operating_hours?: any;
+  operating_hours?: Record<string, string> | null;
   phone?: string | null;
   logo_url?: string | null;
   banner_url?: string | null;
   is_active: boolean;
   is_featured: boolean;
   is_new_tenant: boolean;
-  metadata?: any;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   category_id?: string | null;
@@ -48,8 +48,8 @@ export interface Tenant {
   email?: string | null;
   website?: string | null;
   total_locations?: number;
-  services?: any;
-  payment_methods?: any;
+  services?: string[] | null;
+  payment_methods?: string[] | null;
   price_range?: string | null;
   promotion_text?: string | null;
   instagram?: string | null;
@@ -57,7 +57,7 @@ export interface Tenant {
   tiktok?: string | null;
   shopee_url?: string | null;
   tokopedia_url?: string | null;
-  gallery_urls?: any;
+  gallery_urls?: string[] | null;
   lease_status?: string;
 }
 
@@ -77,7 +77,7 @@ export interface Event {
   images: EventImage[];
   tags: string[];
   summary: string | null; // Now properly optional with fallback support
-  metadata: any;
+  metadata: Record<string, unknown>;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -86,7 +86,7 @@ export interface Event {
 export interface EventImage {
   url: string;
   alt: string;
-  caption?: string;
+  caption?: string | null;
 }
 
 export interface EventFetchParams {
@@ -217,7 +217,7 @@ export interface Promotion {
   end_date: string | null;
   status: 'staging' | 'published' | 'expired';
   published_at: string | null;
-  raw_json: any;
+  raw_json: Record<string, unknown>;
   created_at: string;
   media_id?: string | null;
 }
@@ -233,7 +233,7 @@ export interface PromotionWithTenant {
   end_date: string | null;
   status: 'staging' | 'published' | 'expired';
   published_at: string | null;
-  raw_json: any;
+  raw_json: Record<string, unknown>;
   created_at: string;
   media_id?: string | null;
   tenant_name: string;
@@ -346,6 +346,24 @@ export type FeaturedTenant = {
   created_at?: string;
 };
 
+export interface FeaturedRestaurant {
+  id: string;
+  tenant_id: string;
+  tenant_name: string;
+  tenant_logo_url?: string | null;
+  tenant_banner_url?: string | null;
+  tenant_description?: string | null;
+  category_display?: string | null;
+  main_floor?: string | null;
+  featured_image_url?: string | null;
+  featured_description?: string | null;
+  highlight_text?: string | null;
+  sort_order?: number;
+  start_date?: string | null;
+  end_date?: string | null;
+  is_active: boolean;
+}
+
 // Purpose: Single new export function for fetching featured restaurants with tenant data
 // Files scanned: lib/supabase.ts existing structure, featured_restaurants + tenants SQL schemas
 
@@ -356,7 +374,7 @@ export type FeaturedTenant = {
  * @param limit Maximum number of items to fetch (capped at 6)
  * @returns Array of enriched featured restaurant objects
  */
-export async function fetchFeaturedRestaurants(limit = 6): Promise<any[]> {
+export async function fetchFeaturedRestaurants(limit = 6): Promise<FeaturedRestaurant[]> {
   // Enforce DB limit cap - never request more than 6 items
   const cappedLimit = Math.min(limit, 6);
   
@@ -404,7 +422,13 @@ export async function fetchFeaturedRestaurants(limit = 6): Promise<any[]> {
           tenant_description: tenantDir?.description,
           category_display: tenantDir?.category_display,
           main_floor: tenantDir?.main_floor,
-          // ... keep ALL other fields EXACTLY as they are
+          featured_image_url: row.featured_image_url,
+          featured_description: row.featured_description,
+          highlight_text: row.highlight_text,
+          sort_order: row.sort_order,
+          start_date: row.start_date,
+          end_date: row.end_date,
+          is_active: row.is_active,
         };
       });
     }
@@ -642,15 +666,16 @@ export async function refreshWhatsOnItems(): Promise<boolean> {
 }
 
 // Helper functions for safe JSON parsing (existing)
-export function parseOperatingHours(hours: any): string {
+export function parseOperatingHours(hours: unknown): string {
   if (!hours) return 'See store for hours';
-  
+
   try {
     if (typeof hours === 'string') {
-      const parsed = JSON.parse(hours);
-      return parsed['mon-sun'] || 'See store for hours';
-    } else if (typeof hours === 'object' && hours['mon-sun']) {
-      return hours['mon-sun'];
+      const parsed = JSON.parse(hours) as Record<string, unknown>;
+      return (typeof parsed['mon-sun'] === 'string' ? parsed['mon-sun'] : null) || 'See store for hours';
+    } else if (typeof hours === 'object' && hours !== null && 'mon-sun' in hours) {
+      const hoursObj = hours as Record<string, unknown>;
+      return (typeof hoursObj['mon-sun'] === 'string' ? hoursObj['mon-sun'] : null) || 'See store for hours';
     }
     return 'See store for hours';
   } catch {
@@ -658,12 +683,12 @@ export function parseOperatingHours(hours: any): string {
   }
 }
 
-export function parseJsonArray(data: any, defaultValue: any[] = []): any[] {
+export function parseJsonArray<T = unknown>(data: unknown, defaultValue: T[] = []): T[] {
   if (!data) return defaultValue;
   if (Array.isArray(data)) return data;
-  
+
   try {
-    const parsed = JSON.parse(data);
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
     return Array.isArray(parsed) ? parsed : defaultValue;
   } catch {
     return defaultValue;
@@ -673,7 +698,7 @@ export function parseJsonArray(data: any, defaultValue: any[] = []): any[] {
 /**
  * Helper function to safely parse JSON array values from database
  */
-function safeParseJsonArray(value: any): string[] {
+function safeParseJsonArray(value: unknown): string[] {
   if (!value) return [];
   if (Array.isArray(value)) return value;
   if (typeof value === 'string') {
@@ -688,18 +713,18 @@ function safeParseJsonArray(value: any): string[] {
 }
 
 /* EXPORTING FUNCTION OF EVENTS PAGE */
-export function parseEventImages(images: any): EventImage[] {
-  const parsed = parseJsonArray(images);
+export function parseEventImages(images: unknown): EventImage[] {
+  const parsed = parseJsonArray<Record<string, unknown>>(images);
   return parsed.map(img => ({
-    url: img.url || '',
-    alt: img.alt || 'Event image',
-    caption: img.caption || null
+    url: (typeof img.url === 'string' ? img.url : '') || '',
+    alt: (typeof img.alt === 'string' ? img.alt : '') || 'Event image',
+    caption: (typeof img.caption === 'string' ? img.caption : null) || null
   }));
 }
 
-export function parseEventTags(tags: any): string[] {
-  const parsed = parseJsonArray(tags);
-  return parsed.filter(tag => typeof tag === 'string' && tag.trim().length > 0);
+export function parseEventTags(tags: unknown): string[] {
+  const parsed = parseJsonArray<unknown>(tags);
+  return parsed.filter((tag): tag is string => typeof tag === 'string' && tag.trim().length > 0);
 }
 
 // Generate URL-safe slug from title
@@ -849,10 +874,14 @@ export async function fetchPosts(params: PostFetchParams = {}): Promise<PostFetc
         throw new Error(`Failed to fetch posts: ${retryResult.error.message}`);
       }
       return {
-        posts: (retryResult.data || []).map(post => ({
-          ...post,
-          tags: safeParseJsonArray(post.tags)
-        })),
+      posts: (retryResult.data || []).map(post => {
+      const category = getFirst(post.category);
+      return {
+        ...post,
+        category: category || null,
+        tags: safeParseJsonArray(post.tags)
+      };
+      }),
         total: retryResult.count || 0,
         page,
         perPage,
@@ -875,7 +904,7 @@ export async function fetchPosts(params: PostFetchParams = {}): Promise<PostFetc
       page,
       perPage,
       hasMore: (count || 0) > to + 1
-    };
+  };
 
   } catch (error) {
     console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
@@ -889,67 +918,69 @@ export async function fetchPosts(params: PostFetchParams = {}): Promise<PostFetc
  * @param options - Options including admin access
  * @returns Promise resolving to post or null if not found
  */
-export async function fetchPostBySlug(
-  slug: string, 
-  options: { isAdmin?: boolean } = {}
-): Promise<Post | null> {
-  const { isAdmin = false } = options;
+  export async function fetchPostBySlug(
+    slug: string, 
+    options: { isAdmin?: boolean } = {}
+  ): Promise<Post | null> {
+    const { isAdmin = false } = options;
 
-  try {
-    let query = supabase
-      .from('posts')
-      .select(`
-        id,
-        title,
-        slug,
-        summary,
-        body_html,
-        category_id,
-        category:blog_categories(id,name,slug,accent_color),
-        tags,
-        is_published,
-        is_featured,
-        publish_at,
-        image_url,
-        created_by,
-        created_at,
-        updated_at
-      `)
-      .eq('slug', slug)
-      .single();
+    try {
+      let query = supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          slug,
+          summary,
+          body_html,
+          category_id,
+          category:blog_categories(id,name,slug,accent_color),
+          tags,
+          is_published,
+          is_featured,
+          publish_at,
+          image_url,
+          created_by,
+          created_at,
+          updated_at
+        `)
+        .eq('slug', slug);
 
-    // Apply published filter unless admin
-    if (!isAdmin) {
-      query = query
-        .eq('is_published', true)
-        .or('publish_at.is.null,publish_at.lte.' + new Date().toISOString());
-    }
+      // Apply published filter unless admin
+      if (!isAdmin) {
+        query = query
+          .eq('is_published', true)
+          .or('publish_at.is.null,publish_at.lte.' + new Date().toISOString());
+      }
 
-    const { data, error } = await query;
+      const { data, error } = await query.single();
 
     if (error) {
       if (error.code === 'PGRST116') return null; // Not found
       console.error('Error fetching post by slug:', error);
       // Retry once
       await new Promise(resolve => setTimeout(resolve, 300));
-      const retryResult = await query;
+      const retryResult = await query.single();
       if (retryResult.error) {
         console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
         return null;
       }
       return retryResult.data ? {
         ...retryResult.data,
+        category: getFirst(retryResult.data.category) || null,
         tags: safeParseJsonArray(retryResult.data.tags)
       } : null;
     }
 
-    const category = getFirst(data.category);
-      return data ? {
+    if (data) {
+      const category = getFirst(data.category);
+      return {
         ...data,
         category: category || null,
         tags: safeParseJsonArray(data.tags)
-      } : null;
-
+      };
+    }
+    return null;   
   } catch (error) {
     console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
     return null;
@@ -999,10 +1030,14 @@ export async function fetchFeaturedPosts(limit: number = 6): Promise<Post[]> {
         console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
         throw new Error(`Failed to fetch featured posts: ${retryResult.error.message}`);
       }
-      return (retryResult.data || []).map(post => ({
+      return (retryResult.data || []).map(post => {
+      const category = getFirst(post.category);
+      return {
         ...post,
+        category: category || null,
         tags: safeParseJsonArray(post.tags)
-      }));
+      };
+      });
     }
 
       return (data || []).map(post => {
@@ -1061,7 +1096,7 @@ export async function searchPosts(
 /* All function related to new Promotions Page 
 * added a safe fallback in case of image_url not found which causes image error to load */
 // Utility function for safe image URL processing
-function sanitizeImageUrl(url: any): string | null {
+function sanitizeImageUrl(url: unknown): string | null {
   if (!url || typeof url !== 'string') return null;
   
   // Check for common invalid formats
@@ -1078,12 +1113,15 @@ function sanitizeImageUrl(url: any): string | null {
 }
 
 // Utility function for safe JSON parsing of raw_json
-function parsePromotionRawJson(rawJson: any): any {
+function parsePromotionRawJson(rawJson: unknown): Record<string, unknown> {
   if (!rawJson) return {};
-  if (typeof rawJson === 'object') return rawJson;
-  
+  if (typeof rawJson === 'object' && rawJson !== null) return rawJson as Record<string, unknown>;
+
   try {
-    return JSON.parse(rawJson);
+    if (typeof rawJson === 'string') {
+      return JSON.parse(rawJson) as Record<string, unknown>;
+    }
+    return {};
   } catch {
     return {};
   }
@@ -1097,8 +1135,8 @@ async function retryWithBackoff<T>(
 ): Promise<T> {
   try {
     return await fn();
-  } catch (error: any) {
-    if (retries > 0 && error?.message?.includes('network')) {
+  } catch (error: unknown) {
+    if (retries > 0 && error instanceof Error && error.message.includes('network')) {
       await new Promise(resolve => setTimeout(resolve, delay));
       return retryWithBackoff(fn, retries - 1, delay * 2);
     }
@@ -1238,9 +1276,9 @@ export async function fetchPromotions(params: PromotionFetchParams = {}): Promis
 
     // Transform to match PromotionWithTenant interface
     const promotions: PromotionWithTenant[] = (data || []).map(promo => {
-      const tenant = promo.tenants || {};
-      const category = tenant.tenant_categories || {};
-      
+      const tenant = getFirst(promo.tenants);
+      const category = getFirst(tenant?.tenant_categories);
+
       return {
         id: promo.id,
         tenant_id: promo.tenant_id,
@@ -1255,14 +1293,14 @@ export async function fetchPromotions(params: PromotionFetchParams = {}): Promis
         raw_json: parsePromotionRawJson(promo.raw_json),
         created_at: promo.created_at,
         media_id: promo.media_id,
-        tenant_name: tenant.name || 'Supermal Karawaci',
-        brand_name: tenant.name || 'Supermal Karawaci',
-        tenant_category: category.display_name || 'General',
-        tenant_category_display: category.display_name || 'General', 
-        tenant_category_id: tenant.category_id || '',
-        category_color: category.color,
-        category_icon: category.icon,
-        main_floor: tenant.main_floor
+        tenant_name: tenant?.name || 'Supermal Karawaci',
+        brand_name: tenant?.name || 'Supermal Karawaci',
+        tenant_category: category?.display_name || 'General',
+        tenant_category_display: category?.display_name || 'General',
+        tenant_category_id: tenant?.category_id || '',
+        category_color: category?.color,
+        category_icon: category?.icon,
+        main_floor: tenant?.main_floor
       };
     });
 
@@ -1275,12 +1313,12 @@ export async function fetchPromotions(params: PromotionFetchParams = {}): Promis
 
   try {
     return await retryWithBackoff(tryViewQuery);
-  } catch (viewError: any) {
+  } catch (viewError: unknown) {
     console.warn('v_promotions_full query failed or returned no rows; falling back to direct promotions join. Check that v_promotions_full exists and RLS policies allow public SELECT.', viewError);
     
     try {
       return await retryWithBackoff(tryFallbackQuery);
-    } catch (fallbackError: any) {
+    } catch (fallbackError: unknown) {
       console.error('Both view and fallback queries failed:', fallbackError);
       throw new Error('Failed to load promotions');
     }
@@ -1348,9 +1386,9 @@ export async function fetchFeaturedPromotions(limit: number = 6): Promise<Promot
     if (error) throw error;
 
     return (data || []).map(promo => {
-      const tenant = promo.tenants || {};
-      const category = tenant.tenant_categories || {};
-      
+      const tenant = getFirst(promo.tenants);
+      const category = getFirst(tenant?.tenant_categories);
+
       return {
         id: promo.id,
         tenant_id: promo.tenant_id,
@@ -1365,26 +1403,26 @@ export async function fetchFeaturedPromotions(limit: number = 6): Promise<Promot
         raw_json: parsePromotionRawJson(promo.raw_json),
         created_at: promo.created_at,
         media_id: promo.media_id,
-        tenant_name: tenant.name || 'Supermal Karawaci',
-        brand_name: tenant.name || 'Supermal Karawaci',
-        tenant_category: category.display_name || 'General',
-        tenant_category_display: category.display_name || 'General',
-        tenant_category_id: tenant.category_id || '',
-        category_color: category.color,
-        category_icon: category.icon,
-        main_floor: tenant.main_floor
+        tenant_name: tenant?.name || 'Supermal Karawaci',
+        brand_name: tenant?.name || 'Supermal Karawaci',
+        tenant_category: category?.display_name || 'General',
+        tenant_category_display: category?.display_name || 'General',
+        tenant_category_id: tenant?.category_id || '',
+        category_color: category?.color,
+        category_icon: category?.icon,
+        main_floor: tenant?.main_floor
       };
     });
   }
 
   try {
     return await retryWithBackoff(tryViewQuery);
-  } catch (viewError: any) {
+  } catch (viewError: unknown) {
     console.warn('v_promotions_full query failed for featured promotions; falling back to direct promotions join.', viewError);
     
     try {
       return await retryWithBackoff(tryFallbackQuery);
-    } catch (fallbackError: any) {
+    } catch (fallbackError: unknown) {
       console.error('Both view and fallback queries failed for featured promotions:', fallbackError);
       return []; // Return empty array instead of throwing for featured promotions
     }
@@ -1478,9 +1516,9 @@ export async function fetchPromotionById(id: string, includeTenant: boolean = tr
       throw error;
     }
 
-    const tenant = data.tenants || {};
-    const category = tenant.tenant_categories || {};
-    
+    const tenant = getFirst(data.tenants);
+    const category = getFirst(tenant?.tenant_categories);
+
     return {
       id: data.id,
       tenant_id: data.tenant_id,
@@ -1495,25 +1533,25 @@ export async function fetchPromotionById(id: string, includeTenant: boolean = tr
       raw_json: parsePromotionRawJson(data.raw_json),
       created_at: data.created_at,
       media_id: data.media_id,
-      tenant_name: tenant.name || 'Supermal Karawaci',
-      brand_name: tenant.name || 'Supermal Karawaci',
-      tenant_category: category.display_name || 'General',
-      tenant_category_display: category.display_name || 'General',
-      tenant_category_id: tenant.category_id || '',
-      category_color: category.color,
-      category_icon: category.icon,
-      main_floor: tenant.main_floor
+      tenant_name: tenant?.name || 'Supermal Karawaci',
+      brand_name: tenant?.name || 'Supermal Karawaci',
+      tenant_category: category?.display_name || 'General',
+      tenant_category_display: category?.display_name || 'General',
+      tenant_category_id: tenant?.category_id || '',
+      category_color: category?.color,
+      category_icon: category?.icon,
+      main_floor: tenant?.main_floor
     };
   }
 
   try {
     return await retryWithBackoff(tryViewQuery);
-  } catch (viewError: any) {
+  } catch (viewError: unknown) {
     console.warn('v_promotions_full query failed for promotion by ID; falling back to direct promotions join.', viewError);
     
     try {
       return await retryWithBackoff(tryFallbackQuery);
-    } catch (fallbackError: any) {
+    } catch (fallbackError: unknown) {
       console.error('Both view and fallback queries failed for promotion by ID:', fallbackError);
       return null;
     }
@@ -1780,7 +1818,7 @@ export async function createOrUpdateEvent(
       metadata: JSON.stringify(eventData.metadata || {})
     };
 
-    let query = supabase.from('events');
+    const query = supabase.from('events');
     
     if (eventId) {
       // Update existing event
@@ -2081,6 +2119,11 @@ export async function fetchFeaturedTenants(limit: number = 12): Promise<Tenant[]
           banner_url,
           is_active,
           lease_status,
+          services,
+          payment_methods,
+          gallery_urls,
+          created_at,
+          updated_at,
           tenant_categories:category_id (
             name,
             display_name
@@ -2096,14 +2139,19 @@ export async function fetchFeaturedTenants(limit: number = 12): Promise<Tenant[]
         throw fallbackError;
       }
 
-      return (data || []).map(tenant => ({
-        ...tenant,
-        category_name: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
-        category_display: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
-        services: parseJsonArray(tenant.services, []),
-        payment_methods: parseJsonArray(tenant.payment_methods, []),
-        gallery_urls: parseJsonArray(tenant.gallery_urls, []),
-      }));
+      return (data || []).map(tenant => {
+        const category = getFirst(tenant.tenant_categories);
+        return {
+          ...tenant,
+          category_name: category?.display_name || category?.name,
+          category_display: category?.display_name || category?.name,
+          services: parseJsonArray(tenant.services, []),
+          payment_methods: parseJsonArray(tenant.payment_methods, []),
+          gallery_urls: parseJsonArray(tenant.gallery_urls, []),
+          created_at: tenant.created_at || new Date().toISOString(),
+          updated_at: tenant.updated_at || new Date().toISOString(),
+        };
+      });
     } catch (fallbackError) {
       console.error('Featured tenants fallback failed:', fallbackError);
       throw fallbackError;
@@ -2160,6 +2208,11 @@ export async function fetchTenantsByFloor(floor: string): Promise<Tenant[]> {
           is_new_tenant,
           logo_url,
           is_active,
+          services,
+          payment_methods,
+          gallery_urls,
+          created_at,
+          updated_at,
           tenant_categories:category_id (
             name,
             display_name
@@ -2174,14 +2227,19 @@ export async function fetchTenantsByFloor(floor: string): Promise<Tenant[]> {
         throw fallbackError;
       }
 
-      return (data || []).map(tenant => ({
-        ...tenant,
-        category_name: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
-        category_display: tenant.tenant_categories?.display_name || tenant.tenant_categories?.name,
-        services: parseJsonArray(tenant.services, []),
-        payment_methods: parseJsonArray(tenant.payment_methods, []),
-        gallery_urls: parseJsonArray(tenant.gallery_urls, []),
-      }));
+      return (data || []).map(tenant => {
+        const category = getFirst(tenant.tenant_categories);
+        return {
+          ...tenant,
+          category_name: category?.display_name || category?.name,
+          category_display: category?.display_name || category?.name,
+          services: parseJsonArray(tenant.services, []),
+          payment_methods: parseJsonArray(tenant.payment_methods, []),
+          gallery_urls: parseJsonArray(tenant.gallery_urls, []),
+          created_at: tenant.created_at || new Date().toISOString(),
+          updated_at: tenant.updated_at || new Date().toISOString(),
+        };
+      });
     } catch (fallbackError) {
       console.error('Floor tenants fallback failed:', fallbackError);
       throw fallbackError;
@@ -2195,10 +2253,10 @@ export async function fetchTenantsByFloor(floor: string): Promise<Tenant[]> {
  * subscribe to underlying base tables for reliability
  */
 export function subscribeTenantUpdates(
-  callback: (payload: any) => void, 
+  callback: (payload: unknown) => void, 
   options: { enableViewSubscribe?: boolean } = {}
 ): () => void {
-  const subscriptions: any[] = [];
+  const subscriptions: Array<{ unsubscribe: () => void }> = [];
 
   // Always subscribe to base tenants table for reliability
   const tenantSubscription = supabase
@@ -2257,7 +2315,7 @@ export function subscribeTenantUpdates(
   };
 }
 
-export function subscribeCategoryUpdates(callback: (payload: any) => void): () => void {
+export function subscribeCategoryUpdates(callback: (payload: unknown) => void): () => void {
   const subscription = supabase
     .channel('category-updates')
     .on(
@@ -2404,7 +2462,7 @@ export async function fetchContactStats() {
   }
 }
 
-export function subscribeContactUpdates(callback: (payload: any) => void): () => void {
+export function subscribeContactUpdates(callback: (payload: unknown) => void): () => void {
   const subscription = supabase
     .channel('contact-updates')
     .on(
@@ -2586,12 +2644,21 @@ export async function fetchVipTierBenefits(tierId: string): Promise<VipBenefitWi
     }
 
     const benefits: VipBenefitWithNote[] = (data || [])
-      .filter(tb => tb.vip_benefits?.is_active)
-      .map(tb => ({
-        ...tb.vip_benefits,
-        benefit_note: tb.benefit_note,
-        display_order: tb.display_order
-      }));
+      .filter(tb => {
+        const benefit = getFirst(tb.vip_benefits);
+        return benefit?.is_active;
+      })
+      .map(tb => {
+        const benefit = getFirst(tb.vip_benefits);
+        if (!benefit) {
+          throw new Error('Expected VIP benefit to exist after filtering');
+        }
+        return {
+          ...benefit,
+          benefit_note: tb.benefit_note,
+          display_order: tb.display_order
+        };
+      });
 
     return benefits;
   } catch (error) {
@@ -2638,12 +2705,21 @@ export async function fetchVipTierWithBenefits(tierId: string): Promise<VipTier 
     }
 
     const benefits: VipBenefitWithNote[] = (tierBenefits || [])
-      .filter(tb => tb.vip_benefits?.is_active)
-      .map(tb => ({
-        ...tb.vip_benefits,
-        benefit_note: tb.benefit_note,
-        display_order: tb.display_order
-      }));
+      .filter(tb => {
+        const benefit = getFirst(tb.vip_benefits);
+        return benefit?.is_active;
+      })
+      .map(tb => {
+        const benefit = getFirst(tb.vip_benefits);
+        if (!benefit) {
+          throw new Error('Expected VIP benefit to exist after filtering');
+        }
+        return {
+          ...benefit,
+          benefit_note: tb.benefit_note,
+          display_order: tb.display_order
+        };
+      });
 
     return { ...tier, benefits };
   } catch (error) {

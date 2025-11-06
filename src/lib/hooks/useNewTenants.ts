@@ -1,7 +1,7 @@
 // src/lib/hooks/useNewTenants.ts
 // Created: React hook for fetching new tenants with loading states
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 // Import the specific function and type - this will work once the function is added to supabase.ts
 import { fetchNewTenants } from '../supabase';
 import type { FeaturedTenant } from '../supabase';

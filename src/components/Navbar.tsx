@@ -1,7 +1,7 @@
 // src/components/Navbar.tsx
 // Modified: Fixed mobile menu overflow, scrollable container, polished close button, world-class UX
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { 
   Store, 
@@ -13,7 +13,6 @@ import {
   Heart
 } from 'lucide-react';
 import MegaMenu from '@/components/ui/mega-menu';
-import ThemeToggle from '@/components/ui/theme-toggle';
 import { useTheme } from '@/lib/theme-config';
 import type { MegaMenuItem } from '@/components/ui/mega-menu';
 
@@ -21,7 +20,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const { currentTheme, isLoading } = useTheme();
+  const { currentTheme } = useTheme();
 
   // Theme-specific logo URLs with lazy loading
   const logoConfig = {
@@ -238,7 +237,7 @@ const Navbar = () => {
                 
                 {/* Mobile Hamburger Menu Button */}
                 <button
-                  className="p-2.5 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  className="p-2.5 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
                   onClick={toggleMobileMenu}
                   aria-label="Toggle mobile menu"
                   aria-expanded={isMobileMenuOpen}
@@ -246,7 +245,6 @@ const Navbar = () => {
                     backgroundColor: 'var(--color-surface-secondary)',
                     color: 'var(--color-text-primary)',
                     border: '1px solid var(--color-border-primary)',
-                    focusRingColor: 'var(--color-accent)',
                   }}
                 >
                   {isMobileMenuOpen ? (

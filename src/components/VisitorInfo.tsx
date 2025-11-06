@@ -1,7 +1,6 @@
 // src/components/VisitorInfo.tsx
 // Fixed: Replaced all hardcoded colors with theme-aware CSS variables and semantic tokens
 
-import React from 'react';
 import { MapPin, Clock, Phone, Mail, Car, Info as InfoIcon, Accessibility, Wifi } from 'lucide-react';
 
 const VisitorInfo = () => {

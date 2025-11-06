@@ -1,7 +1,7 @@
 // src/components/VIPCardsPage.tsx
 // Created: Main VIP Cards page with Hero, card layout, compare panel, eligibility checker, and FAQ
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Star, Gift, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -17,9 +17,8 @@ import {
   fetchVipTierBenefits, 
   VipTier, 
   VipBenefitWithNote, 
-  FALLBACK_VIP_TIERS 
+  FALLBACK_VIP_TIERS
 } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
 
 // Set document title on mount
 if (typeof document !== 'undefined') {
@@ -31,7 +30,7 @@ const VIPCardsPage: React.FC = () => {
   const [tiers, setTiers] = useState<VipTier[]>([]);
   const [tierBenefits, setTierBenefits] = useState<Record<string, VipBenefitWithNote[]>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
 
   // UI state
@@ -97,11 +96,6 @@ const VIPCardsPage: React.FC = () => {
   const handleCardExpand = (tierId: string) => {
     setExpandedTierId(expandedTierId === tierId ? null : tierId);
   };
-
-  // Selected tiers for comparison - keeping for potential future use
-  const selectedTiers = useMemo(() => {
-    return [];
-  }, []);
 
   // Hero stats
   const heroStats = useMemo(() => [

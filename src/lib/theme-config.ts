@@ -119,7 +119,9 @@ const themeChangeListeners = new Set<(theme: ThemeName) => void>();
  */
 export function subscribeToThemeChanges(listener: (theme: ThemeName) => void) {
   themeChangeListeners.add(listener);
-  return () => themeChangeListeners.delete(listener);
+  return () => {
+    themeChangeListeners.delete(listener);
+  };
 }
 
 /**

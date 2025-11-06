@@ -26,7 +26,6 @@ import { LoadingSpinner, PageLoader } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Hero } from '@/components/ui/Hero';
-import { cn } from '@/lib/utils';
 
 // Types for filters - simplified since we only show active promotions
 interface FilterState {
@@ -55,7 +54,7 @@ const PromotionsPage: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [totalPromotions, setTotalPromotions] = useState(0);
+  const [, setTotalPromotions] = useState(0);
   const [hasMorePromotions, setHasMorePromotions] = useState(false);
 
   // UI state

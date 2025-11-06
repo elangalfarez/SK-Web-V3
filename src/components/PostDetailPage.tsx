@@ -1,10 +1,10 @@
 // src/components/PostDetailPage.tsx
 // Modified: Constrained reading width (~12-14 words per line), hero overlay design, proper layout with sidebar, FULL FUNCTIONALITY RESTORED
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeft, Calendar, Tag, Share2, Copy, Check, ChevronLeft, ChevronRight, Home, Clock, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Copy, Check, ChevronLeft, ChevronRight, Home, Clock } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { fetchPostBySlug, fetchPosts, type Post } from '../lib/supabase';
 import { seededPosts, seededCategories } from '../data/seeded-posts';
@@ -204,10 +204,8 @@ export default function PostDetailPage() {
           let relatedPosts: Post[] = [];
           
           try {
-            const allPostsResult = await fetchPosts({ 
-              limit: 100, // Get enough posts for navigation
-              sortBy: 'publish_at',
-              sortOrder: 'desc'
+            const allPostsResult = await fetchPosts({
+              perPage: 100 // Get enough posts for navigation
             });
             allPosts = allPostsResult.posts;
             

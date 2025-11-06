@@ -1,14 +1,12 @@
 // src/components/BlogPage.tsx
 // Modified: Two-column layout, numerical pagination, proper hero integration, contrast fixes
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { AlertCircle, X, Search, Filter, Laptop, Plane, Trophy, Briefcase, TrendingUp, Flame, BarChart3, Folder } from 'lucide-react';
+import { AlertCircle, X, Laptop, Plane, Trophy, Briefcase, TrendingUp, Flame, BarChart3, Folder } from 'lucide-react';
 import { fetchPosts, fetchFeaturedPosts, type Post, type PostFetchParams } from '../lib/supabase';
 import { seededPosts, seededCategories } from '../data/seeded-posts';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import HeroBlog from './ui/HeroBlog';
 import BlogSidebar from './ui/BlogSidebar';
 import BlogListHorizontal from './ui/BlogListHorizontal';
@@ -78,9 +76,9 @@ export default function BlogPage() {
     try {
       const result = await fetchPosts({
         page: state.currentPage,
-        limit: POSTS_PER_PAGE,
+        perPage: POSTS_PER_PAGE,
         search: state.searchQuery || undefined,
-        category: state.selectedCategory || undefined,
+        categoryId: state.selectedCategory || undefined,
         tags: state.selectedTags.length > 0 ? state.selectedTags : undefined,
         ...params
       });
@@ -175,14 +173,7 @@ export default function BlogPage() {
     }));
   }, []);
 
-  // Handle search
-  const handleSearch = useCallback((query: string) => {
-    setState(prev => ({
-      ...prev,
-      searchQuery: query,
-      currentPage: 1
-    }));
-  }, []);
+  // Handle search - removed unused function
 
   // Handle page change
   const handlePageChange = useCallback((page: number) => {

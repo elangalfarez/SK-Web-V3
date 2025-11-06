@@ -1,9 +1,9 @@
 // src/components/EventsPage.tsx
 // Modified: Remove dependencies on removed columns and implement summary fallback
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Search, Filter, RotateCcw, ChevronDown } from 'lucide-react';
+import { Calendar, Search, Filter, RotateCcw, ChevronDown } from 'lucide-react';
 import { 
   fetchEvents, 
   fetchFeaturedEvents, 
@@ -15,9 +15,7 @@ import {
 import { Hero } from '@/components/ui/Hero';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { EventCard } from '@/components/ui/event-card';
 import { EventList } from '@/components/ui/event-list';
-import { EventFilters } from '@/components/ui/event-filters';
 
 // Updated seeded fallback events without removed columns
 const SEEDED_EVENTS: Event[] = [
@@ -79,7 +77,6 @@ const EventsPage: React.FC = () => {
   const [featuredLoading, setFeaturedLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   // Filter states
@@ -108,7 +105,6 @@ const EventsPage: React.FC = () => {
     try {
       if (reset) {
         setLoading(true);
-        setError(null);
       } else {
         setLoadingMore(true);
       }
@@ -135,8 +131,7 @@ const EventsPage: React.FC = () => {
       setHasMore(result.hasMore);
     } catch (err) {
       console.error('Error loading events:', err);
-      setError('Failed to load events');
-      
+
       // Use seeded events as fallback
       if (reset || events.length === 0) {
         setEvents(SEEDED_EVENTS);

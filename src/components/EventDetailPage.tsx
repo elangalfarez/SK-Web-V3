@@ -21,12 +21,8 @@ import { Hero } from '@/components/ui/Hero';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-interface EventDetailPageParams {
-  slug: string;
-}
-
 const EventDetailPage: React.FC = () => {
-  const { slug } = useParams<EventDetailPageParams>();
+  const { slug } = useParams();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,8 +86,9 @@ const EventDetailPage: React.FC = () => {
     if (isSameDay) {
       return `${format(start, 'EEEE, MMMM d, yyyy')} • ${format(start, 'h:mm a')} - ${format(end, 'h:mm a')}`;
     }
-    
-    return `${formatEventDate(event.start_at)} - ${formatEventDate(event.end_at)}`;
+
+    // end_at is guaranteed to be non-null here due to the !end check above
+    return `${formatEventDate(event.start_at)} - ${formatEventDate(event.end_at!)}`;
   }, [event]);
 
   // Get event summary with fallback to body excerpt
