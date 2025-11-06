@@ -1,4 +1,5 @@
 // src/components/ui/empty-state.tsx
+// Fixed: replaced invalid 'shake' property with 'x' for Framer Motion horizontal shake animation
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, RefreshCw, Gift, AlertCircle } from 'lucide-react';
@@ -101,7 +102,7 @@ const emptyStateConfigs = {
       <div className="relative">
         <motion.div
           className="w-24 h-24 bg-error/10 rounded-full flex items-center justify-center mb-4"
-          animate={{ shake: [0, -2, 2, -2, 2, 0] }}
+          animate={{ x: [0, -2, 2, -2, 2, 0] }}
           transition={{ duration: 0.5, repeat: 2, delay: 1 }}
         >
           <AlertCircle className="w-12 h-12 text-error" />

@@ -1,4 +1,6 @@
 // src/components/ui/badge.tsx
+// Fixed: Added warning, success, and info variants to match Button component capabilities
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -16,6 +18,12 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        success:
+          "border-transparent bg-success text-text-inverse hover:bg-success/80",
+        warning:
+          "border-transparent bg-warning text-text-inverse hover:bg-warning/80",
+        info:
+          "border-transparent bg-info text-text-inverse hover:bg-info/80",
       },
     },
     defaultVariants: {

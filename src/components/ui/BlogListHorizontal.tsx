@@ -1,11 +1,9 @@
 // src/components/ui/BlogListHorizontal.tsx
-// Modified: Horizontal layout with read-time on hover, solid badges, proper contrast, rounded images
+// Modified: Removed unused React import
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ResponsiveImage } from './ResponsiveImage';
 import { cn } from '@/lib/utils';
 import type { Post } from '../../lib/supabase';
@@ -79,85 +77,68 @@ export default function BlogListHorizontal({
                   loading={index === 0 ? 'eager' : 'lazy'}
                 />
               ) : (
-                // Gradient fallback for posts without images
                 <div className={cn(
-                  'w-full h-60 rounded-2xl flex items-center justify-center relative overflow-hidden',
+                  'w-full h-60 rounded-2xl flex items-center justify-center',
                   generateGradientFallback(index)
                 )}>
-                  <div className="w-24 h-20 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-xl transform rotate-12 shadow-lg"></div>
-                  <div className="absolute top-3 right-3 w-4 h-4 bg-pink-500 rounded-full"></div>
-                  <div className="absolute bottom-4 left-4 w-10 h-1.5 bg-pink-500 rounded-full"></div>
+                  <span className="text-white text-6xl opacity-50">📰</span>
                 </div>
               )}
-            </Link>
-            
-            {/* Category badges on image - solid backgrounds */}
-            <div className="absolute top-4 left-4 flex gap-2">
-              {post.category && (
-                <Badge className="bg-surface text-text-primary border-0 text-xs font-medium shadow-sm">
-                  {post.category.name.toUpperCase()}
-                </Badge>
-              )}
-              {post.tags.slice(0, 1).map(tag => (
-                <Badge key={tag} className="bg-surface text-text-primary border-0 text-xs font-medium shadow-sm">
-                  {tag.toUpperCase()}
-                </Badge>
-              ))}
-            </div>
 
-            {/* Read time badge - show on small screens, hover on desktop */}
-            <div className="absolute top-4 right-4">
-              {/* Always visible on small screens */}
-              <div className="sm:hidden flex items-center gap-1 bg-surface text-text-primary rounded-full px-2 py-1 shadow-sm">
-                <Clock className="w-3 h-3" />
-                <span className="text-xs font-medium">
-                  {estimateReadTime(post.body_html)}
-                </span>
+              {/* Read Time Badge - Appears on hover */}
+              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg">
+                  <Clock className="w-3.5 h-3.5 text-gray-600" />
+                  <span className="text-xs font-medium text-gray-700">
+                    {estimateReadTime(post.body_html)}
+                  </span>
+                </div>
               </div>
-              
-              {/* Show on hover on desktop */}
-              <div className="hidden sm:flex items-center gap-1 bg-surface text-text-primary rounded-full px-2 py-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <Clock className="w-3 h-3" />
-                <span className="text-xs font-medium">
-                  {estimateReadTime(post.body_html)}
-                </span>
-              </div>
-            </div>
+            </Link>
           </div>
 
           {/* Content Section - 55% width */}
-          <div className="w-[55%] relative h-60">
-            {/* Author info aligned to top */}
-            <div className="absolute top-0 left-0 right-0">
-              <span className="text-accent text-sm font-medium">Ethan Caldwell</span>
-              <span className="text-text-muted text-sm ml-2">
-                on {formatDate(post.publish_at || post.created_at)}
-              </span>
-            </div>
+          <div className="w-[55%] flex flex-col justify-center">
+            {/* Category Badge - Solid styling */}
+            {post.category && (
+              <div className="mb-3">
+                <Badge className="bg-accent text-text-inverse border-0 font-medium shadow-sm hover:shadow-md transition-shadow">
+                  {post.category.name.toUpperCase()}
+                </Badge>
+              </div>
+            )}
 
-            {/* Title and excerpt in middle */}
-            <div className="absolute top-8 left-0 right-0 bottom-12">
-              <Link to={`/blog/${post.slug}`}>
-                <h2 className="text-2xl font-bold mb-3 text-pretty leading-tight text-text-primary hover:text-accent transition-colors">
-                  {post.title}
-                </h2>
-              </Link>
+            {/* Title */}
+            <Link to={`/blog/${post.slug}`}>
+              <h3 className="text-2xl font-bold text-text-primary mb-3 group-hover:text-accent transition-colors leading-tight line-clamp-2">
+                {post.title}
+              </h3>
+            </Link>
 
-              <p className="text-text-secondary text-sm text-pretty leading-relaxed line-clamp-3">
-                {post.summary || post.title}
+            {/* Summary */}
+            {post.summary && (
+              <p className="text-text-secondary mb-4 line-clamp-2 leading-relaxed">
+                {post.summary}
               </p>
-            </div>
+            )}
 
-            {/* Button aligned to bottom */}
-            <div className="absolute bottom-0 left-0">
-              <Button 
-                asChild
-                className="bg-accent hover:bg-accent-hover text-text-inverse border-0 text-sm px-6 py-2 rounded-xl shadow-sm"
-              >
-                <Link to={`/blog/${post.slug}`}>
-                  Discover More
-                </Link>
-              </Button>
+            {/* Meta Info */}
+            <div className="flex items-center gap-4 text-sm text-text-muted">
+              <time dateTime={post.publish_at || post.created_at}>
+                {formatDate(post.publish_at || post.created_at)}
+              </time>
+              {post.tags.length > 0 && (
+                <>
+                  <span>•</span>
+                  <div className="flex gap-2">
+                    {post.tags.slice(0, 2).map(tag => (
+                      <span key={tag} className="text-accent font-medium">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </article>

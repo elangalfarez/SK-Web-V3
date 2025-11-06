@@ -1,16 +1,13 @@
 // src/components/hero/HeroContent.tsx
-// Modified: Applied Commissioner font to H1 hero title elements
+// Fixed: Removed showNavigation prop to match updated WhatsOnCarousel interface
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { WhatsOnModal } from '../ui/whats-on-modal';
 import { WhatsOnCarousel } from '../ui/whats-on-carousel';
-import { HeroModels } from '../ui/hero-models';
 import { useWhatsOn } from '@/lib/hooks/useWhatsOn';
 import { WhatsOnItem } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
 
-interface HeroContentProps {
+export interface HeroContentProps {
   title?: React.ReactNode;
   subtitle?: string;
   onDiscover?: () => void;
@@ -25,8 +22,6 @@ export const HeroContent: React.FC<HeroContentProps> = ({
     </>
   ),
   subtitle = "Your Shopping, Culinary, & Entertainment Destination",
-  onDiscover,
-  className,
 }) => {
   const { items, isLoading } = useWhatsOn({ limit: 6 });
   const [selectedItem, setSelectedItem] = useState<WhatsOnItem | null>(null);
@@ -67,7 +62,6 @@ export const HeroContent: React.FC<HeroContentProps> = ({
                 autoplay={true}
                 autoplayDelay={4000}
                 pauseOnHover={true}
-                showNavigation={false}
                 showDots={true}
               />
             )}
@@ -101,7 +95,6 @@ export const HeroContent: React.FC<HeroContentProps> = ({
                   autoplay={true}
                   autoplayDelay={4000}
                   pauseOnHover={true}
-                  showNavigation={false}
                   showDots={true}
                 />
               )}

@@ -1,5 +1,5 @@
 // src/components/ui/blog-card.tsx
-// Modified: Golden-ratio heights, solid badges, ResponsiveImage usage, contrast fixes
+// Modified: Removed unused imports + fixed excerpt → summary field name
 
 /*
 Golden ratio implementation: 
@@ -9,13 +9,10 @@ Badge styling: solid tokens, no backdrop-blur, shadow-sm for lift
 Text color fix: titles use text-primary (not white), hover uses text-accent
 */
 
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Tag, ArrowRight, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ResponsiveImage } from './ResponsiveImage';
-import BlogCategoryPill from './BlogCategoryPill';
 import { cn } from '@/lib/utils';
 import type { Post } from '../../lib/supabase';
 
@@ -168,41 +165,27 @@ export default function BlogCard({
         </div>
 
         {/* Content Section - ~160px (38.2% of 420px) */}
-        <div className="relative h-40 p-6 flex flex-col">
-          {/* Author info aligned to top */}
-          <div className="mb-2">
-            <span className="text-blue-600 text-sm font-medium">Ethan Caldwell</span>
-            <span className="text-gray-500 text-sm ml-2">
-              on {formatDate(post.publish_at || post.created_at)}
-            </span>
-          </div>
+        <div className="p-6 flex-1 flex flex-col justify-between">
+          <div>
+            {/* Post Metadata */}
+            <p className="text-sm text-text-muted mb-3">
+              {formatDate(post.publish_at || post.created_at)}
+            </p>
 
-          {/* Title and excerpt - flex-1 to fill space */}
-          <div className="flex-1 flex flex-col">
-            <h2 className="text-xl font-bold mb-3 text-primary group-hover:text-accent transition-colors line-clamp-2 leading-tight">
+            {/* Title */}
+            <h3 className="text-xl font-bold mb-3 text-text-primary group-hover:text-accent transition-colors line-clamp-2 leading-tight">
               {post.title}
-            </h2>
+            </h3>
 
+            {/* Summary - fixed field name */}
             {post.summary && (
-              <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 flex-1">
+              <p className="text-sm text-text-secondary line-clamp-2 leading-relaxed">
                 {post.summary}
               </p>
             )}
           </div>
-
-          {/* Button aligned to bottom */}
-          <div className="mt-4">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white border-0 text-sm px-6 py-2 rounded-xl">
-              Discover More
-            </Button>
-          </div>
         </div>
       </Link>
-
-      {/* Hidden summary for screen readers */}
-      <div id={`post-summary-${post.id}`} className="sr-only">
-        {post.summary || `Read the full article: ${post.title}`}
-      </div>
     </article>
   );
 }

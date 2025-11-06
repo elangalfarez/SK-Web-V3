@@ -1,9 +1,9 @@
 // src/components/ui/HeroBlog.tsx
-// Modified: Fixed contrast issues, solid badges, proper overlay implementation, rounded images
+// Fixed: Use correct Post type properties (summary instead of excerpt, body_html instead of content)
 
-import React, { useState, useEffect } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useReducedMotion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveImage } from './ResponsiveImage';
@@ -61,11 +61,11 @@ export default function HeroBlog({
   const estimateReadTime = (content: string | null) => {
     if (!content) return '5 Min Read';
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
-    const minutes = Math.ceil(wordCount / 200);
-    return `${minutes} Min Read`;
+    const readTime = Math.max(1, Math.ceil(wordCount / 200));
+    return `${readTime} Min Read`;
   };
 
-  if (!featuredPosts || featuredPosts.length === 0) {
+  if (!featuredPosts.length) {
     return null;
   }
 
@@ -73,65 +73,66 @@ export default function HeroBlog({
 
   return (
     <section 
-      className={cn('relative h-[500px] rounded-2xl overflow-hidden group', className)}
+      className={cn(
+        'relative w-full h-[500px] md:h-[600px] rounded-3xl overflow-hidden shadow-2xl',
+        className
+      )}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      role="region" 
-      aria-label="Featured blog posts"
     >
-      {/* Background Image */}
-      <ResponsiveImage
-        src={currentPost.image_url || ''}
-        alt=""
-        className="w-full h-full"
-        aspectRatio="16/9"
-        objectFit="cover"
-        fetchPriority="high"
-      />
-      
-      {/* Dark Overlay for Content Readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
-      
-      {/* Content Overlay */}
-      <div className="absolute inset-0 flex items-center">
-        <div className="w-full px-6 md:px-8 lg:px-12">
-          <div className="max-w-2xl">
-            {/* Category and Read Time Badges - Top Left */}
-            <div className="flex items-center gap-3 mb-6">
-              {currentPost.category && (
-                <Badge className="bg-accent text-text-inverse border-0 font-medium shadow-sm">
-                  {currentPost.category.name.toUpperCase()}
-                </Badge>
-              )}
-              
-              {/* Read Time - Top Right Area */}
-              <div className="ml-auto">
-                <Badge className="bg-surface/20 text-white border-0 font-medium shadow-sm">
-                  <Clock className="w-3 h-3 mr-1" />
-                  {estimateReadTime(currentPost.body_html)}
-                </Badge>
-              </div>
-            </div>
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
+        <ResponsiveImage
+          src={currentPost.image_url || ''}
+          alt=""
+          className="w-full h-full"
+          aspectRatio="16/9"
+          objectFit="cover"
+          fetchPriority="high"
+        />
+        
+        {/* Dark gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+      </div>
 
-            {/* Author and Date */}
-            <div className="flex items-center gap-2 text-gray-200 text-sm mb-4">
-              <span>Ethan Caldwell</span>
-              <span>•</span>
-              <span>{formatDate(currentPost.publish_at || currentPost.created_at)}</span>
-            </div>
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col justify-end p-8 md:p-12">
+        <div className="max-w-2xl space-y-4">
+          {/* Category Badge */}
+          {currentPost.category && (
+            <Badge 
+              variant="secondary"
+              className="bg-accent text-text-inverse border-0 px-4 py-1.5 text-sm font-medium"
+            >
+              {currentPost.category.name}
+            </Badge>
+          )}
 
-            {/* Title */}
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              {currentPost.title}
-            </h2>
+          {/* Title */}
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
+            {currentPost.title}
+          </h2>
 
-            {/* Summary */}
-            <p className="text-lg text-gray-200 mb-8 line-clamp-2 leading-relaxed max-w-xl">
-              {currentPost.summary || currentPost.title}
+          {/* Summary */}
+          {currentPost.summary && (
+            <p className="text-lg text-white/90 leading-relaxed line-clamp-2">
+              {currentPost.summary}
             </p>
+          )}
 
-            {/* CTA Button */}
+          {/* Meta Information */}
+          <div className="flex items-center gap-4 text-sm text-white/80">
+            <span>{formatDate(currentPost.created_at)}</span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              {estimateReadTime(currentPost.body_html)}
+            </span>
+          </div>
+
+          {/* CTA Button */}
+          <div className="pt-4">
             <Button
+              size="lg"
               onClick={() => onSelect?.(currentPost.slug)}
               className="bg-accent hover:bg-accent-hover text-text-inverse border-0 px-8 py-3 text-lg font-medium rounded-xl shadow-lg"
             >

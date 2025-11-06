@@ -1,5 +1,5 @@
 // src/components/ui/hero-background-lazy.tsx
-// Created: Lazy immersive full-bleed hero background with progressive reveal
+// Fixed: Resolved TypeScript errors - removed unused alt prop and incompatible ease typing
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
@@ -7,14 +7,12 @@ import { cn } from '@/lib/utils';
 
 interface HeroBackgroundLazyProps {
   src: string;
-  alt: string;
   priority?: boolean;
   className?: string;
 }
 
 export const HeroBackgroundLazy: React.FC<HeroBackgroundLazyProps> = ({
   src,
-  alt,
   priority = false,
   className,
 }) => {
@@ -66,7 +64,6 @@ export const HeroBackgroundLazy: React.FC<HeroBackgroundLazyProps> = ({
       opacity: 1,
       transition: { 
         duration: prefersReducedMotion ? 0 : 0.8,
-        ease: 'easeOut'
       }
     },
   };

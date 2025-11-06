@@ -1,5 +1,5 @@
 // src/components/ui/ResponsiveImage.tsx
-// Modified: Proper className forwarding for rounded corners, robust image loading with mobile fallbacks
+// Modified: Fixed fetchPriority attribute casing for React type compliance
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -189,7 +189,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
           src={currentSrc}
           alt={alt}
           loading={loading}
-          fetchpriority={fetchPriority}
+          fetchPriority={fetchPriority}
           decoding="async"
           crossOrigin="anonymous"
           onLoad={handleImageLoad}

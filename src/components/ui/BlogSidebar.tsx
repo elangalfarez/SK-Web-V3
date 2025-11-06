@@ -1,9 +1,9 @@
 // src/components/ui/BlogSidebar.tsx
-// Modified: Wider boxed design with white cards, drop shadows, responsive image usage, rounded corners
+// Fixed: Added BlogCategoryWithCount type, removed unused imports
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, User, Calendar, Tag, Star, MapPin } from 'lucide-react';
+import { Mail, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,9 +13,14 @@ import BlogCategoryPill from './BlogCategoryPill';
 import { cn } from '@/lib/utils';
 import type { Post, BlogCategory } from '../../lib/supabase';
 
+// Extended interface for categories with computed post count
+interface BlogCategoryWithCount extends BlogCategory {
+  post_count?: number;
+}
+
 interface BlogSidebarProps {
   featuredPosts?: Post[];
-  categories?: BlogCategory[];
+  categories?: BlogCategoryWithCount[];
   popularTags?: Array<{ name: string; count: number }>;
   onTagClick?: (tag: string) => void;
   onCategoryClick?: (categoryId: string) => void;
@@ -53,49 +58,54 @@ export default function BlogSidebar({
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
-      onSubscribe?.(email.trim());
-      setEmail(''); // Reset form
+      onSubscribe?.(email);
+      setEmail('');
     }
   };
 
   return (
     <aside className={cn('space-y-8', className)}>
-      {/* Author Profile Card */}
+      {/* Author Card */}
       {showAuthor && (
         <Card className="border-0 shadow-lg rounded-3xl bg-surface">
           <CardContent className="p-6">
-            <div className="text-center">
-              <h3 className="text-sm font-medium text-text-muted tracking-wider uppercase mb-6">ABOUT</h3>
+            <div className="flex flex-col items-center text-center space-y-4">
+              <Avatar className="w-20 h-20 border-4 border-accent/10">
+                <AvatarImage src="/avatars/author.jpg" alt={authorName} />
+                <AvatarFallback className="bg-accent text-text-inverse text-xl font-semibold">
+                  {authorName.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
               
-              {/* Profile section */}
-              <div className="mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-accent/20 to-accent/40 rounded-full flex items-center justify-center">
-                  <User className="w-8 h-8 text-accent" />
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-2">
+                  <User className="w-4 h-4 text-accent" />
+                  <h3 className="font-semibold text-lg text-text-primary">{authorName}</h3>
                 </div>
                 
-                <h4 className="text-sm font-medium text-text-muted tracking-wider uppercase mb-2">REFLECTIVE BLOGGER</h4>
-                
-                <p className="text-sm text-text-secondary leading-relaxed mb-4">
-                  {authorBio}
-                </p>
-                
-                <div className="flex items-center justify-center gap-2 text-text-muted text-sm">
-                  <MapPin className="w-4 h-4" />
-                  <span>{authorLocation}</span>
-                </div>
+                {authorLocation && (
+                  <div className="flex items-center justify-center gap-1.5 text-text-muted">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span className="text-sm">{authorLocation}</span>
+                  </div>
+                )}
               </div>
+              
+              <p className="text-sm text-text-secondary leading-relaxed">
+                {authorBio}
+              </p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Newsletter Subscription Card */}
+      {/* Newsletter Subscription */}
       <Card className="border-0 shadow-lg rounded-3xl bg-surface">
         <CardContent className="p-6">
-          <h3 className="text-sm font-medium text-text-muted tracking-wider uppercase mb-6">STAY UPDATED</h3>
+          <h3 className="text-sm font-medium text-text-muted tracking-wider uppercase mb-6">NEWSLETTER</h3>
           
-          <p className="text-sm text-text-secondary mb-4">
-            Get the latest posts and exclusive content delivered directly to your inbox.
+          <p className="text-sm text-text-secondary mb-4 leading-relaxed">
+            Subscribe to get the latest posts delivered directly to your inbox.
           </p>
           
           <form onSubmit={handleSubscribe} className="space-y-3">

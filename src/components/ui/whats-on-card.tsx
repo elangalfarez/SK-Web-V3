@@ -1,8 +1,7 @@
 // src/components/ui/whats-on-card.tsx
-// Fixed: Consistent badge text colors regardless of theme - always dark text on accent background
+// Fixed: Removed unused motion import to resolve TS6133 warning
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ResponsiveImage } from './ResponsiveImage';
 import { WhatsOnItem } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
@@ -27,7 +26,7 @@ export const WhatsOnCard: React.FC<WhatsOnCardProps> = ({
         'relative bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden',
         'cursor-pointer hover:bg-black/50 transition-all duration-300',
         'transform hover:scale-105 group',
-        'w-52 h-full flex flex-col', // Added h-full and flex flex-col for consistent heights
+        'w-52 h-full flex flex-col',
         className
       )}
     >

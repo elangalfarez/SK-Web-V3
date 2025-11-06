@@ -1,10 +1,10 @@
 // src/components/ui/event-card.tsx
-// Modified: Remove accent_color, tickets_url dependencies and implement summary fallback
+// Fixed: Removed invalid Badge variant, unused Clock import, and unused showAccentColor prop
 
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 import { format, isAfter, isBefore } from 'date-fns';
 import { Event, getEventSummary } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 interface EventCardProps {
   event: Event;
   variant?: 'default' | 'featured' | 'compact';
-  showAccentColor?: boolean; // No longer used but kept for backward compatibility
   onClick?: () => void;
   className?: string;
 }
@@ -21,7 +20,6 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({
   event,
   variant = 'default',
-  showAccentColor = false, // Deprecated but kept for compatibility
   onClick,
   className = ''
 }) => {
@@ -143,7 +141,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Event Status Badge */}
         <div className="absolute top-3 right-3">
           {eventStatus === 'ongoing' && (
-            <Badge variant="success" className="shadow-lg">
+            <Badge variant="default" className="bg-success text-text-inverse shadow-lg">
               Live Now
             </Badge>
           )}

@@ -1,5 +1,5 @@
 // src/components/ui/theme-toggle.tsx
-// Modified: Uses centralized theme system for instant updates across all components
+// Modified: Removed unused showLabel prop to fix TypeScript warning
 
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
@@ -8,13 +8,11 @@ import { useTheme } from '@/lib/theme-config';
 
 interface ThemeToggleProps {
   variant?: 'default' | 'compact';
-  showLabel?: boolean;
   className?: string;
 }
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ 
   variant = 'default',
-  showLabel = false,
   className = ''
 }) => {
   const { currentTheme, toggleTheme: toggleThemeMode, isLoading } = useTheme();

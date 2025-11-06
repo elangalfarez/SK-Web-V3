@@ -19,7 +19,6 @@ import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { VipTier } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
 
 interface EligibilityCheckerProps {
   tiers: VipTier[];

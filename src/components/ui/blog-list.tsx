@@ -1,10 +1,9 @@
 // src/components/ui/blog-list.tsx
-// Modified: Numeric pagination instead of Load More, consistent heights, ResponsiveImage support
+// Fixed: removed unused React and Button imports (TS6133)
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import BlogCard from '@/components/ui/blog-card';
 import { cn } from '@/lib/utils';
 import type { Post } from '../../lib/supabase';

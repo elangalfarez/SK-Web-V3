@@ -37,6 +37,7 @@ export const CardCarousel: React.FC<CarouselProps> = ({
   const swiperRef = useRef<SwiperType | null>(null)
   const [imagesLoaded, setImagesLoaded] = useState<Set<string>>(new Set())
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
 
   // Respect user's motion preferences
   const prefersReducedMotion = typeof window !== 'undefined' 

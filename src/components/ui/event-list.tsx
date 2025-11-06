@@ -1,5 +1,5 @@
 // src/components/ui/event-list.tsx
-// Created: Responsive grid layout for event cards with animations and accessibility
+// Fixed: Removed deprecated showAccentColors prop that no longer exists in EventCard
 
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
@@ -9,7 +9,6 @@ import { EventCard } from './event-card';
 interface EventListProps {
   events: Event[];
   variant?: 'default' | 'featured' | 'compact';
-  showAccentColors?: boolean;
   className?: string;
   onEventClick?: (event: Event) => void;
 }
@@ -17,7 +16,6 @@ interface EventListProps {
 export const EventList: React.FC<EventListProps> = memo(({
   events,
   variant = 'default',
-  showAccentColors = false,
   className = '',
   onEventClick
 }) => {
@@ -76,7 +74,6 @@ export const EventList: React.FC<EventListProps> = memo(({
           <EventCard
             event={event}
             variant={variant}
-            showAccentColor={showAccentColors}
             onClick={onEventClick ? () => onEventClick(event) : undefined}
           />
         </motion.div>

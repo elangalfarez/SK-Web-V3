@@ -1,8 +1,7 @@
 // src/components/ui/hero-models.tsx
-// Fixed: Scaled models to fit within constrained viewport (accounting for navbar)
+// Fixed: Removed unused motion import
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface HeroModelsProps {

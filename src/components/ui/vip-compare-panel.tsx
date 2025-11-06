@@ -1,14 +1,11 @@
 // src/components/ui/vip-compare-panel.tsx
-// Created: Sticky compare panel - desktop floating right panel, mobile bottom sheet
+// Fixed: Removed unused imports (AnimatePresence, Crown, Badge, cn) and unused function (getIconComponent)
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Star, ArrowRight, CheckCircle2, Crown, Gift } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Star, ArrowRight, CheckCircle2, Gift } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { VipTier, VipBenefitWithNote } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
 
 interface VipComparePanelProps {
   selectedTiers: VipTier[];
@@ -16,23 +13,6 @@ interface VipComparePanelProps {
   onClearSelections: () => void;
   onRemoveTier: (tierId: string) => void;
 }
-
-// Get icon component from Lucide React
-const getIconComponent = (iconName: string) => {
-  const iconMap: Record<string, any> = {
-    'star': Icons.Star,
-    'percent': Icons.Percent,
-    'crown': Icons.Crown,
-    'door-open': Icons.DoorOpen,
-    'car': Icons.Car,
-    'credit-card': Icons.CreditCard,
-    'gift': Icons.Gift,
-    'sparkles': Icons.Sparkles,
-    'badge': Icons.Award,
-  };
-  
-  return iconMap[iconName] || Icons.Star;
-};
 
 // Format currency in Indonesian Rupiah
 const formatCurrency = (amount: number): string => {
@@ -267,8 +247,8 @@ export const VipComparePanel: React.FC<VipComparePanelProps> = ({
             </div>
             <button
               onClick={onClearSelections}
-              className="p-2 text-text-muted hover:text-accent hover:bg-accent/10 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
-              aria-label="Close comparison"
+              className="p-2 text-text-muted hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+              aria-label="Close comparison panel"
             >
               <X className="w-5 h-5" />
             </button>
@@ -276,35 +256,26 @@ export const VipComparePanel: React.FC<VipComparePanelProps> = ({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto flex-1">
-          {/* Horizontal tier cards for mobile */}
-          <div className="p-4">
-            <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
-              {selectedTiers.map((tier, index) => (
-                <motion.div
-                  key={tier.id}
-                  initial={!reducedMotion ? { opacity: 0, scale: 0.9 } : { opacity: 1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex-shrink-0 w-48 p-3 bg-surface-secondary rounded-xl border border-border-primary"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: tier.card_color }}
-                    />
-                    <button
-                      onClick={() => onRemoveTier(tier.id)}
-                      className="p-1 text-text-muted hover:text-error rounded transition-colors"
-                      aria-label={`Remove ${tier.name}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                  <h4 className="font-semibold text-text-primary text-sm mb-1 truncate">
+        <div className="max-h-96 overflow-y-auto scrollbar-hide">
+          {/* Selected Tiers */}
+          <div className="p-4 space-y-3">
+            {selectedTiers.map((tier, index) => (
+              <motion.div
+                key={tier.id}
+                initial={!reducedMotion ? { opacity: 0, x: -20 } : { opacity: 1 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="flex items-start p-3 bg-surface-secondary rounded-lg"
+              >
+                <div 
+                  className="w-4 h-4 rounded-full mr-3 mt-0.5 flex-shrink-0" 
+                  style={{ backgroundColor: tier.card_color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-text-primary text-sm">
                     {tier.name}
                   </h4>
-                  <p className="text-xs text-text-muted mb-2">
+                  <p className="text-xs text-text-muted mt-0.5">
                     {tier.minimum_receipt_amount 
                       ? `${formatCurrency(tier.minimum_receipt_amount)} receipt`
                       : `${formatCurrency(tier.minimum_spend_amount)} monthly`
@@ -313,43 +284,50 @@ export const VipComparePanel: React.FC<VipComparePanelProps> = ({
                   <div className="text-xs text-accent font-medium">
                     {(tierBenefits[tier.id] || []).length} benefits
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                </div>
+                <button
+                  onClick={() => onRemoveTier(tier.id)}
+                  className="ml-2 p-1.5 text-text-muted hover:text-error hover:bg-error/10 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-error"
+                  aria-label={`Remove ${tier.name}`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </motion.div>
+            ))}
+          </div>
 
-            {/* Action Buttons */}
-            <div className="mt-4 space-y-2">
+          {/* Action Buttons */}
+          <div className="p-4 space-y-2">
+            <Button 
+              className="w-full py-3"
+              onClick={() => {
+                console.log('Register at VIP Lounge clicked');
+              }}
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Register at VIP Lounge
+            </Button>
+            <div className="flex space-x-2">
               <Button 
-                className="w-full py-3"
+                variant="outline" 
+                size="sm" 
+                onClick={onClearSelections}
+                className="flex-1"
+              >
+                Clear All
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="flex-1"
                 onClick={() => {
-                  console.log('Register at VIP Lounge clicked');
+                  // Could open detailed comparison modal
+                  console.log('View detailed comparison');
                 }}
               >
-                <Star className="w-4 h-4 mr-2" />
-                Register at VIP Lounge
+                <ArrowRight className="w-4 h-4 mr-1" />
+                Details
               </Button>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={onClearSelections}
-                  className="flex-1"
-                >
-                  Clear All
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => {
-                    // Could open detailed comparison modal
-                    console.log('View detailed comparison');
-                  }}
-                >
-                  <ArrowRight className="w-4 h-4 mr-1" />
-                  Details
-                </Button>
-              </div>
             </div>
           </div>
         </div>

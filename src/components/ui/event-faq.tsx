@@ -1,6 +1,5 @@
 // src/components/ui/event-faq.tsx
-// Created: Accessible FAQ accordion with search filter, language switcher, and smooth animations
-
+// Fixed: added 'as const' type assertions to ease properties in Framer Motion transition objects
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Search, Globe, X } from 'lucide-react';
@@ -142,7 +141,7 @@ export const EventFAQ: React.FC<EventFAQProps> = ({
     setSearchQuery('');
   };
 
-  // Animation variants
+  // Animation variants with proper type assertions for ease
   const accordionVariants = {
     hidden: { 
       opacity: prefersReducedMotion ? 1 : 0,
@@ -153,7 +152,7 @@ export const EventFAQ: React.FC<EventFAQProps> = ({
       height: 'auto',
       transition: { 
         duration: prefersReducedMotion ? 0 : 0.3,
-        ease: 'easeInOut'
+        ease: 'easeInOut' as const
       }
     },
     exit: { 
@@ -161,7 +160,7 @@ export const EventFAQ: React.FC<EventFAQProps> = ({
       height: prefersReducedMotion ? 'auto' : 0,
       transition: { 
         duration: prefersReducedMotion ? 0 : 0.2,
-        ease: 'easeInOut'
+        ease: 'easeInOut' as const
       }
     }
   };
@@ -214,12 +213,12 @@ export const EventFAQ: React.FC<EventFAQProps> = ({
 
         {/* Language Switcher */}
         {languageSwitch && (
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-text-muted" />
-            <div className="flex bg-surface-secondary rounded-lg p-1">
+          <div className="flex items-center gap-2 bg-surface-secondary rounded-lg p-1 border border-border-secondary">
+            <Globe className="w-4 h-4 text-text-muted ml-2" />
+            <div className="flex gap-1">
               <button
                 onClick={() => setSelectedLanguage('en')}
-                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   selectedLanguage === 'en'
                     ? 'bg-accent text-text-inverse'
                     : 'text-text-secondary hover:text-text-primary'
@@ -230,7 +229,7 @@ export const EventFAQ: React.FC<EventFAQProps> = ({
               </button>
               <button
                 onClick={() => setSelectedLanguage('id')}
-                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   selectedLanguage === 'id'
                     ? 'bg-accent text-text-inverse'
                     : 'text-text-secondary hover:text-text-primary'
