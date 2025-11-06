@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Calendar, Tag } from 'lucide-react';
+import { X, Calendar, Tag } from 'lucide-react';
 import { ResponsiveImage } from './ResponsiveImage';
 import { WhatsOnItem } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
@@ -159,30 +159,10 @@ export const WhatsOnModal: React.FC<WhatsOnModalProps> = ({
               )}
 
               {item.description && (
-                <div className="prose prose-sm md:prose-base max-w-none mb-6">
+                <div className="prose prose-sm md:prose-base max-w-none">
                   <p className="text-text-secondary leading-relaxed">
                     {item.description}
                   </p>
-                </div>
-              )}
-
-              {item.link_url && (
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <a
-                    href={item.link_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      'inline-flex items-center justify-center',
-                      'px-6 py-3 rounded-xl',
-                      'bg-accent text-text-inverse font-semibold',
-                      'hover:bg-accent-hover transition-colors',
-                      'focus:outline-none focus:ring-2 focus:ring-accent/20'
-                    )}
-                  >
-                    Learn More
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                  </a>
                 </div>
               )}
             </div>
