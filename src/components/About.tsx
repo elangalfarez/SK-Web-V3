@@ -9,7 +9,7 @@ const About = () => {
           {/* Image */}
           <div className="relative">
             <img 
-              src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Facade%20SK/front_facade_sk.jpg"
+              src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Facade%20SK/front_facade_sk_11-2025.jpeg"
               alt="Supermal Karawaci Exterior"
               className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-xl"
             />

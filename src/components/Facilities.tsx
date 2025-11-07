@@ -60,7 +60,7 @@ const Facilities = () => {
       background: (
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1567521464027-f127ff144326?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/dfoodcourt.jpeg"
             alt="Food Court"
             className="w-full h-full object-cover opacity-70"
           />
