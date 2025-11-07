@@ -1,5 +1,5 @@
 // src/lib/theme-config.ts
-// Modified: Global theme state management with instant updates across all components
+// Updated: Changed default theme from 'light' to 'dark'
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -87,7 +87,7 @@ export const themes: Record<ThemeName, ThemeColors> = {
     textMuted: '#A1A1A1',
     textInverse: '#FFFFFF',
     
-    // Accent - Premium gold palette
+    // Accent - Premium purple palette
     accent: '#9E61FF',
     accentHover: '#A47FD5',
     accentLight: '#761dbe',
@@ -165,10 +165,10 @@ export function applyTheme(themeName: ThemeName): void {
 }
 
 /**
- * Get theme preference - Defaults to light
+ * Get theme preference - Defaults to DARK
  */
 export function getThemePreference(): ThemeName {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') return 'dark'; // ← Changed from 'light'
   
   try {
     const stored = localStorage.getItem('theme-preference') as ThemeName;
@@ -177,7 +177,7 @@ export function getThemePreference(): ThemeName {
     console.warn('Cannot read theme preference:', error);
   }
   
-  return 'light'; // Always default to light
+  return 'dark'; // ← Changed from 'light' - Always default to dark
 }
 
 /**
@@ -203,7 +203,7 @@ export function toggleTheme(): ThemeName {
  * Enhanced React hook with global theme sync
  */
 export function useTheme() {
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>('dark');
+  const [currentTheme, setCurrentTheme] = useState<ThemeName>('dark'); // Initial state already correct
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
