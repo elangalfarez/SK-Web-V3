@@ -1,5 +1,5 @@
 // src/components/ui/whats-on-carousel.tsx
-// Fixed: Left-align desktop carousel cards with "What's On" heading
+// Fixed: Mobile translation to account for gap between card pairs
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useMotionValue, useAnimation, PanInfo } from 'framer-motion';
@@ -54,6 +54,9 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
   const mobileX = useMotionValue(0);
   const mobileControls = useAnimation();
 
+  // Gap size in pixels (1rem = 16px typically)
+  const gapSize = 16;
+
   // Update refs when state changes
   useEffect(() => {
     isHoveredRef.current = isHovered;
@@ -99,7 +102,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
     
     setCurrentMobileSlide((prev) => {
       const nextSlide = (prev + 1) % maxMobileSlides;
-      const targetX = -nextSlide * containerWidth;
+      const targetX = -nextSlide * (containerWidth + gapSize);
       
       if (!prefersReducedMotion) {
         mobileControls.start({
@@ -139,7 +142,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
     if (Math.abs(offset) < threshold && Math.abs(velocity) < 500) {
       // Snap back
       mobileControls.start({
-        x: -currentMobileSlide * containerWidth,
+        x: -currentMobileSlide * (containerWidth + gapSize),
         transition: { duration: 0.3, ease: 'easeOut' }
       });
       return;
@@ -153,7 +156,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
       newSlide = Math.min(maxMobileSlides - 1, currentMobileSlide + 1);
     }
 
-    const targetX = -newSlide * containerWidth;
+    const targetX = -newSlide * (containerWidth + gapSize);
     mobileControls.start({
       x: targetX,
       transition: { duration: 0.3, ease: 'easeOut' }
@@ -169,7 +172,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
 
   // Handle dot click - Mobile
   const handleMobileDotClick = (index: number) => {
-    const targetX = -index * containerWidth;
+    const targetX = -index * (containerWidth + gapSize);
     if (!prefersReducedMotion) {
       mobileControls.start({
         x: targetX,
@@ -229,13 +232,13 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
         >
           <motion.div
             drag="x"
-            dragConstraints={{ left: -(maxMobileSlides - 1) * containerWidth, right: 0 }}
+            dragConstraints={{ left: -(maxMobileSlides - 1) * (containerWidth + gapSize), right: 0 }}
             dragElastic={0.1}
             dragMomentum={false}
             onDragStart={() => setIsDragging(true)}
             onDragEnd={handleMobileDragEnd}
             animate={mobileControls}
-            style={{ x: prefersReducedMotion ? -currentMobileSlide * containerWidth : mobileX }}
+            style={{ x: prefersReducedMotion ? -currentMobileSlide * (containerWidth + gapSize) : mobileX }}
             className="flex gap-4"
           >
             {items.map((item, index) => (
