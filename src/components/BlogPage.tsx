@@ -26,7 +26,7 @@ const categoryIcons = {
 
 // Fallback data in case imports fail
 const fallbackPosts: Post[] = [];
-const fallbackCategories: any[] = [];
+const fallbackCategories: { id: string; name: string; slug?: string }[] = [];
 
 // Safe data access with fallbacks
 const safePosts = seededPosts || fallbackPosts;
@@ -153,6 +153,7 @@ export default function BlogPage() {
   useEffect(() => {
     fetchPostsData();
     fetchFeaturedData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Refetch when filters change
@@ -162,6 +163,7 @@ export default function BlogPage() {
     } else {
       fetchPostsData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.searchQuery, state.selectedCategory, state.selectedTags]);
 
   // Handle category filter change
@@ -209,7 +211,7 @@ export default function BlogPage() {
     const pages = [];
     const maxVisiblePages = 5;
     let startPage = Math.max(1, state.currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(state.totalPages, startPage + maxVisiblePages - 1);
+    const endPage = Math.min(state.totalPages, startPage + maxVisiblePages - 1);
     
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);

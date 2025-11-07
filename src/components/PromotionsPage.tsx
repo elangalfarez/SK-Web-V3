@@ -74,12 +74,14 @@ const PromotionsPage: React.FC = () => {
   useEffect(() => {
     if (loading) return; // Skip if initial load
     fetchFilteredData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   // Load more data when page changes
   useEffect(() => {
     if (currentPage === 1 || loading) return; // Skip first page and initial load
     loadMoreData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const fetchInitialData = async () => {

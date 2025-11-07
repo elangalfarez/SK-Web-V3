@@ -42,16 +42,16 @@ export function useFeaturedRestaurants(
   const [error, setError] = useState<Error | null>(null);
 
   // Transform database rows to UI model expected by FeaturedRestaurantCard
-  const transformItem = useCallback((item: any): EnrichedFeaturedRestaurant => ({
-    id: item.id,
-    title: item.tenant_name || 'Featured Restaurant',
-    subtitle: item.category_display || item.category || '',
-    imageUrl: item.tenant_banner_url || item.tenant_logo_url || item.featured_image_url || null,
-    imageAlt: item.tenant_name || 'Restaurant image',
-    description: item.featured_description || item.tenant_description || '',
-    highlight: item.highlight_text || 'Featured',
-    tenantId: item.tenant_id,
-    sortOrder: item.sort_order || 0,
+  const transformItem = useCallback((item: Record<string, unknown>): EnrichedFeaturedRestaurant => ({
+    id: String(item.id),
+    title: String(item.tenant_name || 'Featured Restaurant'),
+    subtitle: String(item.category_display || item.category || ''),
+    imageUrl: (item.tenant_banner_url || item.tenant_logo_url || item.featured_image_url) as string | null,
+    imageAlt: String(item.tenant_name || 'Restaurant image'),
+    description: String(item.featured_description || item.tenant_description || ''),
+    highlight: String(item.highlight_text || 'Featured'),
+    tenantId: String(item.tenant_id),
+    sortOrder: Number(item.sort_order || 0),
   }), []);
 
   const fetchData = useCallback(async () => {

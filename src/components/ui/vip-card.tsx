@@ -40,7 +40,7 @@ const getCardImageUrl = (tierName: string): string => {
 
 // Get icon component from Lucide React
 const getIconComponent = (iconName: string) => {
-  const iconMap: Record<string, any> = {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     'star': Icons.Star,
     'percent': Icons.Percent,
     'crown': Icons.Crown,

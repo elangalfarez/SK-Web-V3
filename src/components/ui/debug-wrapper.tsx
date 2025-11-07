@@ -3,7 +3,7 @@ import React from 'react';
 
 interface DebugWrapperProps {
   children: React.ReactNode;
-  data?: any;
+  data?: unknown;
   label?: string;
 }
 
@@ -18,7 +18,7 @@ export const DebugWrapper: React.FC<DebugWrapperProps> = ({
   }
 
   // Check for problematic data that might cause React errors
-  const checkData = (obj: any, path = ''): string[] => {
+  const checkData = (obj: unknown, path = ''): string[] => {
     const issues: string[] = [];
     
     if (obj === null || obj === undefined) return issues;
@@ -73,6 +73,7 @@ export const DebugWrapper: React.FC<DebugWrapperProps> = ({
 };
 
 // Higher-order component version
+// eslint-disable-next-line react-refresh/only-export-components
 export function withDebug<P extends object>(
   Component: React.ComponentType<P>,
   label?: string

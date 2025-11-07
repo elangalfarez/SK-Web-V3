@@ -84,7 +84,11 @@ export const TenantCardModal: React.FC<TenantCardModalProps> = ({
     
     // Focus first focusable element after animation completes
     setTimeout(() => {
-      firstFocusableRef.current?.focus() || closeButtonRef.current?.focus();
+      if (firstFocusableRef.current) {
+        firstFocusableRef.current.focus();
+      } else {
+        closeButtonRef.current?.focus();
+      }
     }, 100);
 
     return () => {

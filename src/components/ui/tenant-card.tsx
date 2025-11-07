@@ -72,7 +72,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
   const categoryName = tenant.category_display || tenant.category_name || tenant.category;
 
   // Handle card click/keyboard activation
-  const handleCardActivation = useCallback((_e: React.MouseEvent | React.KeyboardEvent) => {
+  const handleCardActivation = useCallback(() => {
     if (onClick) {
       onClick();
     } else {
@@ -84,7 +84,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onClick }) => {
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      handleCardActivation(e);
+      handleCardActivation();
     }
   }, [handleCardActivation]);
 

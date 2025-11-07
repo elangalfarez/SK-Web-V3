@@ -24,7 +24,6 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
   autoplay = true,
   autoplayDelay = 8000,
   pauseOnHover = true,
-  showNavigation: _showNavigation = false,
   showDots = true,
   className,
 }) => {
@@ -132,7 +131,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
   }, [autoplay, autoplayDelay, advanceDesktopSlide, advanceMobileSlide]);
 
   // Handle mobile drag
-  const handleMobileDragEnd = (_: any, info: PanInfo) => {
+  const handleMobileDragEnd = (_event: unknown, info: PanInfo) => {
     const threshold = 50;
     const velocity = info.velocity.x;
     const offset = info.offset.x;

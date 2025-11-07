@@ -29,7 +29,7 @@ const contactSchema = z.object({
     .string()
     .optional()
     .refine(
-      (val) => !val || /^[\+]?[0-9\s\-\(\)]{10,50}$/.test(val),
+      (val) => !val || /^[+]?[0-9\s\-()]{10,50}$/.test(val),
       'Please enter a valid phone number'
     ),
   enquiry_type: z.enum(
@@ -140,6 +140,7 @@ export const ContactForm: React.FC = () => {
 
     try {
       // Prepare data for submission (exclude honeypot field)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { website, ...submitData } = data
       
       // submitContactForm returns Contact directly or throws error
@@ -156,10 +157,10 @@ export const ContactForm: React.FC = () => {
         icon: '✅'
       })
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Contact form submission error:', error)
-      
-      const errorMessage = error.message || 'Failed to send message. Please try again.'
+
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send message. Please try again.'
       setSubmitError(errorMessage)
       
       toast.error(errorMessage, {

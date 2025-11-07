@@ -42,7 +42,7 @@ const Navbar = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    
+
     // Preload both logo images for instant switching
     const preloadLogos = () => {
       Object.values(logoConfig).forEach(logo => {
@@ -50,10 +50,11 @@ const Navbar = () => {
         img.src = logo.src;
       });
     };
-    
+
     preloadLogos();
-    
+
     return () => window.removeEventListener('scroll', handleScroll);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Prevent body scroll when mobile menu is open

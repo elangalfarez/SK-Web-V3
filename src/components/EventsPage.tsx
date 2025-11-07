@@ -93,12 +93,14 @@ const EventsPage: React.FC = () => {
     loadEvents(true);
     loadFeaturedEvents();
     loadAvailableTags();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Reload when filters change
   useEffect(() => {
     setCurrentPage(1);
     loadEvents(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedTags, showUpcomingOnly]);
 
   const loadEvents = async (reset: boolean = false) => {

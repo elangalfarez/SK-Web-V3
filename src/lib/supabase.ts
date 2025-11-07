@@ -535,7 +535,7 @@ export async function fetchNewTenants({ limit = 8 } = {}): Promise<FeaturedTenan
       return tenants;
     }
 
-  } catch (error) {
+  } catch {
     // Fallback to tenants table with join
     try {
       const { data: fallbackData, error: fallbackError } = await supabase
@@ -980,8 +980,8 @@ export async function fetchPosts(params: PostFetchParams = {}): Promise<PostFetc
         tags: safeParseJsonArray(data.tags)
       };
     }
-    return null;   
-  } catch (error) {
+    return null;
+  } catch {
     console.warn('WARN: posts query failed or returned no rows — using seeded posts fallback. Action: run migrations/001_create_blog_tables.sql and confirm RLS policies and published rows.');
     return null;
   }
@@ -1087,7 +1087,7 @@ export async function searchPosts(
 
     return data || [];
 
-  } catch (error) {
+  } catch {
     console.warn('Search posts failed, returning empty results');
     return [];
   }
@@ -2097,7 +2097,7 @@ export async function fetchFeaturedTenants(limit: number = 12): Promise<Tenant[]
       };
     });
 
-  } catch (error) {
+  } catch {
     console.warn('tenant_directory unavailable for featured tenants, using fallback');
     
     // Fallback to tenants table
@@ -2188,7 +2188,7 @@ export async function fetchTenantsByFloor(floor: string): Promise<Tenant[]> {
       };
     });
 
-  } catch (error) {
+  } catch {
     console.warn('tenant_directory unavailable for floor query, using fallback');
     
     // Fallback to tenants table
