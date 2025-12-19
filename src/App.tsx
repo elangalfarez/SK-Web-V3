@@ -1,5 +1,5 @@
 // src/App.tsx
-// Modified: Added BlogPage import and corrected blog routes for the new blog system
+// Modified: Added MoviesPage route for XXI Cinema showtime display
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -25,6 +25,7 @@ import EventsPage from './components/EventsPage';
 import EventDetailPage from './components/EventDetailPage';
 import BlogPage from './components/BlogPage';
 import PostDetailPage from './components/PostDetailPage';
+import MoviesPage from './components/MoviesPage'; // NEW: Movies showtime page
 
 // Layout Component for consistent navbar/footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -88,95 +89,105 @@ function App() {
     <Router>
       <Routes>
         {/* Homepage */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <Layout>
               <PublicWebsite />
             </Layout>
-          } 
+          }
         />
-        
+
         {/* Mall Directory Page */}
-        <Route 
-          path="/directory" 
+        <Route
+          path="/directory"
           element={
             <Layout>
               <MallDirectory />
             </Layout>
-          } 
+          }
         />
 
-         {/* Promotions Page */}
-        <Route 
-          path="/promotions" 
+        {/* Promotions Page */}
+        <Route
+          path="/promotions"
           element={
             <Layout>
               <PromotionsPage />
             </Layout>
-          } 
+          }
         />
 
         {/* Contact Page */}
-        <Route 
-          path="/contact" 
+        <Route
+          path="/contact"
           element={
             <Layout>
               <ContactPage />
             </Layout>
-          } 
+          }
         />
 
         {/* VIP Cards Page */}
-        <Route 
-          path="/vip-cards" 
+        <Route
+          path="/vip-cards"
           element={
             <Layout>
               <VIPCardsPage />
             </Layout>
-          } 
+          }
         />
 
         {/* Events Page */}
-        <Route 
-          path="/event" 
+        <Route
+          path="/event"
           element={
             <Layout>
               <EventsPage />
             </Layout>
-          } 
+          }
         />
 
         {/* Event Detail Page */}
-        <Route 
-          path="/event/:slug" 
+        <Route
+          path="/event/:slug"
           element={
             <Layout>
               <EventDetailPage />
             </Layout>
-          } 
+          }
         />
 
         {/* Blog Page */}
-        <Route 
-          path="/blog" 
+        <Route
+          path="/blog"
           element={
             <Layout>
               <BlogPage />
             </Layout>
-          } 
+          }
         />
 
         {/* Blog Detail Page */}
-        <Route 
-          path="/blog/:slug" 
+        <Route
+          path="/blog/:slug"
           element={
             <Layout>
               <PostDetailPage />
             </Layout>
-          } 
+          }
         />
-        
+
+        {/* NEW: Movies Showtime Page */}
+        <Route
+          path="/movies"
+          element={
+            <Layout>
+              <MoviesPage />
+            </Layout>
+          }
+        />
+
         {/* Fallback to homepage */}
         <Route path="*" element={<Layout><PublicWebsite /></Layout>} />
       </Routes>
