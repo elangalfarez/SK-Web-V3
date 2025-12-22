@@ -9,14 +9,16 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-import { 
-  fetchPromotions, 
-  fetchFeaturedPromotions, 
-  fetchTenantCategories, 
-  PromotionWithTenant, 
-  TenantCategory, 
-  PromotionFetchParams 
+import {
+  fetchPromotions,
+  fetchFeaturedPromotions,
+  fetchTenantCategories,
+  PromotionWithTenant,
+  TenantCategory,
+  PromotionFetchParams
 } from '@/lib/supabase';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { PAGE_SEO } from '@/lib/seo/page-seo';
 import { SearchInput } from '@/components/ui/search-input';
 import { CategoryPillList, Category } from '@/components/ui/category-pill-list';
 import { CategoryFilterDrawer } from '@/components/ui/category-filter-drawer';
@@ -60,10 +62,14 @@ const PromotionsPage: React.FC = () => {
   // UI state
   const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
 
-  // Set document title
-  useEffect(() => {
-    document.title = 'Promotions — Supermal Karawaci';
-  }, []);
+  // SEO
+  useSEO(
+    PAGE_SEO.promotions,
+    [
+      { name: 'Home', url: '/' },
+      { name: 'Promotions', url: '/promotions' },
+    ]
+  );
 
   // Fetch initial data
   useEffect(() => {

@@ -11,21 +11,47 @@ import { EligibilityChecker } from '@/components/ui/eligibility-checker';
 import { VipFaq } from '@/components/ui/vip-faq';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { PAGE_SEO } from '@/lib/seo/page-seo';
+import { generateFAQSchema } from '@/lib/seo/structured-data';
 
-import { 
-  fetchVipTiers, 
-  fetchVipTierBenefits, 
-  VipTier, 
-  VipBenefitWithNote, 
+import {
+  fetchVipTiers,
+  fetchVipTierBenefits,
+  VipTier,
+  VipBenefitWithNote,
   FALLBACK_VIP_TIERS
 } from '@/lib/supabase';
 
-// Set document title on mount
-if (typeof document !== 'undefined') {
-  document.title = 'VIP Cards - Supermal Karawaci';
-}
-
 const VIPCardsPage: React.FC = () => {
+  // SEO with FAQ schema
+  useSEO(
+    {
+      ...PAGE_SEO.vipCards,
+      structuredData: {
+        type: 'FAQPage',
+        data: generateFAQSchema([
+          {
+            question: 'What are the VIP membership tiers?',
+            answer: 'Supermal Karawaci offers three VIP tiers: VIP Platinum, Super VIP, and Super VIP Flazz, each with increasing benefits and privileges.',
+          },
+          {
+            question: 'How do I apply for VIP membership?',
+            answer: 'Visit our Customer Service desk on the Ground Floor with a valid ID and proof of purchase to apply for VIP membership.',
+          },
+          {
+            question: 'What benefits do VIP members receive?',
+            answer: 'VIP members enjoy exclusive discounts, priority parking, access to VIP lounge, special event invitations, and points earning on purchases.',
+          },
+        ]),
+      },
+    },
+    [
+      { name: 'Home', url: '/' },
+      { name: 'VIP Cards', url: '/vip-cards' },
+    ]
+  );
+
   // Data state
   const [tiers, setTiers] = useState<VipTier[]>([]);
   const [tierBenefits, setTierBenefits] = useState<Record<string, VipBenefitWithNote[]>>({});

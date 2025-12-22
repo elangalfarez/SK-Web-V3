@@ -5,6 +5,15 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
+// SEO
+import { useSEO } from './lib/hooks/useSEO';
+import { PAGE_SEO } from './lib/seo/page-seo';
+import {
+  ORGANIZATION_SCHEMA,
+  LOCAL_BUSINESS_SCHEMA,
+  WEBSITE_SCHEMA,
+} from './lib/seo/seo-config';
+
 // Public Website Components
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -70,6 +79,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 // Main Website Homepage Component
 const PublicWebsite: React.FC = () => {
+  // Homepage SEO with Organization, LocalBusiness, and WebSite schemas
+  useSEO({
+    ...PAGE_SEO.home,
+    structuredData: [
+      { type: 'Organization', data: ORGANIZATION_SCHEMA },
+      { type: 'LocalBusiness', data: LOCAL_BUSINESS_SCHEMA },
+      { type: 'WebSite', data: WEBSITE_SCHEMA },
+    ],
+  });
+
   return (
     <>
       <Hero />

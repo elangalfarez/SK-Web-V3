@@ -4,12 +4,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  Share2, 
-  Copy, 
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  Share2,
+  Copy,
   MessageCircle,
   ArrowLeft,
   ChevronLeft,
@@ -20,6 +20,9 @@ import { fetchEventBySlug, Event, getEventSummary } from '@/lib/supabase';
 import { Hero } from '@/components/ui/Hero';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { getEventDetailSEO } from '@/lib/seo/page-seo';
+import { generateEventSchema } from '@/lib/seo/structured-data';
 
 const EventDetailPage: React.FC = () => {
   const { slug } = useParams();
@@ -28,6 +31,38 @@ const EventDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
+
+  // SEO - dynamically updates when event loads
+  useSEO(
+    event
+      ? {
+          ...getEventDetailSEO(event),
+          structuredData: {
+            type: 'Event',
+            data: generateEventSchema({
+              title: event.title,
+              summary: event.summary,
+              body: event.body,
+              slug: event.slug,
+              start_at: event.start_at,
+              end_at: event.end_at,
+              venue: event.venue,
+              images: event.images,
+            }),
+          },
+        }
+      : {
+          title: error ? 'Event Not Found' : 'Loading Event...',
+          description: error || 'Loading event details from Supermal Karawaci',
+        },
+    event
+      ? [
+          { name: 'Home', url: '/' },
+          { name: 'Events', url: '/event' },
+          { name: event.title, url: `/event/${event.slug}` },
+        ]
+      : undefined
+  );
 
   // Load event data
   useEffect(() => {
@@ -40,21 +75,18 @@ const EventDetailPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const eventData = await fetchEventBySlug(eventSlug);
-      
+
       if (!eventData) {
         setError('Event not found');
-        document.title = 'Event not found — Supermal Karawaci';
         return;
       }
-      
+
       setEvent(eventData);
-      document.title = `${eventData.title} — Supermal Karawaci`;
     } catch (err) {
       console.error('Error loading event:', err);
       setError('Failed to load event details');
-      document.title = 'Error loading event — Supermal Karawaci';
     } finally {
       setLoading(false);
     }
@@ -411,39 +443,6 @@ const EventDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Structured Data (JSON-LD) for SEO - Updated without tickets/coordinates */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Event",
-            "name": event.title,
-            "description": eventSummary || event.title,
-            "startDate": event.start_at,
-            "endDate": event.end_at || undefined,
-            "location": {
-              "@type": "Place",
-              "name": event.venue || "Supermal Karawaci",
-              "address": {
-                "@type": "PostalAddress",
-                "streetAddress": "Jl. Boulevard Diponegoro No. 105",
-                "addressLocality": "Tangerang",
-                "addressRegion": "Banten",
-                "postalCode": "15115",
-                "addressCountry": "ID"
-              }
-            },
-            "image": event.images.map(img => img.url),
-            "url": window.location.href,
-            "organizer": {
-              "@type": "Organization",
-              "name": "Supermal Karawaci",
-              "url": "https://supermalkarawaci.com"
-            }
-          })
-        }}
-      />
 
       {/* Click outside to close share menu */}
       {shareMenuOpen && (

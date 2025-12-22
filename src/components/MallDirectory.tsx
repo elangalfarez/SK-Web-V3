@@ -1,10 +1,12 @@
-// src/components/MallDirectory.tsx  
+// src/components/MallDirectory.tsx
 // Modified: Complete rewrite to use Hero/SearchInput components and fix category logic
 
 import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Filter, X } from 'lucide-react';
 import { useTenants } from '@/lib/hooks/useTenants';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { PAGE_SEO } from '@/lib/seo/page-seo';
 import { TenantCard } from './ui/tenant-card';
 import { SearchInput } from './ui/search-input';
 import { CategoryPillList } from './ui/category-pill-list';
@@ -15,6 +17,15 @@ import { TenantGridSkeleton } from './ui/skeletons/tenant-card-skeleton';
 import { Hero } from './ui/Hero';
 
 export default function MallDirectory() {
+  // SEO
+  useSEO(
+    PAGE_SEO.directory,
+    [
+      { name: 'Home', url: '/' },
+      { name: 'Directory', url: '/directory' },
+    ]
+  );
+
   // State management using the useTenants hook
   const {
     tenants,
@@ -131,15 +142,15 @@ export default function MallDirectory() {
           }
         />
         
-        <div className="py-8 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-              <SearchInput
-                value=""
-                onChange={() => {}}
-                placeholder="Search stores, brands, categories..."
-                className="w-full"
-                disabled={true}
-              />
+        <div className="py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SearchInput
+              value=""
+              onChange={() => {}}
+              placeholder="Search stores, brands, categories..."
+              className="w-full"
+              disabled={true}
+            />
             <TenantGridSkeleton count={12} />
           </div>
         </div>
@@ -156,8 +167,8 @@ export default function MallDirectory() {
           subtitle="Discover all the amazing stores and dining options at Supermal Karawaci"
         />
         
-        <div className="py-8 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto text-center py-16">
+        <div className="py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
             <h2 className="text-2xl font-bold text-text-primary mb-4">
               Unable to load directory
             </h2>
@@ -177,14 +188,14 @@ export default function MallDirectory() {
         subtitle="Discover all the amazing stores and dining options at Supermal Karawaci"
       />
 
-      <div className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder={searchPlaceholder}
-              className="w-full"
-            />
+      <div className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder={searchPlaceholder}
+            className="w-full"
+          />
           {/* Category Filters - NO "All Categories" button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

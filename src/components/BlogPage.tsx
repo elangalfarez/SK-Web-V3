@@ -11,6 +11,8 @@ import HeroBlog from './ui/HeroBlog';
 import BlogSidebar from './ui/BlogSidebar';
 import BlogListHorizontal from './ui/BlogListHorizontal';
 import BlogCategoryPill from './ui/BlogCategoryPill';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { PAGE_SEO } from '@/lib/seo/page-seo';
 
 // Category icons mapping
 const categoryIcons = {
@@ -53,6 +55,15 @@ export default function BlogPage() {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const [dismissedBanner, setDismissedBanner] = useState(false);
+
+  // SEO
+  useSEO(
+    PAGE_SEO.blog,
+    [
+      { name: 'Home', url: '/' },
+      { name: 'Blog', url: '/blog' },
+    ]
+  );
 
   const [state, setState] = useState<BlogPageState>({
     posts: [],

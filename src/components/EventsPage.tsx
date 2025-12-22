@@ -4,11 +4,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Search, Filter, RotateCcw, ChevronDown } from 'lucide-react';
-import { 
-  fetchEvents, 
-  fetchFeaturedEvents, 
+import {
+  fetchEvents,
+  fetchFeaturedEvents,
   fetchEventTags,
-  Event, 
+  Event,
   EventFetchParams,
   getEventSummary
 } from '@/lib/supabase';
@@ -16,6 +16,8 @@ import { Hero } from '@/components/ui/Hero';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EventList } from '@/components/ui/event-list';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { PAGE_SEO } from '@/lib/seo/page-seo';
 
 // Updated seeded fallback events without removed columns
 const SEEDED_EVENTS: Event[] = [
@@ -70,6 +72,15 @@ const SEEDED_EVENTS: Event[] = [
 ];
 
 const EventsPage: React.FC = () => {
+  // SEO
+  useSEO(
+    PAGE_SEO.events,
+    [
+      { name: 'Home', url: '/' },
+      { name: 'Events', url: '/event' },
+    ]
+  );
+
   // State management
   const [events, setEvents] = useState<Event[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);

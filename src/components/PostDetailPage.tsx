@@ -15,6 +15,9 @@ import BlogSidebar from './ui/BlogSidebar';
 import BlogListHorizontal from './ui/BlogListHorizontal';
 import { ResponsiveImage } from './ui/ResponsiveImage';
 import BlogCategoryPill from './ui/BlogCategoryPill';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { getBlogPostSEO } from '@/lib/seo/page-seo';
+import { generateBlogPostSchema } from '@/lib/seo/structured-data';
 
 interface PostDetailState {
   post: Post | null;
@@ -146,32 +149,40 @@ export default function PostDetailPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Update document title and meta tags
-  useEffect(() => {
-    if (state.post) {
-      document.title = `${state.post.title} | Supermal Karawaci Blog`;
-      
-      // Update meta description
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', state.post.summary || state.post.title);
-      }
-      
-      // Update Open Graph tags
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      const ogDescription = document.querySelector('meta[property="og:description"]');
-      const ogImage = document.querySelector('meta[property="og:image"]');
-      
-      if (ogTitle) ogTitle.setAttribute('content', state.post.title);
-      if (ogDescription) ogDescription.setAttribute('content', state.post.summary || state.post.title);
-      if (ogImage && state.post.image_url) ogImage.setAttribute('content', state.post.image_url);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.title = 'Supermal Karawaci';
-    };
-  }, [state.post]);
+  // SEO - dynamically updates when post loads
+  useSEO(
+    state.post
+      ? {
+          ...getBlogPostSEO(state.post),
+          structuredData: {
+            type: 'BlogPosting',
+            data: generateBlogPostSchema({
+              title: state.post.title,
+              summary: state.post.summary,
+              slug: state.post.slug,
+              image_url: state.post.image_url,
+              created_at: state.post.created_at,
+              updated_at: state.post.updated_at || undefined,
+              publish_at: state.post.publish_at || undefined,
+              category: state.post.category,
+              tags: state.post.tags,
+            }),
+          },
+        }
+      : {
+          title: state.notFound ? 'Post Not Found' : 'Loading...',
+          description: state.notFound
+            ? 'The blog post you are looking for could not be found.'
+            : 'Loading blog post from Supermal Karawaci',
+        },
+    state.post
+      ? [
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: state.post.title, url: `/blog/${state.post.slug}` },
+        ]
+      : undefined
+  );
 
   // Scroll to top when post changes
   useEffect(() => {
@@ -315,39 +326,6 @@ export default function PostDetailPage() {
       .slice(0, 8);
   }, []);
 
-  // Generate structured data for SEO
-  const structuredData = useMemo(() => {
-    if (!state.post) return null;
-    
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: state.post.title,
-      description: state.post.summary || state.post.title,
-      author: {
-        '@type': 'Person',
-        name: 'Ethan Caldwell'
-      },
-      publisher: {
-        '@type': 'Organization',
-        name: 'Supermal Karawaci',
-        logo: {
-          '@type': 'ImageObject',
-          url: '/logo.png'
-        }
-      },
-      datePublished: state.post.publish_at || state.post.created_at,
-      dateModified: state.post.updated_at || state.post.created_at,
-      image: state.post.image_url,
-      url: window.location.href,
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': window.location.href
-      },
-      articleSection: state.post.category?.name,
-      keywords: Array.isArray(state.post.tags) ? state.post.tags.join(', ') : ''
-    };
-  }, [state.post]);
 
   if (state.isLoading) {
     return (
@@ -423,13 +401,6 @@ export default function PostDetailPage() {
         />
       </div>
 
-      {/* Structured Data for SEO */}
-      {structuredData && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
-      )}
 
       {/* Warning banner for fallback data */}
       {state.usingFallback && (

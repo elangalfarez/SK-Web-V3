@@ -5,8 +5,26 @@ import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Clock, MessageCircle, Building, Car, HeadphonesIcon, Briefcase, Scale } from 'lucide-react';
 import { ContactForm } from './ui/contact-form';
 import { Hero } from './ui/Hero';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { PAGE_SEO } from '@/lib/seo/page-seo';
+import { generateContactPageSchema } from '@/lib/seo/structured-data';
 
 const ContactPage: React.FC = () => {
+  // SEO with ContactPage schema
+  useSEO(
+    {
+      ...PAGE_SEO.contact,
+      structuredData: {
+        type: 'ContactPage',
+        data: generateContactPageSchema(),
+      },
+    },
+    [
+      { name: 'Home', url: '/' },
+      { name: 'Contact', url: '/contact' },
+    ]
+  );
+
   const contactInfo = [
     {
       icon: Phone,

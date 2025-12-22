@@ -26,6 +26,8 @@ import {
 } from '@/lib/api/cinema';
 import { SUPERMAL_CINEMAS, CINEMA_OPTIONS, type CinemaSchedule, type CinemaId, type Movie } from '@/lib/types/cinema';
 import { cn } from '@/lib/utils';
+import { useSEO } from '@/lib/hooks/useSEO';
+import { PAGE_SEO } from '@/lib/seo/page-seo';
 
 // Constants
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes auto-refresh
@@ -54,10 +56,14 @@ const MoviesPage: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // Set page title
-    useEffect(() => {
-        document.title = 'Movies Showtime at XXI — Supermal Karawaci';
-    }, []);
+    // SEO
+    useSEO(
+        PAGE_SEO.movies,
+        [
+            { name: 'Home', url: '/' },
+            { name: 'Movies', url: '/movies' },
+        ]
+    );
 
     // Fetch schedule data
     const fetchSchedule = useCallback(async (cinemaId: CinemaId, isManualRefresh = false) => {
