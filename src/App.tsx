@@ -36,6 +36,12 @@ import BlogPage from './components/BlogPage';
 import PostDetailPage from './components/PostDetailPage';
 import MoviesPage from './components/MoviesPage'; // NEW: Movies showtime page
 
+// Admin Components
+import SEOInjector from './components/SEOInjector';
+import SEOSettingsPage from './components/admin/SEOSettingsPage';
+
+
+
 // Layout Component for consistent navbar/footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -106,6 +112,7 @@ const PublicWebsite: React.FC = () => {
 function App() {
   return (
     <Router>
+      <SEOInjector />
       <Routes>
         {/* Homepage */}
         <Route
@@ -116,7 +123,15 @@ function App() {
             </Layout>
           }
         />
-
+        {/* SEO Settings Page */}
+        <Route
+          path="/admin/seo-settings"
+          element={
+            <Layout>
+              <SEOSettingsPage />
+            </Layout>
+          }
+        />
         {/* Mall Directory Page */}
         <Route
           path="/directory"

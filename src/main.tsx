@@ -6,12 +6,15 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { initializeTheme } from './lib/theme-config';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Initialize theme system immediately to prevent flash
 initializeTheme();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <HelmetProvider>
+      <App />
+    </HelmetProvider>
   </StrictMode>
 );
