@@ -35,6 +35,7 @@ import EventDetailPage from './components/EventDetailPage';
 import BlogPage from './components/BlogPage';
 import PostDetailPage from './components/PostDetailPage';
 import MoviesPage from './components/MoviesPage'; // NEW: Movies showtime page
+import NotFoundPage from './components/NotFoundPage'; // 404 Page
 
 // Admin Components
 import SEOInjector from './components/SEOInjector';
@@ -222,8 +223,8 @@ function App() {
           }
         />
 
-        {/* Fallback to homepage */}
-        <Route path="*" element={<Layout><PublicWebsite /></Layout>} />
+        {/* 404 Not Found Page */}
+        <Route path="*" element={<Layout><NotFoundPage /></Layout>} />
       </Routes>
     </Router>
   );
