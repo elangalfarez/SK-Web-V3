@@ -20,7 +20,7 @@ export interface Movie {
 export interface CinemaSchedule {
     cinemaId: string;
     cinemaName: string;
-    cinemaType: 'XXI' | 'PREMIERE' | '21';
+    cinemaType: 'XXI' | 'PREMIERE';
     address: string;
     phone: string;
     pricing: {
@@ -44,8 +44,7 @@ export interface CinemaAPIResponse {
 // Cinema IDs for Supermal Karawaci
 export const SUPERMAL_CINEMAS = {
     XXI: 'TGRKARA',      // Supermal Karawaci XXI
-    PREMIERE: 'TGRPRKA', // Supermal Karawaci Premiere  
-    REGULAR: 'TGRLIKA',  // Supermal Karawaci 21 (Regular)
+    PREMIERE: 'TGRPRKA', // Supermal Karawaci Premiere
 } as const;
 
 export type CinemaId = typeof SUPERMAL_CINEMAS[keyof typeof SUPERMAL_CINEMAS];
@@ -53,7 +52,7 @@ export type CinemaId = typeof SUPERMAL_CINEMAS[keyof typeof SUPERMAL_CINEMAS];
 export interface CinemaOption {
     id: CinemaId;
     name: string;
-    type: 'XXI' | 'PREMIERE' | '21';
+    type: 'XXI' | 'PREMIERE';
     description: string;
 }
 
@@ -69,11 +68,5 @@ export const CINEMA_OPTIONS: CinemaOption[] = [
         name: 'Supermal Karawaci Premiere',
         type: 'PREMIERE',
         description: 'Luxury seating with exclusive amenities'
-    },
-    {
-        id: 'TGRLIKA',
-        name: 'Supermal Karawaci 21',
-        type: '21',
-        description: 'Classic cinema experience'
     }
 ];

@@ -2392,8 +2392,14 @@ export async function fetchContacts(params: ContactFetchParams = {}): Promise<Co
 
 export async function submitContactForm(contactData: ContactInsert): Promise<Contact> {
   try {
-    const submissionData = {
+    // Clean phone_number: convert empty string to null for proper DB handling
+    const cleanedData = {
       ...contactData,
+      phone_number: contactData.phone_number?.trim() || null,
+    };
+
+    const submissionData = {
+      ...cleanedData,
       submitted_date: new Date().toISOString(),
     };
 
@@ -2404,13 +2410,14 @@ export async function submitContactForm(contactData: ContactInsert): Promise<Con
       .single();
 
     if (error) {
-      console.error('Error submitting contact form:', error);
-      throw error;
+      console.error('Error submitting contact form:', error.message, error.details, error.hint);
+      throw new Error(error.message || 'Failed to submit contact form');
     }
 
     return data;
   } catch (error) {
-    console.error('Unexpected error submitting contact form:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unexpected error submitting contact form';
+    console.error('Contact form submission failed:', errorMessage);
     throw error;
   }
 }

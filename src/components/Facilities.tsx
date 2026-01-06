@@ -91,8 +91,8 @@ const Facilities = () => {
       Icon: Film,
       name: "Cinema",
       description: "Modern movie theaters",
-      href: "#",
-      cta: "",
+      href: "/movies",
+      cta: "View Showtimes",
       background: (
         <div className="absolute inset-0">
           <img 

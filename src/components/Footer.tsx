@@ -39,33 +39,33 @@ const Footer = () => {
   ];
 
   const services = [
-    { 
-      name: "Spacious Parking", 
+    {
+      name: "Spacious Parking",
       description: "3000+ spaces",
       icon: Car
     },
-    { 
-      name: "Free WiFi", 
+    {
+      name: "Free WiFi",
       description: "High-speed internet",
       icon: Wifi
     },
-    { 
-      name: "Multiple Payment", 
+    {
+      name: "Multiple Payment",
       description: "Cash, card, e-wallet",
       icon: CreditCard
     },
-    { 
-      name: "24/7 Security", 
+    {
+      name: "24/7 Security",
       description: "Safe & secure",
       icon: Shield
     },
-    { 
-      name: "Gift Wrapping", 
-      description: "Complimentary service",
+    {
+      name: "Specialties Tenants",
+      description: "Only at Supermal Karawaci",
       icon: Gift
     },
-    { 
-      name: "Customer Service", 
+    {
+      name: "Customer Service",
       description: "Always ready to help",
       icon: User
     }
@@ -80,14 +80,14 @@ const Footer = () => {
     <footer className="relative overflow-hidden bg-surface-secondary">
       {/* Accent background pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-surface-tertiary via-surface-secondary to-surface-tertiary"></div>
-      
+
       {/* Background pattern overlay with theme-aware accent */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-0 left-0 w-96 h-96 bg-accent rounded-full -translate-x-48 -translate-y-48"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent rounded-full translate-x-48 translate-y-48"></div>
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent rounded-full -translate-x-32 -translate-y-32"></div>
       </div>
-      
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between mb-12 md:mb-16 text-center md:text-left">
@@ -113,7 +113,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-12 md:mb-16">
           {/* Quick Links */}
@@ -129,7 +129,7 @@ const Footer = () => {
               ))}
             </ul>
           </div>
-          
+
           {/* Services Grid */}
           <div className="md:col-span-2 lg:col-span-2">
             <h4 className="text-lg font-semibold heading-accent mb-6">Our Services</h4>
@@ -147,7 +147,7 @@ const Footer = () => {
               ))}
             </div>
           </div>
-          
+
           {/* Contact Info */}
           <div>
             <h4 className="text-lg font-semibold heading-accent mb-6">Contact Info</h4>
@@ -156,9 +156,9 @@ const Footer = () => {
                 <MapPin className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-text-secondary leading-relaxed">
-                    Jl. Boulevard Diponegoro No. 105<br />
-                    Klp. Dua, Kec. Karawaci<br />
-                    Kota Tangerang, Banten 15115
+                    105 Boulevard Diponegoro #00-00<br />
+                    Klp. Dua, Kec. Kelapa Dua<br />
+                    Kab. Tangerang, Banten 15811
                   </p>
                 </div>
               </div>
@@ -169,14 +169,14 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Newsletter Section */}
         <div className="border-t border-border-primary pt-8 md:pt-12 mb-8 md:mb-12">
           <div className="text-center mb-8">
             <h3 className="text-xl md:text-2xl font-bold text-text-primary mb-2">Stay Connected</h3>
             <p className="text-text-secondary">Subscribe to our newsletter for exclusive offers, events, and updates</p>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="max-w-md mx-auto">
             <div className="flex flex-col sm:flex-row gap-3">
               <input
@@ -197,18 +197,13 @@ const Footer = () => {
             </div>
           </form>
         </div>
-        
+
         {/* Bottom Section */}
         <div className="border-t border-border-primary pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6 mb-4 md:mb-0 text-center sm:text-left">
             <p className="text-text-secondary text-sm">© 2025 Supermal Karawaci. All rights reserved.</p>
-            <div className="flex flex-wrap justify-center sm:justify-start space-x-4 text-sm">
-              <a href="#" className="text-text-secondary hover:text-accent transition-colors">Privacy Policy</a>
-              <span className="text-text-muted">•</span>
-              <a href="#" className="text-text-secondary hover:text-accent transition-colors">Terms of Service</a>
-            </div>
           </div>
-          
+
           <div className="flex items-center space-x-1 mt-4 md:mt-0">
             <span className="text-text-secondary text-sm mr-3">Follow us:</span>
             {socialLinks.map((social) => (

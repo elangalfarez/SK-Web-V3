@@ -139,12 +139,18 @@ export const ContactForm: React.FC = () => {
     setSubmitError(null)
 
     try {
-      // Prepare data for submission (exclude honeypot field)
+      // Prepare data for submission (exclude honeypot field, clean phone_number)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { website, ...submitData } = data
-      
+      const { website, phone_number, ...restData } = data
+
+      const submitData: ContactInsert = {
+        ...restData,
+        // Convert empty phone to undefined so it becomes null in DB
+        phone_number: phone_number?.trim() || undefined,
+      }
+
       // submitContactForm returns Contact directly or throws error
-      await submitContactForm(submitData as ContactInsert)
+      await submitContactForm(submitData)
 
       // Success - show modal and reset form
       setShowSuccessModal(true)

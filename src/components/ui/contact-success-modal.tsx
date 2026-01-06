@@ -2,7 +2,7 @@
 // Created: Success modal with focus trap, accessibility, and smooth animations
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, Mail, Clock, MessageSquare } from 'lucide-react';
+import { X, CheckCircle2, Clock, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ContactSuccessModalProps {
@@ -183,16 +183,6 @@ export const ContactSuccessModal: React.FC<ContactSuccessModalProps> = ({
                   <div className="text-left">
                     <p className="text-sm font-medium text-text-primary">Response Time</p>
                     <p className="text-xs text-text-muted">Within 24 hours</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center space-x-3 p-4 bg-surface-secondary rounded-xl border border-border-primary">
-                  <div className="p-2 bg-accent/10 rounded-lg">
-                    <Mail className="w-4 h-4 text-accent" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-medium text-text-primary">Email Confirmation</p>
-                    <p className="text-xs text-text-muted">Sent to your inbox</p>
                   </div>
                 </div>
               </motion.div>

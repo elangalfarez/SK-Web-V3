@@ -31,7 +31,7 @@ import { PAGE_SEO } from '@/lib/seo/page-seo';
 
 // Constants
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes auto-refresh
-const M_TIX_URL = 'https://m.21cineplex.com/';
+const M_TIX_URL = 'https://m.21cineplex.com/id/cinemas/TGRKARA';
 
 interface MoviesPageState {
     schedule: CinemaSchedule | null;
@@ -217,9 +217,6 @@ const MoviesPage: React.FC = () => {
                 subtitle="Discover what's playing at XXI Supermal Karawaci. Book your tickets now for the latest blockbusters and exciting new releases."
                 variant="compact"
                 center={true}
-                visual={
-                    <Film className="w-24 h-24 text-accent/10" aria-hidden="true" />
-                }
             />
 
             {/* Main Content */}

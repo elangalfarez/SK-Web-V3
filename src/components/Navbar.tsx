@@ -3,14 +3,15 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
-import { 
-  Store, 
-  MapPin, 
-  FileText, 
-  Calendar, 
-  Gift,  
-  Phone, 
-  Heart
+import {
+  Store,
+  MapPin,
+  FileText,
+  Calendar,
+  Gift,
+  Phone,
+  Heart,
+  Film
 } from 'lucide-react';
 import MegaMenu from '@/components/ui/mega-menu';
 import { useTheme } from '@/lib/theme-config';
@@ -113,6 +114,12 @@ const Navbar = () => {
               href: '/event',
             },
             {
+              label: 'Cinema',
+              description: 'Movie showtimes at XXI Supermal Karawaci',
+              icon: Film,
+              href: '/movies',
+            },
+            {
               label: 'Blog',
               description: 'Latest articles and insights',
               icon: FileText,
@@ -164,6 +171,7 @@ const Navbar = () => {
       submenu: [
         { name: 'Promotions', href: '/promotions' },
         { name: 'Events', href: '/event' },
+        { name: 'Cinema', href: '/movies' },
         { name: 'Blog', href: '/blog' }
       ]
     },

@@ -43,7 +43,7 @@ const ContactPage: React.FC = () => {
     {
       icon: MapPin,
       label: 'Address',
-      value: 'Jl. Boulevard Diponegoro No. 105, Klp. Dua, Kec. Karawaci, Kota Tangerang, Banten 15115',
+      value: '105 Boulevard Diponegoro #00-00, Kelapa Dua, Kab. Tangerang, Banten 15811',
       href: 'https://maps.google.com/?q=Supermal+Karawaci',
       description: 'Easy access via toll road'
     },
@@ -113,7 +113,7 @@ const ContactPage: React.FC = () => {
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-            
+
             {/* Contact Information */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -126,7 +126,7 @@ const ContactPage: React.FC = () => {
                   Contact Information
                 </h2>
                 <p className="text-text-secondary leading-relaxed">
-                  Choose the best way to reach us. We're committed to providing you with 
+                  Choose the best way to reach us. We're committed to providing you with
                   excellent service and quick responses.
                 </p>
               </div>
@@ -139,9 +139,8 @@ const ContactPage: React.FC = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.3 + (index * 0.1) }}
-                    className={`p-6 bg-surface-secondary border border-border-primary rounded-2xl hover:border-accent/20 hover:shadow-lg transition-all duration-300 group ${
-                      item.href ? 'cursor-pointer' : ''
-                    }`}
+                    className={`p-6 bg-surface-secondary border border-border-primary rounded-2xl hover:border-accent/20 hover:shadow-lg transition-all duration-300 group ${item.href ? 'cursor-pointer' : ''
+                      }`}
                     onClick={() => item.href && window.open(item.href, '_blank')}
                   >
                     <div className="flex items-start space-x-4">
@@ -203,7 +202,7 @@ const ContactPage: React.FC = () => {
                     Fill out the form below and we'll get back to you as soon as possible.
                   </p>
                 </div>
-                
+
                 <ContactForm />
               </div>
             </motion.div>
@@ -224,7 +223,7 @@ const ContactPage: React.FC = () => {
               Visit Us Today
             </h2>
             <p className="text-text-secondary max-w-2xl mx-auto">
-              Located in the heart of Tangerang, Supermal Karawaci is easily accessible 
+              Located in the heart of Tangerang, Supermal Karawaci is easily accessible
               and offers ample parking for your convenience.
             </p>
           </motion.div>
@@ -234,7 +233,7 @@ const ContactPage: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative rounded-2xl overflow-hidden shadow-2xl aspect-video bg-surface-secondary border border-border-primary"
-          > 
+          >
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d1981.0575886518147!2d106.60707397307472!3d-6.226926480180976!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sus!4v1760853964651!5m2!1sen!2sus"
               width="100%"
@@ -246,7 +245,7 @@ const ContactPage: React.FC = () => {
               title="Supermal Karawaci Location"
               className="grayscale hover:grayscale-0 transition-all duration-500"
             />
-            
+
             {/* Map Overlay */}
             <div className="absolute inset-0 bg-accent/5 hover:bg-transparent transition-all duration-500 pointer-events-none" />
           </motion.div>
