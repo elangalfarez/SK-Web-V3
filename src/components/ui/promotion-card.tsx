@@ -167,14 +167,34 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
         )}
 
         {/* CTA Button */}
-        <Button
-          variant="outline"
-          size={isFeatured ? 'default' : 'sm'}
-          className="w-full group-hover:bg-accent group-hover:text-text-inverse group-hover:border-accent transition-all duration-200"
-        >
-          <span>View Details</span>
-          <ExternalLink className="w-4 h-4 ml-2" />
-        </Button>
+        {promotion.source_post ? (
+          <Button
+            variant="outline"
+            size={isFeatured ? 'default' : 'sm'}
+            className="w-full group-hover:bg-accent group-hover:text-text-inverse group-hover:border-accent transition-all duration-200"
+            asChild
+          >
+            <a
+              href={promotion.source_post}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span>View Details</span>
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </a>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size={isFeatured ? 'default' : 'sm'}
+            className="w-full group-hover:bg-accent group-hover:text-text-inverse group-hover:border-accent transition-all duration-200"
+            disabled
+          >
+            <span>View Details</span>
+            <ExternalLink className="w-4 h-4 ml-2" />
+          </Button>
+        )}
       </div>
 
       {/* Hover effect overlay */}

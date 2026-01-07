@@ -53,8 +53,8 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
   const mobileX = useMotionValue(0);
   const mobileControls = useAnimation();
 
-  // Gap size in pixels (1rem = 16px typically)
-  const gapSize = 16;
+  // Gap size in pixels (0.75rem = 12px for mobile)
+  const gapSize = 12;
 
   // Update refs when state changes
   useEffect(() => {
@@ -225,7 +225,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
 
       {/* Mobile Carousel (hidden on desktop) */}
       <div className="md:hidden">
-        <div 
+        <div
           ref={mobileContainerRef}
           className="relative overflow-hidden"
         >
@@ -238,13 +238,13 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
             onDragEnd={handleMobileDragEnd}
             animate={mobileControls}
             style={{ x: prefersReducedMotion ? -currentMobileSlide * (containerWidth + gapSize) : mobileX }}
-            className="flex gap-4"
+            className="flex gap-3"
           >
             {items.map((item, index) => (
               <div
                 key={item.id}
                 className="flex-shrink-0"
-                style={{ width: `calc((100% - 1rem) / ${cardsPerMobile})` }}
+                style={{ width: `calc((100% - 0.75rem) / ${cardsPerMobile})` }}
               >
                 <WhatsOnCard
                   item={item}
@@ -278,7 +278,7 @@ export const WhatsOnCarousel: React.FC<WhatsOnCarouselProps> = ({
           </div>
 
           {/* Mobile Dots */}
-          <div className="flex md:hidden justify-center gap-2 mt-6">
+          <div className="flex md:hidden justify-center gap-2 mt-3">
             {Array.from({ length: maxMobileSlides }).map((_, index) => (
               <button
                 key={index}

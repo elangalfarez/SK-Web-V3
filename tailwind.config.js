@@ -66,7 +66,15 @@ export default {
         '2': '2 2 0%',
       },
       screens: {
-        '3xl': '1600px',
+        // Extra small - large phones in landscape
+        'xs': '475px',
+        // Standard breakpoints are inherited from Tailwind defaults:
+        // sm: 640px, md: 768px, lg: 1024px, xl: 1280px, 2xl: 1536px
+        // Custom additions for finer control:
+        'tablet': '820px',  // iPad portrait and similar tablets
+        'laptop': '1100px', // Small laptops (14" at 125% zoom ≈ 1024px effective)
+        '3xl': '1600px',    // Large desktop monitors
+        '4xl': '1920px',    // Full HD and above
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

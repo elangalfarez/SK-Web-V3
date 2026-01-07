@@ -35,18 +35,17 @@ export const HeroModels: React.FC<HeroModelsProps> = ({ className }) => {
         </div>
       </div>
 
-      {/* Mobile Models - Reduced height for better viewport fit */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center lg:hidden h-60 sm:h-64">
-        {/* Reduced from h-80 sm:h-96 to h-60 sm:h-64 */}
-        <img 
+      {/* Mobile Models - Prominent visual presence */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center lg:hidden h-80 sm:h-96">
+        <img
           src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/Model%20Final%20Approved-min.png"
           alt="Supermal Karawaci Models"
-          className="object-contain object-bottom transition-transform duration-700 ease-out hover:scale-105 max-w-full opacity-100"
+          className="object-contain object-bottom transition-transform duration-700 ease-out max-w-full opacity-100"
           style={{
             height: '100%',
             width: 'auto',
             transformOrigin: 'bottom center',
-            maxHeight: 'min(256px, 40vh)' // Cap at 40% viewport or 256px
+            maxHeight: 'min(384px, 52vh)'
           }}
           loading="lazy"
           draggable={false}

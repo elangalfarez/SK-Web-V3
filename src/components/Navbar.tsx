@@ -102,12 +102,6 @@ const Navbar = () => {
           title: 'Current',
           items: [
             {
-              label: 'Promotions',
-              description: 'Latest deals and special offers',
-              icon: Gift,
-              href: '/promotions',
-            },
-            {
               label: 'Events',
               description: 'Upcoming activities and entertainment',
               icon: Calendar,
@@ -118,6 +112,12 @@ const Navbar = () => {
               description: 'Movie showtimes at XXI Supermal Karawaci',
               icon: Film,
               href: '/movies',
+            },
+            {
+              label: 'Promotions',
+              description: 'Latest deals and special offers',
+              icon: Gift,
+              href: '/promotions',
             },
             {
               label: 'Blog',
@@ -169,9 +169,9 @@ const Navbar = () => {
       name: "What's On",
       href: '#',
       submenu: [
-        { name: 'Promotions', href: '/promotions' },
         { name: 'Events', href: '/event' },
         { name: 'Cinema', href: '/movies' },
+        { name: 'Promotions', href: '/promotions' },
         { name: 'Blog', href: '/blog' }
       ]
     },

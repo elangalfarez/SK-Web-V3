@@ -1,5 +1,5 @@
 // src/components/ui/whats-on-card.tsx
-// Fixed: Removed unused motion import to resolve TS6133 warning
+// Fixed: Responsive card sizing for all viewport sizes - tablets, laptops, desktops
 
 import React from 'react';
 import { ResponsiveImage } from './ResponsiveImage';
@@ -25,8 +25,11 @@ export const WhatsOnCard: React.FC<WhatsOnCardProps> = ({
       className={cn(
         'relative bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden',
         'cursor-pointer hover:bg-black/50 transition-all duration-300',
-        'transform hover:scale-105 group',
-        'w-52 h-full flex flex-col',
+        'transform hover:scale-[1.02] md:hover:scale-105 group',
+        // Mobile: fill container width (carousel wrapper controls size)
+        // Desktop: fixed widths for consistent card sizes
+        'w-full md:w-44 lg:w-48 xl:w-52',
+        'h-full flex flex-col',
         className
       )}
     >
@@ -57,12 +60,12 @@ export const WhatsOnCard: React.FC<WhatsOnCardProps> = ({
         )}
       </div>
       
-      {/* Content - compact like original with consistent height */}
-      <div className="p-5 flex flex-col flex-1">
-        <h4 className="text-white font-semibold text-sm mb-1 line-clamp-2 flex-1">
+      {/* Content - responsive padding and text sizes */}
+      <div className="p-3 sm:p-4 md:p-5 flex flex-col flex-1">
+        <h4 className="text-white font-semibold text-xs sm:text-sm mb-1 line-clamp-2 flex-1">
           {item.title}
         </h4>
-        <p className="text-gray-300 text-xs opacity-75 flex-shrink-0">
+        <p className="text-gray-300 text-[10px] sm:text-xs opacity-75 flex-shrink-0">
           {item.date_text}
         </p>
       </div>

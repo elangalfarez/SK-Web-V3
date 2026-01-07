@@ -1,15 +1,15 @@
 // src/components/Facilities.tsx
 // Modified: Added darkBackground prop to all facility cards for better text contrast
 
-import { 
-  Store, 
-  Car, 
-  Utensils, 
-  Baby, 
-  Film, 
-  Wifi, 
-  CreditCard, 
-  Info 
+import {
+  Store,
+  Car,
+  Utensils,
+  Baby,
+  Film,
+  Wifi,
+  CreditCard,
+  Info
 } from 'lucide-react';
 import { BentoCard, BentoGrid } from '@/components/ui/bento-grid';
 
@@ -23,10 +23,10 @@ const Facilities = () => {
       cta: "Explore Stores",
       background: (
         <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          <img
+            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
             alt="Shopping Area"
-            className="w-full h-full object-cover opacity-70" 
+            className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/40 to-transparent"></div>
         </div>
@@ -41,10 +41,10 @@ const Facilities = () => {
       cta: "",
       background: (
         <div className="absolute inset-0">
-          <img 
-            src="https://supermalkarawaci.co.id/core/wp-content/uploads/2025/07/images.jpeg?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          <img
+            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/parkir%20knockdown.jpeg"
             alt="Parking"
-            className="w-full h-full object-cover opacity-70" 
+            className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/40 to-transparent"></div>
         </div>
@@ -95,10 +95,10 @@ const Facilities = () => {
       cta: "View Showtimes",
       background: (
         <div className="absolute inset-0">
-          <img 
-            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/Tenants%20Photo/XXI%20Cinema.jpg" 
+          <img
+            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/Tenants%20Photo/XXI%20Cinema.jpg"
             alt="Cinema"
-            className="w-full h-full object-cover opacity-70" 
+            className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
         </div>
@@ -112,7 +112,14 @@ const Facilities = () => {
       href: "#",
       cta: "",
       background: (
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800" />
+        <div className="absolute inset-0">
+          <img
+            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/wifi.jpg"
+            alt="Cinema"
+            className="w-full h-full object-cover opacity-70"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
+        </div>
       ),
       className: "lg:col-start-1 lg:col-end-2 lg:row-start-3 lg:row-end-4",
     },
@@ -123,7 +130,14 @@ const Facilities = () => {
       href: "#",
       cta: "",
       background: (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-600 to-gray-800" />
+        <div className="absolute inset-0">
+          <img
+            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/atm.jpg"
+            alt="Cinema"
+            className="w-full h-full object-cover opacity-70"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
+        </div>
       ),
       className: "lg:col-start-2 lg:col-end-3 lg:row-start-3 lg:row-end-4",
     },
@@ -134,7 +148,14 @@ const Facilities = () => {
       href: "#",
       cta: "",
       background: (
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-gray-700 to-slate-800" />
+        <div className="absolute inset-0">
+          <img
+            src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/CS%20Main%20Lobby%202.jpeg"
+            alt="Cinema"
+            className="w-full h-full object-cover opacity-70"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
+        </div>
       ),
       className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4",
     },
@@ -151,12 +172,12 @@ const Facilities = () => {
             Everything you need for a comfortable shopping experience
           </p>
         </div>
-        
+
         <BentoGrid className="lg:grid-rows-3">
           {facilities.map((facility) => (
-            <BentoCard 
-              key={facility.name} 
-              {...facility} 
+            <BentoCard
+              key={facility.name}
+              {...facility}
               darkBackground={true} // All facility cards have dark gradient backgrounds
             />
           ))}
