@@ -54,21 +54,12 @@ export async function fetchCinemaSchedule(cinemaId: CinemaId = SUPERMAL_CINEMAS.
             headers['apikey'] = anonKey;
         }
 
-        console.log('[Cinema API] Fetching:', url);
-
         const response = await fetch(url, {
             method: 'GET',
             headers,
         });
 
         const data = await response.json();
-
-        console.log('[Cinema API] Response:', {
-            success: data.success,
-            source: data.source,
-            movieCount: data.data?.movies?.length || 0,
-            cached: data.cached
-        });
 
         // Return the response as-is (includes source: 'live' | 'cache' | 'error')
         return data as CinemaAPIResponse;

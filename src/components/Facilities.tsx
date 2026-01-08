@@ -1,6 +1,8 @@
 // src/components/Facilities.tsx
-// Modified: Added darkBackground prop to all facility cards for better text contrast
+// Modified: Added modal popups for facilities (Parking, Kids Area, d'FoodCourt, ATM, WiFi, Info Center)
+// Shopping Area and Cinema remain as navigation links
 
+import { useState } from 'react';
 import {
   Store,
   Car,
@@ -12,8 +14,143 @@ import {
   Info
 } from 'lucide-react';
 import { BentoCard, BentoGrid } from '@/components/ui/bento-grid';
+import { FacilityModal, FacilityModalContent } from '@/components/ui/facility-modal';
+
+// Define modal content for each facility
+const facilityModalContent: Record<string, FacilityModalContent> = {
+  parking: {
+    name: "Parking Space",
+    subtitle: "Spacious and secure parking areas for your convenience",
+    Icon: Car,
+    imageUrl: "https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/parkir%20knockdown.jpeg",
+    sections: [
+      {
+        title: "Car Parking Rate",
+        items: [
+          { name: "First 1 hour", description: "Rp 5,000" },
+          { name: "Every subsequent hour", description: "Rp 5,000" },
+        ],
+      },
+      {
+        title: "Motorcycle Parking Rate",
+        items: [
+          { name: "First 1 hour", description: "Rp 3,000" },
+          { name: "Every subsequent hour", description: "Rp 2,000" },
+        ],
+      },
+    ],
+    footnote: "*Tariff is subject to change without prior notice",
+  },
+  kidsArea: {
+    name: "Kids Area",
+    subtitle: "Safe and fun entertainment zones for children",
+    Icon: Baby,
+    imageUrl: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    sections: [
+      {
+        title: "Entertainment Venues",
+        items: [
+          { name: "Timezone", description: "Arcade games and entertainment" },
+          { name: "Playtopia Playground", description: "Indoor playground for kids" },
+          { name: "Playtopia Arcade", description: "Arcade gaming experience" },
+          { name: "Playtopia Sports", description: "Sports and active play zone" },
+          { name: "DinoxScape", description: "Dinosaur-themed adventure" },
+          { name: "Free Kids Playground", description: "Complimentary play area at d'Food Court" },
+        ],
+      },
+    ],
+  },
+  foodCourt: {
+    name: "d'FoodCourt",
+    subtitle: "Delicious dining options for every taste",
+    Icon: Utensils,
+    imageUrl: "https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/dfoodcourt.jpeg",
+    sections: [
+      {
+        title: "About d'FoodCourt",
+        content: (
+          <p className="text-text-secondary leading-relaxed">
+            Our d'FoodCourt offers a wide variety of culinary options from local favorites to international cuisines.
+            With numerous food stalls and comfortable seating areas, it's the perfect spot for family meals,
+            quick bites, or gathering with friends. Enjoy affordable and delicious meals in a vibrant atmosphere.
+          </p>
+        ),
+      },
+    ],
+  },
+  atm: {
+    name: "ATM Center",
+    subtitle: "Convenient banking services throughout the mall",
+    Icon: CreditCard,
+    imageUrl: "https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/atm.jpg",
+    sections: [
+      {
+        title: "ATM Locations",
+        items: [
+          { name: "East Basement", description: "Multiple ATM machines available" },
+          { name: "West Basement", description: "Multiple ATM machines available" },
+        ],
+      },
+      {
+        title: "Banking Tenants at First Floor",
+        items: [
+          { name: "BCA" },
+          { name: "Mandiri" },
+          { name: "Danamon" },
+          { name: "BTN" },
+          { name: "CIMB Niaga Digital Lounge" },
+        ],
+      },
+    ],
+  },
+  wifi: {
+    name: "Free WiFi",
+    subtitle: "Stay connected throughout your visit",
+    Icon: Wifi,
+    imageUrl: "https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/wifi.jpg",
+    sections: [
+      {
+        title: "WiFi Service",
+        content: (
+          <p className="text-text-secondary leading-relaxed">
+            Free high-speed WiFi is provided throughout Supermal Karawaci, powered by <strong className="text-text-primary">Linknet</strong>.
+            Connect to our network and enjoy seamless internet access while you shop, dine, and explore.
+          </p>
+        ),
+      },
+    ],
+  },
+  infoCenter: {
+    name: "Information Center",
+    subtitle: "Customer service and mall assistance",
+    Icon: Info,
+    imageUrl: "https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/CS%20Main%20Lobby%202.jpeg",
+    sections: [
+      {
+        title: "Customer Service Locations",
+        items: [
+          { name: "CS VIP Counter", description: "VIP membership services and inquiries" },
+          { name: "CS North Lobby", description: "Main entrance assistance" },
+          { name: "CS South Lobby", description: "South wing customer support" },
+          { name: "CS eCenter", description: "Electronics center assistance" },
+          { name: "CS West Lobby", description: "West wing information desk" },
+        ],
+      },
+    ],
+  },
+};
 
 const Facilities = () => {
+  const [selectedFacility, setSelectedFacility] = useState<FacilityModalContent | null>(null);
+
+  const handleOpenModal = (facilityKey: string) => {
+    setSelectedFacility(facilityModalContent[facilityKey]);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedFacility(null);
+  };
+
   const facilities = [
     {
       Icon: Store,
@@ -37,8 +174,7 @@ const Facilities = () => {
       Icon: Car,
       name: "Parking Space",
       description: "Spacious and secure parking areas",
-      href: "#",
-      cta: "",
+      onClick: () => handleOpenModal('parking'),
       background: (
         <div className="absolute inset-0">
           <img
@@ -55,8 +191,7 @@ const Facilities = () => {
       Icon: Utensils,
       name: "d'FoodCourt",
       description: "Various dining options and cuisines",
-      href: "#",
-      cta: "",
+      onClick: () => handleOpenModal('foodCourt'),
       background: (
         <div className="absolute inset-0">
           <img
@@ -73,8 +208,7 @@ const Facilities = () => {
       Icon: Baby,
       name: "Kids Area",
       description: "Safe and fun playground for children",
-      href: "#",
-      cta: "",
+      onClick: () => handleOpenModal('kidsArea'),
       background: (
         <div className="absolute inset-0">
           <img
@@ -109,13 +243,12 @@ const Facilities = () => {
       Icon: Wifi,
       name: "Free WiFi",
       description: "High-speed internet access",
-      href: "#",
-      cta: "",
+      onClick: () => handleOpenModal('wifi'),
       background: (
         <div className="absolute inset-0">
           <img
             src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/wifi.jpg"
-            alt="Cinema"
+            alt="WiFi"
             className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
@@ -127,13 +260,12 @@ const Facilities = () => {
       Icon: CreditCard,
       name: "ATM Center",
       description: "Multiple ATMs and money changers",
-      href: "#",
-      cta: "",
+      onClick: () => handleOpenModal('atm'),
       background: (
         <div className="absolute inset-0">
           <img
             src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/atm.jpg"
-            alt="Cinema"
+            alt="ATM Center"
             className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
@@ -145,13 +277,12 @@ const Facilities = () => {
       Icon: Info,
       name: "Information Center",
       description: "Customer service and mall information",
-      href: "#",
-      cta: "",
+      onClick: () => handleOpenModal('infoCenter'),
       background: (
         <div className="absolute inset-0">
           <img
             src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/Web%20Assets/CS%20Main%20Lobby%202.jpeg"
-            alt="Cinema"
+            alt="Information Center"
             className="w-full h-full object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
@@ -178,11 +309,18 @@ const Facilities = () => {
             <BentoCard
               key={facility.name}
               {...facility}
-              darkBackground={true} // All facility cards have dark gradient backgrounds
+              darkBackground={true}
             />
           ))}
         </BentoGrid>
       </div>
+
+      {/* Facility Detail Modal */}
+      <FacilityModal
+        content={selectedFacility}
+        isOpen={selectedFacility !== null}
+        onClose={handleCloseModal}
+      />
     </section>
   );
 };

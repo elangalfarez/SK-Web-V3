@@ -215,15 +215,16 @@ export default function BlogPage() {
       .slice(0, 8);
   }, [state.posts]);
 
-  // Render pagination
+  // Render pagination - Mobile-first responsive
   const renderPagination = () => {
     if (state.totalPages <= 1) return null;
 
     const pages = [];
-    const maxVisiblePages = 5;
+    // Show fewer pages on mobile
+    const maxVisiblePages = typeof window !== 'undefined' && window.innerWidth < 640 ? 3 : 5;
     let startPage = Math.max(1, state.currentPage - Math.floor(maxVisiblePages / 2));
     const endPage = Math.min(state.totalPages, startPage + maxVisiblePages - 1);
-    
+
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
@@ -233,11 +234,16 @@ export default function BlogPage() {
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            i === state.currentPage
+          className={`
+            min-w-[36px] h-9 sm:min-w-[40px] sm:h-10
+            px-2 sm:px-3 py-1.5 sm:py-2
+            rounded-lg text-xs sm:text-sm font-medium
+            transition-colors
+            ${i === state.currentPage
               ? 'bg-accent text-text-inverse'
               : 'text-text-primary hover:bg-surface-secondary border border-border-primary'
-          }`}
+            }
+          `}
           aria-label={`Go to page ${i}`}
           aria-current={i === state.currentPage ? 'page' : undefined}
         >
@@ -247,22 +253,37 @@ export default function BlogPage() {
     }
 
     return (
-      <div className="flex justify-center items-center gap-2 mt-12">
+      <div className="flex justify-center items-center gap-1.5 sm:gap-2 mt-8 sm:mt-10 md:mt-12">
         <button
           onClick={() => handlePageChange(state.currentPage - 1)}
           disabled={state.currentPage <= 1}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-surface-secondary border border-border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="
+            h-9 sm:h-10 px-2.5 sm:px-4 py-1.5 sm:py-2
+            rounded-lg text-xs sm:text-sm font-medium
+            text-text-primary hover:bg-surface-secondary
+            border border-border-primary
+            disabled:opacity-50 disabled:cursor-not-allowed
+            transition-colors
+          "
           aria-label="Previous page"
         >
-          Previous
+          <span className="hidden xs:inline">Previous</span>
+          <span className="xs:hidden">Prev</span>
         </button>
-        
+
         {pages}
-        
+
         <button
           onClick={() => handlePageChange(state.currentPage + 1)}
           disabled={state.currentPage >= state.totalPages}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-surface-secondary border border-border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="
+            h-9 sm:h-10 px-2.5 sm:px-4 py-1.5 sm:py-2
+            rounded-lg text-xs sm:text-sm font-medium
+            text-text-primary hover:bg-surface-secondary
+            border border-border-primary
+            disabled:opacity-50 disabled:cursor-not-allowed
+            transition-colors
+          "
           aria-label="Next page"
         >
           Next
@@ -272,126 +293,131 @@ export default function BlogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
-      {/* Error Banner */}
+    <div className="min-h-screen bg-surface overflow-x-hidden">
+      {/* Error Banner - Mobile-first responsive */}
       {state.error && !dismissedBanner && (
         <motion.div
           initial={shouldReduceMotion ? {} : { opacity: 0, y: -50 }}
           animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-          className="bg-warning/10 border-b border-warning/20 px-6 py-3"
+          className="bg-warning/10 border-b border-warning/20 px-3 sm:px-6 py-2 sm:py-3"
         >
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertCircle size={16} className="text-warning" />
-              <p className="text-sm text-text-primary">{state.error}</p>
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle size={14} className="text-warning flex-shrink-0 sm:w-4 sm:h-4" />
+              <p className="text-xs sm:text-sm text-text-primary truncate">{state.error}</p>
             </div>
             <button
               onClick={() => setDismissedBanner(true)}
-              className="text-warning hover:text-warning transition-colors"
+              className="text-warning hover:text-warning transition-colors flex-shrink-0 p-1"
               aria-label="Dismiss notification"
             >
-              <X size={20} />
+              <X size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
         </motion.div>
       )}
 
-      <div className="px-6">
-        <div className="max-w-6xl mx-auto">
-          {/* Hero Section */}
-          {!state.isFeaturedLoading && state.featuredPosts.length > 0 && (
-            <div className="mb-12">
-              <HeroBlog
-                featuredPosts={state.featuredPosts}
-                onSelect={handleHeroPostSelect}
-              />
-            </div>
-          )}
+      {/* Hero Section - Mobile-first responsive padding */}
+      {!state.isFeaturedLoading && state.featuredPosts.length > 0 && (
+        <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 mb-6 sm:mb-8 md:mb-12">
+          <HeroBlog
+            featuredPosts={state.featuredPosts}
+            onSelect={handleHeroPostSelect}
+          />
+        </div>
+      )}
 
-          {/* Category Pills Section */}
-          <div className="text-center mb-12" id="blog-content">
-            <h1 className="text-sm font-medium text-text-muted tracking-wider uppercase mb-8">
-              EXPLORE TRENDING TOPICS
-            </h1>
+      {/* Main Content - Mobile-first responsive padding */}
+      <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12">
+        {/* Category Pills Section - Mobile-first with horizontal scroll on small screens */}
+        <div className="text-center mb-6 sm:mb-8 md:mb-12" id="blog-content">
+          <h1 className="text-xs sm:text-sm font-medium text-text-muted tracking-wider uppercase mb-4 sm:mb-6 md:mb-8">
+            EXPLORE TRENDING TOPICS
+          </h1>
 
-            <div className="flex flex-wrap justify-center gap-4 mb-6">
-              {Array.isArray(safeCategories) && safeCategories.slice(0, 6).map((category) => {
-                const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons];
-                return (
-                  <BlogCategoryPill
-                    key={category.id}
-                    name={category.name}
-                    selected={state.selectedCategory === category.id}
-                    onClick={() => handleCategoryChange(state.selectedCategory === category.id ? '' : category.id)}
-                    variant="secondary"
-                    className="px-4 py-2 text-sm font-medium"
-                    icon={IconComponent && <IconComponent className="w-4 h-4" />}
-                  />
-                );
-              })}
-            </div>
-
-            <div className="flex justify-center gap-4">
-              {Array.isArray(safeCategories) && safeCategories.slice(6, 8).map((category) => {
-                const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons];
-                return (
-                  <BlogCategoryPill
-                    key={category.id}
-                    name={category.name}
-                    selected={state.selectedCategory === category.id}
-                    onClick={() => handleCategoryChange(state.selectedCategory === category.id ? '' : category.id)}
-                    variant="secondary"
-                    className="px-4 py-2 text-sm font-medium"
-                    icon={IconComponent && <IconComponent className="w-4 h-4" />}
-                  />
-                );
-              })}
-            </div>
+          {/* Category Pills - Always centered and wrapped on all screen sizes */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 mb-2 sm:mb-4 md:mb-6">
+            {Array.isArray(safeCategories) && safeCategories.slice(0, 6).map((category) => {
+              const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons];
+              return (
+                <BlogCategoryPill
+                  key={category.id}
+                  name={category.name}
+                  selected={state.selectedCategory === category.id}
+                  onClick={() => handleCategoryChange(state.selectedCategory === category.id ? '' : category.id)}
+                  variant="secondary"
+                  className="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm font-medium whitespace-nowrap"
+                  icon={IconComponent && <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                />
+              );
+            })}
           </div>
 
-          {/* Two Column Layout */}
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Blog Posts (2/3 width) */}
-            <div className="lg:col-span-2">
-              {state.isLoading ? (
-                <div className="space-y-8">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex gap-6 pb-8 animate-pulse">
-                      <div className="w-[45%] h-60 bg-surface-secondary rounded-2xl" />
-                      <div className="w-[55%] space-y-4">
-                        <div className="h-4 bg-surface-secondary rounded w-1/3" />
-                        <div className="h-8 bg-surface-secondary rounded w-full" />
-                        <div className="h-4 bg-surface-secondary rounded w-2/3" />
-                        <div className="h-10 bg-surface-secondary rounded w-32" />
+          {/* Second row - also centered */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
+            {Array.isArray(safeCategories) && safeCategories.slice(6, 8).map((category) => {
+              const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons];
+              return (
+                <BlogCategoryPill
+                  key={category.id}
+                  name={category.name}
+                  selected={state.selectedCategory === category.id}
+                  onClick={() => handleCategoryChange(state.selectedCategory === category.id ? '' : category.id)}
+                  variant="secondary"
+                  className="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm font-medium whitespace-nowrap"
+                  icon={IconComponent && <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Two Column Layout - Mobile-first responsive grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
+          {/* Left Column - Blog Posts (full width on mobile, 2/3 on desktop) */}
+          <div className="lg:col-span-2 min-w-0">
+            {state.isLoading ? (
+              // Mobile-first loading skeleton
+              <div className="space-y-4 sm:space-y-6 md:space-y-8">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    {/* Mobile: Stacked layout, Desktop: Side by side */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 pb-4 sm:pb-6 md:pb-8">
+                      <div className="w-full sm:w-[45%] h-40 xs:h-48 sm:h-52 md:h-60 bg-surface-secondary rounded-xl sm:rounded-2xl flex-shrink-0" />
+                      <div className="w-full sm:w-[55%] space-y-2 sm:space-y-3 md:space-y-4">
+                        <div className="h-3 sm:h-4 bg-surface-secondary rounded w-1/3" />
+                        <div className="h-5 sm:h-6 md:h-8 bg-surface-secondary rounded w-full" />
+                        <div className="h-3 sm:h-4 bg-surface-secondary rounded w-2/3" />
+                        <div className="h-8 sm:h-10 bg-surface-secondary rounded w-24 sm:w-32" />
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  <BlogListHorizontal posts={state.posts} />
-                  {renderPagination()}
-                </>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <BlogListHorizontal posts={state.posts} />
+                {renderPagination()}
+              </>
+            )}
+          </div>
 
-            {/* Right Column - Sidebar (1/3 width) */}
-            <div className="lg:col-span-1">
-              <BlogSidebar
-                featuredPosts={state.featuredPosts.slice(0, 3)}
-                categories={safeCategories}
-                popularTags={popularTags}
-                onTagClick={(tag) => setState(prev => ({ 
-                  ...prev, 
-                  selectedTags: prev.selectedTags.includes(tag) 
-                    ? prev.selectedTags.filter(t => t !== tag)
-                    : [...prev.selectedTags, tag],
-                  currentPage: 1
-                }))}
-                onCategoryClick={handleCategoryChange}
-                showAuthor={true}
-              />
-            </div>
+          {/* Right Column - Sidebar (hidden on mobile by default, shown on lg+) */}
+          <div className="lg:col-span-1 mt-6 lg:mt-0">
+            <BlogSidebar
+              featuredPosts={state.featuredPosts.slice(0, 3)}
+              categories={safeCategories}
+              popularTags={popularTags}
+              onTagClick={(tag) => setState(prev => ({
+                ...prev,
+                selectedTags: prev.selectedTags.includes(tag)
+                  ? prev.selectedTags.filter(t => t !== tag)
+                  : [...prev.selectedTags, tag],
+                currentPage: 1
+              }))}
+              onCategoryClick={handleCategoryChange}
+              showAuthor={true}
+            />
           </div>
         </div>
       </div>

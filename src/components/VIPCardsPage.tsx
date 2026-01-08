@@ -127,7 +127,7 @@ const VIPCardsPage: React.FC = () => {
   const heroStats = useMemo(() => [
     { value: tiers.length.toString(), label: 'VIP Tiers' },
     { value: '15+', label: 'Exclusive Benefits' },
-    { value: '24/7', label: 'VIP Support' }
+    { value: 'Priority', label: 'Event Access' }
   ], [tiers.length]);
 
   // FAQ data with language support
@@ -330,37 +330,37 @@ const VIPCardsPage: React.FC = () => {
       )}
 
       {/* VIP Cards Section */}
-      <section id="vip-cards" className="py-12 sm:py-16 md:py-24 bg-surface">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="vip-cards" className="py-10 sm:py-16 md:py-24 bg-surface overflow-hidden">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center mb-8 sm:mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary mb-3 sm:mb-4 px-2">
               Choose Your <span className="text-accent">VIP Experience</span>
             </h2>
-            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-text-secondary max-w-2xl mx-auto px-2">
               Discover the perfect VIP membership tier for your shopping lifestyle
             </p>
           </motion.div>
 
-          {/* Cards Layout - Responsive */}
-          <div className="relative">
-            {/* Desktop Grid */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Cards Layout - Mobile-First Responsive Grid */}
+          <div className="w-full">
+            {/* Unified Responsive Grid - stacks on mobile, expands on larger screens */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
               {tiers.map((tier, index) => (
                 <motion.div
                   key={tier.id}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    duration: 0.5, 
-                    delay: index * 0.1,
-                    ease: "easeOut" 
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.08,
+                    ease: "easeOut"
                   }}
-                  className="h-full"
+                  className="w-full"
                 >
                   <VipCard
                     tier={tier}
@@ -373,85 +373,31 @@ const VIPCardsPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Mobile Horizontal Scroll */}
-            <div className="md:hidden overflow-hidden">
-              {/* Scroll indicator */}
-              <div className="flex items-center justify-between mb-4 px-1">
-                <p className="text-sm text-text-muted">
-                  Swipe to explore all {tiers.length} VIP tiers
-                </p>
-                <div className="flex space-x-1">
-                  {tiers.map((_, index) => (
-                    <div
-                      key={index}
-                      className="w-2 h-2 rounded-full bg-border-primary"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Scrollable container with proper mobile setup */}
-              <div className="relative">
-                <div 
-                  className="flex gap-4 overflow-x-auto overscroll-x-contain scrollbar-hide px-4 pb-4 snap-x snap-mandatory -mx-4"
-                  style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                    WebkitOverflowScrolling: 'touch'
-                  }}
-                >
-                  {tiers.map((tier, index) => (
-                    <motion.div
-                      key={tier.id}
-                      initial={{ opacity: 0, x: 30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ 
-                        duration: 0.3, 
-                        delay: index * 0.1 
-                      }}
-                      className="flex-none w-[280px] sm:w-[300px] snap-start first:ml-0"
-                    >
-                      <VipCard
-                        tier={tier}
-                        benefits={tierBenefits[tier.id] || []}
-                        isExpanded={expandedTierId === tier.id}
-                        onExpand={() => handleCardExpand(tier.id)}
-                        usingFallback={usingFallback}
-                      />
-                    </motion.div>
-                  ))}
-                  
-                  {/* Scroll end spacer */}
-                  <div className="flex-none w-4" />
-                </div>
-              </div>
-
-              {/* Mobile scroll hint */}
-              <div className="text-center mt-3">
-                <p className="text-xs text-text-muted">
-                  ← Swipe left and right to see all tiers →
-                </p>
-              </div>
+            {/* Mobile tier count indicator */}
+            <div className="sm:hidden text-center mt-6">
+              <p className="text-xs text-text-muted">
+                {tiers.length} VIP tiers available
+              </p>
             </div>
           </div>
 
           {/* All Cards Image */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="mt-16 text-center"
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-10 sm:mt-12 md:mt-16 text-center"
           >
-            <div className="relative inline-block">
+            <div className="relative w-full max-w-4xl mx-auto">
               <img
                 src="https://plctjbxxkuettzgueqck.supabase.co/storage/v1/object/public/SK%20Assets/VIP%20Card/kartu-VIP-berlima-1-768x197.png"
                 alt="All VIP Cards Collection"
-                className="w-full max-w-4xl h-auto rounded-2xl shadow-2xl"
+                className="w-full h-auto rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl sm:rounded-2xl pointer-events-none" />
             </div>
-            <p className="mt-4 text-sm text-text-muted max-w-2xl mx-auto">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-text-muted max-w-2xl mx-auto px-2">
               Complete collection of Supermal Karawaci VIP cards - each tier designed to elevate your shopping experience
             </p>
           </motion.div>
@@ -459,18 +405,18 @@ const VIPCardsPage: React.FC = () => {
       </section>
 
       {/* Eligibility Checker Section */}
-      <section className="py-16 md:py-20 bg-surface-tertiary">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-10 sm:py-16 md:py-20 bg-surface-tertiary overflow-hidden">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary mb-3 sm:mb-4">
               Check Your <span className="text-accent">Eligibility</span>
             </h2>
-            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-text-secondary max-w-2xl mx-auto px-2">
               Enter your monthly spending amount to see which VIP tiers you qualify for
             </p>
           </motion.div>
@@ -486,18 +432,18 @@ const VIPCardsPage: React.FC = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 md:py-20 bg-surface">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-10 sm:py-16 md:py-20 bg-surface overflow-hidden">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary mb-3 sm:mb-4">
               Frequently Asked <span className="text-accent">Questions</span>
             </h2>
-            <p className="text-lg text-text-secondary">
+            <p className="text-base sm:text-lg text-text-secondary px-2">
               Everything you need to know about our VIP membership program
             </p>
           </motion.div>
@@ -513,34 +459,34 @@ const VIPCardsPage: React.FC = () => {
       </section>
 
       {/* Registration CTA Section */}
-      <section className="py-16 md:py-20 bg-accent text-text-inverse overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      <section className="relative py-10 sm:py-16 md:py-20 bg-accent text-text-inverse overflow-hidden">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="mb-8">
-              <Gift className="w-16 h-16 mx-auto mb-6 opacity-90" />
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <div className="mb-6 sm:mb-8">
+              <Gift className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 opacity-90" />
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">
                 Ready to Unlock VIP Benefits?
               </h2>
-              <p className="text-lg text-text-inverse/90 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg text-text-inverse/90 max-w-2xl mx-auto px-2">
                 Visit our VIP Lounge today to register for your preferred tier and start enjoying exclusive privileges immediately.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
-                size="lg" 
+            <div className="flex flex-col gap-4 sm:gap-5 justify-center items-center">
+              <Button
+                size="lg"
                 variant="secondary"
-                className="px-8 py-4 text-lg font-semibold bg-text-inverse text-accent hover:bg-text-inverse/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold bg-text-inverse text-accent hover:bg-text-inverse/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
-                <Star className="w-5 h-5 mr-2" />
+                <Star className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
                 Register at VIP Lounge
               </Button>
-              
-              <div className="text-sm text-text-inverse/80">
+
+              <div className="text-xs sm:text-sm text-text-inverse/80 text-center">
                 <p className="font-medium">VIP Lounge Location:</p>
                 <p>Ground Floor, Main Lobby</p>
                 <p>Daily: 10:00 AM - 10:00 PM</p>
@@ -549,53 +495,16 @@ const VIPCardsPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-40 -left-40 w-80 h-80 bg-text-inverse rounded-full"></div>
-          <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-text-inverse rounded-full"></div>
+        {/* Background decoration - hidden on very small screens to prevent overflow */}
+        <div className="absolute inset-0 opacity-10 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -left-20 sm:-top-40 sm:-left-40 w-40 h-40 sm:w-80 sm:h-80 bg-text-inverse rounded-full" />
+          <div className="absolute -bottom-20 -right-20 sm:-bottom-40 sm:-right-40 w-40 h-40 sm:w-80 sm:h-80 bg-text-inverse rounded-full" />
         </div>
       </section>
 
-      {/* Custom CSS for mobile scrolling */}
+      {/* Minimal CSS for mobile modal fullscreen */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          /* Hide scrollbars */
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-
-          /* Prevent horizontal overflow on main page */
-          body, html {
-            overflow-x: hidden;
-          }
-
-          /* Ensure smooth touch scrolling on mobile */
-          .overflow-x-auto {
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-          }
-
-          /* Mobile scroll snap points */
-          @media (max-width: 768px) {
-            .snap-x {
-              scroll-snap-type: x mandatory;
-            }
-            
-            .snap-start {
-              scroll-snap-align: start;
-            }
-          }
-
-          /* Prevent any accidental horizontal scroll */
-          .max-w-7xl {
-            max-width: min(1280px, 100vw);
-          }
-
           /* Fix mobile modal to be truly full screen */
           @media (max-width: 640px) {
             .modal-fullscreen {
@@ -603,10 +512,10 @@ const VIPCardsPage: React.FC = () => {
               inset: 0 !important;
               margin: 0 !important;
               border-radius: 0 !important;
-              max-height: 100vh !important;
+              max-height: 100dvh !important;
               max-width: 100vw !important;
               width: 100vw !important;
-              height: 100vh !important;
+              height: 100dvh !important;
             }
           }
         `

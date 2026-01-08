@@ -41,9 +41,9 @@ export default function BlogSidebar({
   onSubscribe,
   className = '',
   showAuthor = true,
-  authorName = 'Ethan Caldwell',
-  authorBio = 'Ethan Caldwell shares thoughtful insights and reflections on life, culture, and personal growth. His work explores the intersections of creativity and experience, offering readers unique perspectives.',
-  authorLocation = 'Paris, France'
+  authorName = 'Supermal Karawaci',
+  authorBio = 'Your premier shopping destination in Tangerang. Discover the latest trends, events, dining experiences, and lifestyle content from one of Indonesia\'s most iconic malls.',
+  authorLocation = 'Tangerang, Indonesia'
 }: BlogSidebarProps) {
   const [email, setEmail] = useState('');
 

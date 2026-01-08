@@ -51,10 +51,10 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
 
   // Check for active filters
   const hasActiveFilters = Boolean(
-    searchQuery || 
-    selectedTags.length > 0 || 
-    !upcomingOnly || 
-    fromDate || 
+    searchQuery ||
+    selectedTags.length > 0 ||
+    upcomingOnly ||
+    fromDate ||
     toDate
   );
 
@@ -281,13 +281,13 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
             </Badge>
           )}
 
-          {!upcomingOnly && (
+          {upcomingOnly && (
             <Badge variant="outline" className="flex items-center gap-1">
-              All Events
-              <button 
-                onClick={() => onUpcomingToggle(true)}
+              Upcoming Only
+              <button
+                onClick={() => onUpcomingToggle(false)}
                 className="ml-1 hover:bg-surface-tertiary rounded-full p-0.5"
-                aria-label="Show upcoming only"
+                aria-label="Show all events"
               >
                 <X className="w-3 h-3" />
               </button>

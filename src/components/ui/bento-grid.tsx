@@ -31,9 +31,10 @@ interface BentoCardProps {
   background: ReactNode;
   Icon: React.ComponentType<{ className?: string }>;
   description: string;
-  href: string;
-  cta: string;
+  href?: string;
+  cta?: string;
   darkBackground?: boolean; // For cards with dark gradient backgrounds
+  onClick?: () => void; // Optional click handler for modal popups
 }
 
 const BentoCard = ({
@@ -45,73 +46,96 @@ const BentoCard = ({
   href,
   cta,
   darkBackground = false,
-}: BentoCardProps) => (
-  <div
-    key={name}
-    className={cn(
-      "group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-xl",
-      // Use tokenized colors from tailwind.config.js
-      "bg-surface-secondary border border-border-primary shadow-lg",
-      "hover:shadow-2xl hover:-translate-y-2 transition-all duration-300",
-      className,
-    )}
-  >
-    <div>{background}</div>
-    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
-      <Icon 
-        className={cn(
-          "h-12 w-12 origin-left transform-gpu transition-all duration-300 ease-in-out group-hover:scale-75",
-          darkBackground 
-            ? "text-accent drop-shadow-2xl" // Always white on dark gradients (both themes need white text)
-            : "text-accent drop-shadow-lg"  // Use accent token for theme-aware coloring
-        )}
-      />
-      <h3 
-        className={cn(
-          "text-xl font-semibold transition-colors",
-          darkBackground 
-            ? "text-white drop-shadow-2xl"   // Always white text on dark gradients
-            : "text-text-primary drop-shadow-lg" // Use text-primary token for theme-aware text
-        )}
-      >
-        {name}
-      </h3>
-      <p 
-        className={cn(
-          "max-w-lg text-sm leading-relaxed",
-          darkBackground 
-            ? "text-gray-200 drop-shadow-lg"     // Always light gray on dark gradients
-            : "text-text-secondary drop-shadow-md" // Use text-secondary token for theme-aware secondary text
-        )}
-      >
-        {description}
-      </p>
-    </div>
+  onClick,
+}: BentoCardProps) => {
+  // Determine if this card is clickable (for modal) or has a link
+  const isClickable = !!onClick;
+  const hasLink = !!href && !!cta;
 
+  return (
     <div
+      key={name}
       className={cn(
-        "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
+        "group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-xl",
+        // Use tokenized colors from tailwind.config.js
+        "bg-surface-secondary border border-border-primary shadow-lg",
+        "hover:shadow-2xl hover:-translate-y-2 transition-all duration-300",
+        isClickable && "cursor-pointer",
+        className,
       )}
+      onClick={onClick}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      } : undefined}
     >
-      <Button 
-        variant="ghost" 
-        asChild 
-        size="sm" 
-        className={cn(
-          "pointer-events-auto backdrop-blur-sm font-semibold transition-all duration-300",
-          darkBackground
-            ? "bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 hover:border-white" // Fixed white colors for dark gradient backgrounds
-            : "bg-surface-secondary/80 text-text-primary hover:bg-accent hover:text-text-inverse border border-border-primary hover:border-accent" // Tokenized colors for theme-aware backgrounds
-        )}
-      >
-        <a href={href}>
-          {cta}
-          <ArrowRightIcon className="ml-2 h-4 w-4" />
-        </a>
-      </Button>
+      <div>{background}</div>
+      <div className={cn(
+        "pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300",
+        hasLink && "group-hover:-translate-y-10"
+      )}>
+        <Icon
+          className={cn(
+            "h-12 w-12 origin-left transform-gpu transition-all duration-300 ease-in-out group-hover:scale-75",
+            darkBackground
+              ? "text-accent drop-shadow-2xl" // Always white on dark gradients (both themes need white text)
+              : "text-accent drop-shadow-lg"  // Use accent token for theme-aware coloring
+          )}
+        />
+        <h3
+          className={cn(
+            "text-xl font-semibold transition-colors",
+            darkBackground
+              ? "text-white drop-shadow-2xl"   // Always white text on dark gradients
+              : "text-text-primary drop-shadow-lg" // Use text-primary token for theme-aware text
+          )}
+        >
+          {name}
+        </h3>
+        <p
+          className={cn(
+            "max-w-lg text-sm leading-relaxed",
+            darkBackground
+              ? "text-gray-200 drop-shadow-lg"     // Always light gray on dark gradients
+              : "text-text-secondary drop-shadow-md" // Use text-secondary token for theme-aware secondary text
+          )}
+        >
+          {description}
+        </p>
+      </div>
+
+      {/* Show CTA button only for link cards */}
+      {hasLink && (
+        <div
+          className={cn(
+            "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
+          )}
+        >
+          <Button
+            variant="ghost"
+            asChild
+            size="sm"
+            className={cn(
+              "pointer-events-auto backdrop-blur-sm font-semibold transition-all duration-300",
+              darkBackground
+                ? "bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 hover:border-white" // Fixed white colors for dark gradient backgrounds
+                : "bg-surface-secondary/80 text-text-primary hover:bg-accent hover:text-text-inverse border border-border-primary hover:border-accent" // Tokenized colors for theme-aware backgrounds
+            )}
+          >
+            <a href={href}>
+              {cta}
+              <ArrowRightIcon className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+      )}
+      <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-surface-tertiary/10" />
     </div>
-    <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-surface-tertiary/10" />
-  </div>
-);
+  );
+};
 
 export { BentoCard, BentoGrid };

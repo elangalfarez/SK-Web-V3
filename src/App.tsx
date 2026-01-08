@@ -39,7 +39,6 @@ import NotFoundPage from './components/NotFoundPage'; // 404 Page
 
 // Admin Components
 import SEOInjector from './components/SEOInjector';
-import SEOSettingsPage from './components/admin/SEOSettingsPage';
 
 
 
@@ -124,15 +123,7 @@ function App() {
             </Layout>
           }
         />
-        {/* SEO Settings Page */}
-        <Route
-          path="/admin/seo-settings"
-          element={
-            <Layout>
-              <SEOSettingsPage />
-            </Layout>
-          }
-        />
+
         {/* Mall Directory Page */}
         <Route
           path="/directory"

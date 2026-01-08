@@ -9,8 +9,6 @@ import {
   FileText,
   Calendar,
   Gift,
-  Phone,
-  Heart,
   Film
 } from 'lucide-react';
 import MegaMenu from '@/components/ui/mega-menu';
@@ -130,29 +128,7 @@ const Navbar = () => {
       ],
     },
     { id: 4, label: 'VIP Card', link: '/vip-cards' },
-    {
-      id: 6,
-      label: 'Contact',
-      subMenus: [
-        {
-          title: 'Get in Touch',
-          items: [
-            {
-              label: 'Contact Us',
-              description: 'Send us a message or find our contact details',
-              icon: Phone,
-              href: '/contact',
-            },
-            {
-              label: 'Feedback',
-              description: 'Share your experience with us',
-              icon: Heart,
-              href: '/contact',
-            },
-          ],
-        },
-      ],
-    },
+    { id: 6, label: 'Contact', link: '/contact' },
   ];
 
   const mobileMenuItems = [

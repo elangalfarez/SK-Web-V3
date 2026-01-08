@@ -219,7 +219,7 @@ const EventDetailPage: React.FC = () => {
                 ? "The event you're looking for doesn't exist or has been removed."
                 : 'We encountered an error while loading the event details.'}
             </p>
-            <Link to="/events">
+            <Link to="/event">
               <Button variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Events
@@ -295,8 +295,8 @@ const EventDetailPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Link */}
         <div className="mb-8">
-          <Link 
-            to="/events"
+          <Link
+            to="/event"
             className="inline-flex items-center text-accent hover:text-accent-hover transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

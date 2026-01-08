@@ -93,7 +93,7 @@ const EventsPage: React.FC = () => {
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [showUpcomingOnly, setShowUpcomingOnly] = useState(true);
+  const [showUpcomingOnly, setShowUpcomingOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -199,10 +199,10 @@ const EventsPage: React.FC = () => {
   const clearAllFilters = () => {
     setSearchQuery('');
     setSelectedTags([]);
-    setShowUpcomingOnly(true);
+    setShowUpcomingOnly(false);
   };
 
-  const hasActiveFilters = searchQuery || selectedTags.length > 0 || !showUpcomingOnly;
+  const hasActiveFilters = searchQuery || selectedTags.length > 0 || showUpcomingOnly;
 
   // Memoized components for performance
   const FeaturedEventsSection = useMemo(() => {
